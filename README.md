@@ -111,7 +111,7 @@ The application will be available at `http://localhost:3000`.
 
 ## Project Status
 
-=§ **Early Development** - This project is currently in the initial MVP development phase.
+**Early Development** - This project is currently in the initial MVP development phase.
 
 ## License
 
