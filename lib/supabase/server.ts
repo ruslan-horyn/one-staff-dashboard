@@ -3,7 +3,7 @@ import { cookies } from 'next/headers'
 
 import { env } from '@/lib/env'
 
-import type { Database } from './database.types'
+import type { Database } from '@/types/database'
 
 export async function createClient() {
   const cookieStore = await cookies()
