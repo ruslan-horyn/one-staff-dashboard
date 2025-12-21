@@ -9,6 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `docs/prd.md` - Product Requirements Document with user stories and acceptance criteria
 - `docs/tech-stack.md` - Technology stack and tools used in the project
 - `docs/directory-architecture.md` - Project structure and file organization guidelines
+- `docs/commit-conventions.md` - Commit message format and conventions (MUST follow when committing)
 
 These files contain essential context about the project's requirements, architecture, and conventions.
 
@@ -256,10 +257,30 @@ const form = useForm<CreateWorkerInput>({
 
 #### CONVENTIONAL_COMMITS
 
-- Follow the format: `type(scope): description` for all commit messages
-- Use consistent types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
-- Define clear scopes based on project modules to indicate affected areas
-- Include issue references in commit messages to link changes to requirements
-- Use breaking change footer (`!:` or `BREAKING CHANGE:`) to clearly mark incompatible changes
-- Do not include "Generated with Claude Code" or "Co-Authored-By" lines in commits
-- Configure commitlint to automatically enforce conventional commit format
+**MANDATORY:** All commits MUST follow the Conventional Commits format. Commits that don't follow this format will be rejected by the commitlint hook.
+
+**Format:** `type(scope): description`
+
+**Allowed types:** `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
+
+**Project scopes:** `workers`, `clients`, `locations`, `positions`, `assignments`, `reports`, `auth`, `ui`, `api`, `db`, `deps`, `config`
+
+**Rules:**
+
+- Type and scope MUST be lowercase
+- Description MUST start with lowercase letter
+- Description MUST NOT end with a period
+- Use `!` after type/scope for breaking changes (e.g., `feat(api)!: change format`)
+- Do NOT include "Generated with Claude Code" or "Co-Authored-By" lines
+- Reference issues in footer when applicable (e.g., `Closes #123`)
+
+**Examples:**
+
+```bash
+feat(workers): add bulk import functionality
+fix(auth): resolve session timeout issue
+docs(api): update endpoint documentation
+refactor(assignments)!: change data structure
+```
+
+See `docs/commit-conventions.md` for complete reference.
