@@ -1,10 +1,16 @@
 // Barrel exports for TypeScript types
-// Re-export database types
+
+// Database types (Supabase-generated)
 export * from './database';
 
-// Add domain-specific type exports here as they are created
-// export * from './worker';
-// export * from './client';
-// export * from './location';
-// export * from './assignment';
-// export * from './user';
+// Common types (enums, pagination, utilities)
+export * from './common';
+
+// Domain entity types
+export * from './auth';
+export * from './client';
+export * from './work-location';
+export * from './position';
+export * from './worker';
+export * from './assignment';
+export * from './report';
