@@ -1,4 +1,15 @@
 import type { Enums } from './database';
+import { Constants } from './database';
+
+// ============================================================================
+// Enum Values (for use in Zod schemas)
+// ============================================================================
+
+/** User role enum values */
+export const USER_ROLE_VALUES = Constants.public.Enums.user_role;
+
+/** Assignment status enum values */
+export const ASSIGNMENT_STATUS_VALUES = Constants.public.Enums.assignment_status;
 
 // ============================================================================
 // Enum Types

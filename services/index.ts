@@ -1,3 +1,13 @@
 // Barrel exports for services
-// Add exports here as services are created
-export {};
+
+// Shared schemas and utilities
+export * from './shared';
+
+// Domain module schemas
+export * from './auth';
+export * from './clients';
+export * from './work-locations';
+export * from './positions';
+export * from './workers';
+export * from './assignments';
+export * from './reports';
