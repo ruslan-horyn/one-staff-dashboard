@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Required Reading
+
+**IMPORTANT:** Before starting any task, always read the following documentation files:
+
+- `docs/prd.md` - Product Requirements Document with user stories and acceptance criteria
+- `docs/tech-stack.md` - Technology stack and tools used in the project
+- `docs/directory-architecture.md` - Project structure and file organization guidelines
+
+These files contain essential context about the project's requirements, architecture, and conventions.
+
 ## Project Overview
 
 One Staff Dashboard is an internal MVP web application for a temporary staffing agency. It replaces manual spreadsheet-based processes by centralizing management of temporary workers, clients, work locations, and schedules. Key features include worker assignment to positions, availability tracking, and worked hours reporting.
@@ -39,6 +49,7 @@ pnpm test:e2e        # Run Playwright E2E tests
 
 - Supabase (PostgreSQL + JWT auth)
 - Zustand (state management)
+- Zod (validation for forms and server actions)
 - Lucide React (icons)
 - Vitest + React Testing Library + MSW (testing)
 - Playwright (E2E)
@@ -131,26 +142,38 @@ export const Widget = ({ title, count = 0 }: WidgetProps) => {
 
 ## Forms
 
-- Use `react-hook-form` with `yup` validation via `@hookform/resolvers/yup`
+- Use `react-hook-form` with `zod` validation via `@hookform/resolvers/zod`
 - Prefer `useFormContext` over prop-drilling `control`, `watch`
 - Prefer `Controller` over `register` for UI component integration
+- Schemas are defined in `/services/[module]/schemas.ts` and shared between client and server
 - All validation messages from i18n (no inline text)
 
 Example schema:
 
 ```typescript
-import { yupResolver } from '@hookform/resolvers/yup';
+// /services/workers/schemas.ts
+import { z } from 'zod';
+
+export const createWorkerSchema = z.object({
+  firstName: z.string().min(1, 'Required').max(100),
+  lastName: z.string().min(1, 'Required').max(100),
+  phone: z.string().min(9).max(20),
+});
+
+export type CreateWorkerInput = z.infer<typeof createWorkerSchema>;
+```
+
+Example form usage:
+
+```typescript
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import type { TFunction } from 'react-i18next';
-import * as yup from 'yup';
+import { createWorkerSchema, type CreateWorkerInput } from '@/services/workers/schemas';
 
-export const featureFormSchema = (t: TFunction) =>
-  yup.object({
-    field1: yup.string().required(t('common:validator.required')),
-    field2: yup.string().min(3, t('common:validator.invalid')),
-  });
-
-export interface FeatureFormType extends yup.InferType<ReturnType<typeof featureFormSchema>> {}
+const form = useForm<CreateWorkerInput>({
+  resolver: zodResolver(createWorkerSchema),
+  defaultValues: { firstName: '', lastName: '', phone: '' },
+});
 ```
 
 ### Guidelines for STYLING
