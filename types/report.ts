@@ -11,20 +11,3 @@ export interface HoursReportData {
   total_hours: number;
 }
 
-// ============================================================================
-// Command Models (Input Types)
-// ============================================================================
-
-/** Input for generating hours report */
-export interface GenerateHoursReportInput {
-  startDate: string;
-  endDate: string;
-  clientId?: string | null;
-}
-
-/** Input for exporting report to CSV/Excel */
-export interface ExportReportInput {
-  startDate: string;
-  endDate: string;
-  clientId?: string | null;
-}

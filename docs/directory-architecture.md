@@ -160,26 +160,19 @@ Type definitions organized by domain entity. Each entity file follows a consiste
    }
    ```
 
-3. **Command Models** - Input types for create/update operations
-   ```typescript
-   export interface CreateWorkerInput {
-     firstName: string;
-     lastName: string;
-     phone: string;
-   }
-   ```
+> **Note:** Input/command types (e.g., `CreateWorkerInput`) are defined in `/services/[module]/schemas.ts` and inferred from Zod schemas. This ensures validation rules and types stay in sync.
 
 **File Structure:**
 
 - `database.ts` - Auto-generated Supabase types (run `pnpm supabase gen types`)
 - `common.ts` - Shared types: enums (`UserRole`, `AssignmentStatus`), pagination, sort params
-- `auth.ts` - Auth user and session types
-- `client.ts` - Client entity, `ClientWithLocations` DTO, input types
-- `work-location.ts` - WorkLocation entity, `WorkLocationWithClient` DTO, input types
-- `position.ts` - Position entity, `PositionWithLocation` DTO, input types
-- `worker.ts` - Worker entity, `WorkerWithStats`, `WorkerWithAssignments` DTOs, input types
-- `assignment.ts` - Assignment entity, `AssignmentWithDetails` DTO, input types
-- `report.ts` - Report filter params and summary types for hours reports
+- `auth.ts` - `Profile` entity type
+- `client.ts` - `Client` entity, `ClientWithLocations` DTO
+- `work-location.ts` - `WorkLocation` entity, `WorkLocationWithClient`, `WorkLocationWithPositions` DTOs
+- `position.ts` - `Position` entity, `PositionWithLocation` DTO
+- `worker.ts` - `Worker` entity, `WorkerWithStats`, `WorkerWithAssignments` DTOs
+- `assignment.ts` - `Assignment`, `AuditLogEntry` entities, `AssignmentWithDetails` DTO
+- `report.ts` - `HoursReportData` DTO for hours reports
 
 ### /services - Server Actions & Data Layer
 
@@ -232,9 +225,6 @@ import type { Worker, Client, Assignment } from '@/types';
 import type { WorkerWithStats, WorkerWithAssignments } from '@/types';
 import type { AssignmentWithDetails } from '@/types';
 
-// Types - Command models (inputs)
-import type { CreateWorkerInput, UpdateWorkerInput } from '@/types';
-
 // Types - Common utilities
 import type { PaginationParams, SortParams, UserRole } from '@/types';
 
@@ -242,8 +232,9 @@ import type { PaginationParams, SortParams, UserRole } from '@/types';
 import { createWorker, updateWorker } from '@/services/workers/actions';
 import { getWorkers, getWorkerById } from '@/services/workers/queries';
 
-// Validation Schemas
+// Validation Schemas & Input Types (from services)
 import { createWorkerSchema } from '@/services/workers/schemas';
+import type { CreateWorkerInput, UpdateWorkerInput } from '@/services/workers';
 
 // Utilities
 import { formatDate } from '@/utils';
@@ -262,8 +253,7 @@ import { cn } from '@/lib/utils/cn';
 | Custom Hook                    | `/hooks/`                                 |
 | Zustand Store                  | `/stores/`                                |
 | Entity Type / DTO              | `/types/[entity].ts`                      |
-| Command Model (Input type)     | `/types/[entity].ts`                      |
-| Zod Validation Schema          | `/services/[module]/schemas.ts`           |
+| Zod Schema + Input Types       | `/services/[module]/schemas.ts`           |
 | Server Action                  | `/services/[module]/actions.ts`           |
 | Server Query                   | `/services/[module]/queries.ts`           |
 | Utility Function               | `/utils/`                                 |

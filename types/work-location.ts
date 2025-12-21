@@ -22,24 +22,3 @@ export interface WorkLocationWithPositions extends WorkLocationWithClient {
   positions: Tables<'positions'>[];
 }
 
-// ============================================================================
-// Command Models (Input Types)
-// ============================================================================
-
-/** Input for creating a new work location */
-export interface CreateWorkLocationInput {
-  clientId: string;
-  name: string;
-  address?: string | null;
-  email?: string | null;
-  phone?: string | null;
-}
-
-/** Input for updating an existing work location */
-export interface UpdateWorkLocationInput {
-  id: string;
-  name?: string;
-  address?: string | null;
-  email?: string | null;
-  phone?: string | null;
-}

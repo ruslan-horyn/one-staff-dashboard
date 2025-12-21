@@ -45,21 +45,3 @@ export interface WorkerWithAssignments extends Worker {
   }>;
 }
 
-// ============================================================================
-// Command Models (Input Types)
-// ============================================================================
-
-/** Input for creating a new worker */
-export interface CreateWorkerInput {
-  firstName: string;
-  lastName: string;
-  phone: string;
-}
-
-/** Input for updating an existing worker */
-export interface UpdateWorkerInput {
-  id: string;
-  firstName?: string;
-  lastName?: string;
-  phone?: string;
-}

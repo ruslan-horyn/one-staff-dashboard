@@ -16,23 +16,3 @@ export interface ClientWithLocations extends Client {
   work_locations: Tables<'work_locations'>[];
 }
 
-// ============================================================================
-// Command Models (Input Types)
-// ============================================================================
-
-/** Input for creating a new client */
-export interface CreateClientInput {
-  name: string;
-  email?: string | null;
-  phone?: string | null;
-  address?: string | null;
-}
-
-/** Input for updating an existing client */
-export interface UpdateClientInput {
-  id: string;
-  name?: string;
-  email?: string | null;
-  phone?: string | null;
-  address?: string | null;
-}

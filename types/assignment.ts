@@ -31,25 +31,3 @@ export interface AuditLogEntryWithProfile extends AuditLogEntry {
   performed_by_profile: Pick<Profile, 'id' | 'first_name' | 'last_name'>;
 }
 
-// ============================================================================
-// Command Models (Input Types)
-// ============================================================================
-
-/** Input for creating a new assignment */
-export interface CreateAssignmentInput {
-  workerId: string;
-  positionId: string;
-  startAt: string;
-  endAt?: string | null;
-}
-
-/** Input for ending an assignment */
-export interface EndAssignmentInput {
-  assignmentId: string;
-  endAt?: string;
-}
-
-/** Input for cancelling an assignment */
-export interface CancelAssignmentInput {
-  assignmentId: string;
-}
