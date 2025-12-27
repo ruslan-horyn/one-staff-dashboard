@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
 import {
-  uuidSchema,
-  optionalEmailSchema,
-  optionalPhoneSchema,
   baseFilterSchema,
+  emailSchema,
+  phoneSchema,
   sortOrderSchema,
+  uuidSchema
 } from '@/services/shared/schemas';
 
 // ============================================================================
@@ -22,15 +22,13 @@ export const createClientSchema = z.object({
     .trim()
     .min(1, 'Name is required')
     .max(255, 'Name must be at most 255 characters'),
-  email: optionalEmailSchema,
-  phone: optionalPhoneSchema,
+  email: emailSchema,
+  phone: phoneSchema,
   address: z
     .string()
     .trim()
-    .min(1, 'Address cannot be empty')
-    .max(500, 'Address must be at most 500 characters')
-    .optional()
-    .nullable(),
+    .min(1, 'Address is required')
+    .max(500, 'Address must be at most 500 characters'),
 });
 
 /**
@@ -45,15 +43,14 @@ export const updateClientSchema = z.object({
     .min(1, 'Name is required')
     .max(255, 'Name must be at most 255 characters')
     .optional(),
-  email: optionalEmailSchema,
-  phone: optionalPhoneSchema,
+  email: emailSchema.optional(),
+  phone: phoneSchema.optional(),
   address: z
     .string()
     .trim()
-    .min(1, 'Address cannot be empty')
+    .min(1, 'Address is required')
     .max(500, 'Address must be at most 500 characters')
-    .optional()
-    .nullable(),
+    .optional(),
 });
 
 /**
@@ -72,7 +69,7 @@ export const clientIdSchema = z.object({
 });
 
 /** Allowed sort fields for clients */
-export const clientSortBySchema = z.enum(['name', 'created_at']).optional().default('name');
+export const clientSortBySchema = z.enum(['name', 'created_at']).optional().default('created_at');
 
 /**
  * Schema for filtering clients list
@@ -83,6 +80,16 @@ export const clientFilterSchema = baseFilterSchema.extend({
   sortOrder: sortOrderSchema,
   includeDeleted: z.boolean().optional().default(false),
 });
+
+// ============================================================================
+// Query Configuration
+// ============================================================================
+
+/** Searchable columns for clients list (OCP - extend here to add new searchable fields) */
+export const CLIENT_SEARCHABLE_COLUMNS = ['name', 'email', 'phone', 'address'] as const;
+
+/** Sortable columns for clients list */
+export const CLIENT_SORTABLE_COLUMNS = ['name', 'created_at'] as const;
 
 // ============================================================================
 // Type Exports
