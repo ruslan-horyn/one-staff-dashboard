@@ -30,9 +30,9 @@ Przechowuje dane klientów agencji.
 |--------------|-------------------------------------|--------------------------------------------------------|
 | id           | UUID                                | PRIMARY KEY, DEFAULT gen_random_uuid()                 |
 | name         | VARCHAR(255)                        | NOT NULL                                               |
-| email        | VARCHAR(255)                        | NULL                                                   |
-| phone        | VARCHAR(20)                         | NULL                                                   |
-| address      | TEXT                                | NULL                                                   |
+| email        | VARCHAR(255)                        | NOT NULL                                               |
+| phone        | VARCHAR(20)                         | NOT NULL                                               |
+| address      | TEXT                                | NOT NULL                                               |
 | created_at   | TIMESTAMPTZ                         | NOT NULL, DEFAULT NOW()                                |
 | updated_at   | TIMESTAMPTZ                         | NOT NULL, DEFAULT NOW()                                |
 | deleted_at   | TIMESTAMPTZ                         | NULL (soft delete)                                     |
@@ -48,7 +48,7 @@ Miejsca pracy powiązane z klientami.
 | id           | UUID                                | PRIMARY KEY, DEFAULT gen_random_uuid()                 |
 | client_id    | UUID                                | NOT NULL, REFERENCES clients(id) ON DELETE RESTRICT    |
 | name         | VARCHAR(255)                        | NOT NULL                                               |
-| address      | TEXT                                | NULL                                                   |
+| address      | TEXT                                | NOT NULL                                               |
 | email        | VARCHAR(255)                        | NULL                                                   |
 | phone        | VARCHAR(20)                         | NULL                                                   |
 | created_at   | TIMESTAMPTZ                         | NOT NULL, DEFAULT NOW()                                |
