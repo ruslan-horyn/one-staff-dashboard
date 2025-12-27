@@ -26,10 +26,8 @@ export const createWorkLocationSchema = z.object({
   address: z
     .string()
     .trim()
-    .min(1, 'Address cannot be empty')
-    .max(500, 'Address must be at most 500 characters')
-    .optional()
-    .nullable(),
+    .min(1, 'Address is required')
+    .max(500, 'Address must be at most 500 characters'),
   email: optionalEmailSchema,
   phone: optionalPhoneSchema,
 });
@@ -49,10 +47,9 @@ export const updateWorkLocationSchema = z.object({
   address: z
     .string()
     .trim()
-    .min(1, 'Address cannot be empty')
+    .min(1, 'Address is required')
     .max(500, 'Address must be at most 500 characters')
-    .optional()
-    .nullable(),
+    .optional(),
   email: optionalEmailSchema,
   phone: optionalPhoneSchema,
 });
