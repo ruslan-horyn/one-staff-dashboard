@@ -259,6 +259,44 @@ Available error codes from `ErrorCodes`:
 | `DATABASE_ERROR` | Unexpected database error |
 | `INTERNAL_ERROR` | Unexpected application error |
 
+### Pagination Helpers
+
+Use pagination helpers from `/services/shared/pagination.ts` for paginated queries:
+
+```typescript
+import { paginateResult, applyPaginationToQuery, DEFAULT_PAGE_SIZE } from '@/services/shared';
+import type { PaginatedResult } from '@/services/shared';
+
+// In a query function
+export async function getWorkers(params: WorkerFilter): Promise<PaginatedResult<Worker>> {
+  const { page = 1, pageSize = DEFAULT_PAGE_SIZE } = params;
+
+  // Get total count
+  const { count } = await supabase
+    .from('temporary_workers')
+    .select('*', { count: 'exact', head: true });
+
+  // Get paginated data using helper
+  const query = supabase.from('temporary_workers').select('*');
+  const { data, error } = await applyPaginationToQuery(query, page, pageSize);
+
+  if (error) throw error;
+  return paginateResult(data ?? [], count ?? 0, page, pageSize);
+}
+```
+
+**Available helpers:**
+
+| Function | Description |
+|----------|-------------|
+| `calculateOffset(page, pageSize)` | Converts page/pageSize to SQL offset |
+| `calculateTotalPages(totalItems, pageSize)` | Calculates total pages |
+| `createPaginationMeta(params)` | Creates full pagination metadata |
+| `paginateResult(data, totalItems, page, pageSize)` | Wraps data in `PaginatedResult<T>` |
+| `applyPaginationToQuery(query, page, pageSize)` | Adds `.range()` to Supabase query |
+
+**Constants:** `DEFAULT_PAGE_SIZE` (20), `MAX_PAGE_SIZE` (100)
+
 ### Guidelines for STYLING
 
 #### TAILWIND

@@ -193,7 +193,7 @@ Modular structure for server-side operations. Each domain module contains:
 - `auth.ts` - `getSession()`, `requireSession()`, `AuthenticationError`
 - `action-wrapper.ts` - `createAction()` HOF for wrapping server actions with validation and auth
 - `schemas.ts` - Shared Zod schemas (UUID, phone, email, pagination, date ranges)
-- `pagination.ts` - Pagination constants and helpers
+- `pagination.ts` - Pagination types (`PaginatedResult<T>`, `PaginationMeta`) and helpers (`calculateOffset`, `calculateTotalPages`, `createPaginationMeta`, `paginateResult`, `applyPaginationToQuery`)
 
 ### /utils - Pure Utilities
 Pure helper functions (formatting, validation, export).
@@ -241,6 +241,10 @@ import { getWorkers, getWorkerById } from '@/services/workers/queries';
 // Validation Schemas & Input Types (from services)
 import { createWorkerSchema } from '@/services/workers/schemas';
 import type { CreateWorkerInput, UpdateWorkerInput } from '@/services/workers';
+
+// Pagination helpers
+import { paginateResult, calculateOffset, DEFAULT_PAGE_SIZE } from '@/services/shared';
+import type { PaginatedResult, PaginationMeta } from '@/services/shared';
 
 // Utilities
 import { formatDate } from '@/utils';
