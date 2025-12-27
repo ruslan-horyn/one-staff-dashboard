@@ -1,12 +1,20 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server'
 
-export function proxy(request: NextRequest) {
-  // TODO: Implement auth check and redirect
-  // Note: proxy runs on Edge - use for simple checks only
-  // For full auth, use Supabase session check in layouts
-  return NextResponse.next();
+import { updateSession } from '@/lib/supabase/proxy'
+
+export async function proxy(request: NextRequest) {
+  return await updateSession(request)
 }
 
 export const config = {
-  matcher: ['/(dashboard)/:path*'],
-};
+  matcher: [
+    /*
+     * Match all request paths except:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public assets (svg, png, jpg, etc.)
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
+}
