@@ -1,3 +1,13 @@
 // Barrel exports for utility functions
-// Add exports here as utilities are created
-export {};
+
+// Try-catch utility with Result type
+export {
+  tryCatch,
+  isOk,
+  isErr,
+  unwrap,
+  unwrapOr,
+  type Result,
+  type SuccessResult,
+  type ErrorResult,
+} from './try-catch';

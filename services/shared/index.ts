@@ -17,3 +17,6 @@ export * from './action-wrapper';
 
 // Pagination helpers
 export * from './pagination';
+
+// Query helpers for Supabase
+export * from './query-helpers';
