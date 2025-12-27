@@ -45,12 +45,12 @@ pnpm test:e2e        # Run Playwright E2E tests
 - TypeScript 5
 - Tailwind CSS 4
 - ESLint 9
+- Supabase (PostgreSQL + JWT auth)
+- Zod (validation for forms and server actions)
 
 **Planned (not yet added):**
 
-- Supabase (PostgreSQL + JWT auth)
 - Zustand (state management)
-- Zod (validation for forms and server actions)
 - Lucide React (icons)
 - Vitest + React Testing Library + MSW (testing)
 - Playwright (E2E)
@@ -176,6 +176,88 @@ const form = useForm<CreateWorkerInput>({
   defaultValues: { firstName: '', lastName: '', phone: '' },
 });
 ```
+
+## Server Actions
+
+Server actions use the `createAction()` wrapper from `/services/shared/` for consistent error handling, validation, and authentication.
+
+### Creating Server Actions
+
+```typescript
+// /services/workers/actions.ts
+'use server';
+
+import { createAction } from '@/services/shared';
+import { createWorkerSchema, type CreateWorkerInput } from './schemas';
+import type { Tables } from '@/types/database';
+
+type Worker = Tables<'temporary_workers'>;
+
+export const createWorker = createAction<CreateWorkerInput, Worker>(
+  async (input, { supabase, user }) => {
+    const { data, error } = await supabase
+      .from('temporary_workers')
+      .insert({
+        first_name: input.firstName,
+        last_name: input.lastName,
+        phone: input.phone,
+      })
+      .select()
+      .single();
+
+    if (error) throw error; // Automatically mapped to ActionError
+    return data;
+  },
+  { schema: createWorkerSchema } // Optional: Zod validation
+);
+```
+
+### ActionResult Type
+
+All server actions return `ActionResult<T>`:
+
+```typescript
+type ActionResult<T> =
+  | { success: true; data: T }
+  | { success: false; error: ActionError };
+
+interface ActionError {
+  code: string;    // e.g., 'NOT_FOUND', 'VALIDATION_ERROR'
+  message: string; // Human-readable message
+  details?: Record<string, unknown>; // Field errors, etc.
+}
+```
+
+### Handling Results
+
+```typescript
+import { isSuccess, isFailure } from '@/services/shared';
+
+const result = await createWorker(input);
+
+if (isSuccess(result)) {
+  // result.data is typed as Worker
+  console.log(result.data.id);
+} else {
+  // result.error is typed as ActionError
+  console.log(result.error.code, result.error.message);
+}
+```
+
+### Error Codes
+
+Available error codes from `ErrorCodes`:
+
+| Code | Description |
+|------|-------------|
+| `NOT_AUTHENTICATED` | User not logged in |
+| `FORBIDDEN` | User lacks permission |
+| `VALIDATION_ERROR` | Input validation failed |
+| `NOT_FOUND` | Resource not found |
+| `DUPLICATE_ENTRY` | Unique constraint violation |
+| `HAS_DEPENDENCIES` | Cannot delete (foreign key) |
+| `DATABASE_ERROR` | Unexpected database error |
+| `INTERNAL_ERROR` | Unexpected application error |
 
 ### Guidelines for STYLING
 

@@ -61,8 +61,11 @@ one-staff-dashboard/
 │   └── index.ts                  # Barrel exports
 ├── services/                     # Server actions, queries, validation
 │   ├── shared/                   # Shared utilities
-│   │   ├── result.ts             # ActionResult<T> type
-│   │   ├── errors.ts             # Error codes and Supabase mapping
+│   │   ├── result.ts             # ActionResult<T> type and helpers
+│   │   ├── errors.ts             # Error codes and Supabase/Zod mapping
+│   │   ├── auth.ts               # Session checking utilities
+│   │   ├── action-wrapper.ts     # createAction() HOF wrapper
+│   │   ├── schemas.ts            # Shared Zod schemas
 │   │   ├── pagination.ts         # Pagination helpers
 │   │   └── index.ts
 │   ├── auth/                     # Auth module
@@ -185,8 +188,11 @@ Modular structure for server-side operations. Each domain module contains:
 
 **Shared utilities** (`/services/shared/`):
 
-- `result.ts` - `ActionResult<T>` type for consistent responses
-- `errors.ts` - Error codes and Supabase error mapping
+- `result.ts` - `ActionResult<T>` type, `success()`, `failure()`, `isSuccess()`, `isFailure()` helpers
+- `errors.ts` - `ErrorCodes`, `mapSupabaseError()`, `mapZodError()`, `mapAuthError()`
+- `auth.ts` - `getSession()`, `requireSession()`, `AuthenticationError`
+- `action-wrapper.ts` - `createAction()` HOF for wrapping server actions with validation and auth
+- `schemas.ts` - Shared Zod schemas (UUID, phone, email, pagination, date ranges)
 - `pagination.ts` - Pagination constants and helpers
 
 ### /utils - Pure Utilities

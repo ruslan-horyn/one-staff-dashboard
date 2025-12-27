@@ -43,3 +43,6 @@ next-env.d.ts
 
 .claude/**/*local*
 .vscode/
+
+# MCP configuration (contains sensitive tokens)
+.mcp.json
