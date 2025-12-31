@@ -14,10 +14,11 @@ import type { User } from '@supabase/supabase-js';
 
 import { createClient } from '@/lib/supabase/server';
 import type { Database } from '@/types/database';
+import { tryCatch } from '@/utils';
 
 import { type ActionResult, failure, success } from './result';
 import { ErrorCodes, mapSupabaseError, mapAuthError, mapZodError } from './errors';
-import { getSession, AuthenticationError } from './auth';
+import { AuthenticationError } from './auth';
 
 // ============================================================================
 // Types
@@ -57,6 +58,50 @@ export interface ActionOptions<TInput> {
    * Default: true (most actions require auth)
    */
   requireAuth?: boolean;
+}
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+/**
+ * Validates input against a Zod schema.
+ * Throws ZodError if validation fails (handled by handleActionError).
+ */
+function validateInput<TInput>(input: TInput, schema?: z.ZodType<TInput>): TInput {
+  if (!schema) {
+    return input;
+  }
+
+  return schema.parse(input);
+}
+
+/**
+ * Authenticates the user if required.
+ * Throws AuthenticationError if not authenticated (handled by handleActionError).
+ *
+ * @param supabase - Supabase client instance to use for authentication
+ * @param requireAuth - Whether authentication is required
+ */
+async function authenticateUser(
+  supabase: SupabaseClient<Database>,
+  requireAuth: boolean
+): Promise<User | null> {
+  if (!requireAuth) {
+    return null;
+  }
+
+  const { data: { user }, error } = await supabase.auth.getUser();
+
+  if (error) {
+    throw error;
+  }
+  
+  if (!user) {
+    throw new AuthenticationError('You must be logged in to perform this action');
+  }
+
+  return user;
 }
 
 // ============================================================================
@@ -116,45 +161,25 @@ export function createAction<TInput, TOutput>(
   const { schema, requireAuth = true } = options;
 
   return async (input: TInput): Promise<ActionResult<TOutput>> => {
-    try {
-      // Step 1: Validate input if schema provided
-      let validatedInput = input;
-      if (schema) {
-        const parseResult = schema.safeParse(input);
-        if (!parseResult.success) {
-          return {
-            success: false,
-            error: mapZodError(parseResult.error),
-          };
-        }
-        validatedInput = parseResult.data;
-      }
+    const [result, error] = await tryCatch(async () => {
+      // 1. Validate input (throws ZodError if invalid)
+      const validatedInput = validateInput(input, schema);
 
-      // Step 2: Create Supabase client
+      // 2. Create Supabase client
       const supabase = await createClient();
 
-      // Step 3: Check authentication if required
-      let user: User | null = null;
-      if (requireAuth) {
-        const { user: sessionUser } = await getSession();
-        if (!sessionUser) {
-          return failure(
-            ErrorCodes.NOT_AUTHENTICATED,
-            'You must be logged in to perform this action'
-          );
-        }
-        user = sessionUser;
-      }
+      // 3. Authenticate user (throws AuthenticationError if not authenticated)
+      const user = await authenticateUser(supabase, requireAuth);
 
-      // Step 4: Execute the action handler
-      const result = await handler(validatedInput, { supabase, user });
+      // 4. Execute the handler
+      return handler(validatedInput, { supabase, user });
+    });
 
-      // Step 5: Return success
-      return success(result);
-    } catch (error) {
-      // Handle known error types
+    if (error) {
       return handleActionError(error);
     }
+
+    return success(result);
   };
 }
 
@@ -174,26 +199,20 @@ function handleActionError<T>(error: unknown): ActionResult<T> {
 
   // Supabase PostgrestError (from database operations)
   if (isPostgrestError(error)) {
-    return {
-      success: false,
-      error: mapSupabaseError(error),
-    };
+    const mapped = mapSupabaseError(error);
+    return failure(mapped.code, mapped.message, mapped.details);
   }
 
   // Supabase AuthError (from auth operations)
   if (isAuthError(error)) {
-    return {
-      success: false,
-      error: mapAuthError(error),
-    };
+    const mapped = mapAuthError(error);
+    return failure(mapped.code, mapped.message, mapped.details);
   }
 
-  // Zod validation error (if thrown manually)
+  // Zod validation error (thrown by validateInput)
   if (isZodError(error)) {
-    return {
-      success: false,
-      error: mapZodError(error),
-    };
+    const mapped = mapZodError(error);
+    return failure(mapped.code, mapped.message, mapped.details);
   }
 
   // Standard Error with message
