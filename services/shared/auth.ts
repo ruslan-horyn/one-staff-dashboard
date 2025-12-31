@@ -16,7 +16,7 @@ import { createClient } from '@/lib/supabase/server';
  * Result of session check - either authenticated user or null.
  */
 export interface SessionResult {
-  user: User | null;
+	user: User | null;
 }
 
 // ============================================================================
@@ -28,10 +28,10 @@ export interface SessionResult {
  * Used internally by action wrapper to detect auth errors.
  */
 export class AuthenticationError extends Error {
-  constructor(message: string = 'Not authenticated') {
-    super(message);
-    this.name = 'AuthenticationError';
-  }
+	constructor(message: string = 'Not authenticated') {
+		super(message);
+		this.name = 'AuthenticationError';
+	}
 }
 
 // ============================================================================
@@ -54,19 +54,19 @@ export class AuthenticationError extends Error {
  * }
  */
 export async function getSession(): Promise<SessionResult> {
-  const supabase = await createClient();
+	const supabase = await createClient();
 
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
+	const {
+		data: { user },
+		error,
+	} = await supabase.auth.getUser();
 
-  // Log auth errors in development
-  if (error && process.env.NODE_ENV === 'development') {
-    console.error('[Auth Session Error]', error.message);
-  }
+	// Log auth errors in development
+	if (error && process.env.NODE_ENV === 'development') {
+		console.error('[Auth Session Error]', error.message);
+	}
 
-  return { user: error ? null : user };
+	return { user: error ? null : user };
 }
 
 /**
@@ -81,11 +81,11 @@ export async function getSession(): Promise<SessionResult> {
  * // Proceed knowing user is authenticated
  */
 export async function requireSession(): Promise<User> {
-  const { user } = await getSession();
+	const { user } = await getSession();
 
-  if (!user) {
-    throw new AuthenticationError('User is not authenticated');
-  }
+	if (!user) {
+		throw new AuthenticationError('User is not authenticated');
+	}
 
-  return user;
+	return user;
 }

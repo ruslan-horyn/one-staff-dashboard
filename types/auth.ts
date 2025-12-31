@@ -18,8 +18,8 @@ export type Profile = Tables<'profiles'>;
  * Used by getCurrentUser action.
  */
 export interface UserWithProfile {
-  user: User;
-  profile: Profile;
+	user: User;
+	profile: Profile;
 }
 
 /**
@@ -28,7 +28,6 @@ export interface UserWithProfile {
  * Session may be null if email confirmation is required.
  */
 export interface AuthResponse {
-  user: User | null;
-  session: Session | null;
+	user: User | null;
+	session: Session | null;
 }
-

@@ -24,7 +24,9 @@ pnpm install         # Install dependencies
 pnpm dev             # Start development server
 pnpm build           # Production build
 pnpm start           # Run production server
-pnpm lint            # Run ESLint
+pnpm lint            # Run Biome linter
+pnpm format          # Run Biome formatter
+pnpm check           # Run Biome lint + format check
 ```
 
 **Note:** Uses pnpm as package manager. Node.js v24.11.1 (see .nvmrc).
@@ -44,7 +46,7 @@ pnpm test:e2e        # Run Playwright E2E tests
 - React 19
 - TypeScript 5
 - Tailwind CSS 4
-- ESLint 9
+- Biome (linting + formatting)
 - Supabase (PostgreSQL + JWT auth)
 - Zod (validation for forms and server actions)
 
@@ -121,7 +123,7 @@ export const Widget = ({ title, count = 0 }: WidgetProps) => {
 - Leverage parallel routes for complex layouts and parallel data fetching
 - Implement intercepting routes for modal patterns and nested UIs
 
-### Imports Order (enforced by ESLint)
+### Imports Order (enforced by Biome)
 
 1. React
 2. External packages

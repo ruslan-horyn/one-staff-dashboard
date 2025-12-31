@@ -17,12 +17,12 @@ export { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE };
  * Pagination metadata returned with paginated results.
  */
 export interface PaginationMeta {
-  page: number;
-  pageSize: number;
-  totalItems: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
+	page: number;
+	pageSize: number;
+	totalItems: number;
+	totalPages: number;
+	hasNextPage: boolean;
+	hasPreviousPage: boolean;
 }
 
 /**
@@ -34,22 +34,22 @@ export interface PaginationMeta {
  * console.log(result.pagination.totalPages); // number
  */
 export interface PaginatedResult<T> {
-  /** Array of items for the current page */
-  data: T[];
-  /** Pagination metadata */
-  pagination: PaginationMeta;
+	/** Array of items for the current page */
+	data: T[];
+	/** Pagination metadata */
+	pagination: PaginationMeta;
 }
 
 /**
  * Parameters for creating pagination metadata.
  */
 export interface CreatePaginationMetaParams {
-  /** Current page number (1-indexed) */
-  page: number;
-  /** Number of items per page */
-  pageSize: number;
-  /** Total number of items across all pages */
-  totalItems: number;
+	/** Current page number (1-indexed) */
+	page: number;
+	/** Number of items per page */
+	pageSize: number;
+	/** Total number of items across all pages */
+	totalItems: number;
 }
 
 // ============================================================================
@@ -70,8 +70,8 @@ export interface CreatePaginationMetaParams {
  * calculateOffset(0, 20); // 0 (page < 1 treated as 1)
  */
 export function calculateOffset(page: number, pageSize: number): number {
-  const safePage = Math.max(1, page);
-  return (safePage - 1) * pageSize;
+	const safePage = Math.max(1, page);
+	return (safePage - 1) * pageSize;
 }
 
 /**
@@ -87,9 +87,12 @@ export function calculateOffset(page: number, pageSize: number): number {
  * calculateTotalPages(0, 20);   // 0
  * calculateTotalPages(5, 20);   // 1
  */
-export function calculateTotalPages(totalItems: number, pageSize: number): number {
-  if (totalItems <= 0) return 0;
-  return Math.ceil(totalItems / pageSize);
+export function calculateTotalPages(
+	totalItems: number,
+	pageSize: number
+): number {
+	if (totalItems <= 0) return 0;
+	return Math.ceil(totalItems / pageSize);
 }
 
 /**
@@ -102,19 +105,21 @@ export function calculateTotalPages(totalItems: number, pageSize: number): numbe
  * createPaginationMeta({ page: 2, pageSize: 20, totalItems: 100 });
  * // { page: 2, pageSize: 20, totalItems: 100, totalPages: 5, hasNextPage: true, hasPreviousPage: true }
  */
-export function createPaginationMeta(params: CreatePaginationMetaParams): PaginationMeta {
-  const { page, pageSize, totalItems } = params;
-  const safePage = Math.max(1, page);
-  const totalPages = calculateTotalPages(totalItems, pageSize);
+export function createPaginationMeta(
+	params: CreatePaginationMetaParams
+): PaginationMeta {
+	const { page, pageSize, totalItems } = params;
+	const safePage = Math.max(1, page);
+	const totalPages = calculateTotalPages(totalItems, pageSize);
 
-  return {
-    page: safePage,
-    pageSize,
-    totalItems,
-    totalPages,
-    hasNextPage: safePage < totalPages,
-    hasPreviousPage: safePage > 1,
-  };
+	return {
+		page: safePage,
+		pageSize,
+		totalItems,
+		totalPages,
+		hasNextPage: safePage < totalPages,
+		hasPreviousPage: safePage > 1,
+	};
 }
 
 /**
@@ -132,15 +137,15 @@ export function createPaginationMeta(params: CreatePaginationMetaParams): Pagina
  * return paginateResult(workers, count, 1, 20);
  */
 export function paginateResult<T>(
-  data: T[],
-  totalItems: number,
-  page: number,
-  pageSize: number
+	data: T[],
+	totalItems: number,
+	page: number,
+	pageSize: number
 ): PaginatedResult<T> {
-  return {
-    data,
-    pagination: createPaginationMeta({ page, pageSize, totalItems }),
-  };
+	return {
+		data,
+		pagination: createPaginationMeta({ page, pageSize, totalItems }),
+	};
 }
 
 /**
@@ -148,7 +153,7 @@ export function paginateResult<T>(
  * Uses generic interface to avoid tight coupling with Supabase types.
  */
 interface RangeableQuery<T> {
-  range(from: number, to: number): T;
+	range(from: number, to: number): T;
 }
 
 /**
@@ -165,10 +170,10 @@ interface RangeableQuery<T> {
  * // Equivalent to: query.range(0, 19)
  */
 export function applyPaginationToQuery<T extends RangeableQuery<T>>(
-  query: T,
-  page: number,
-  pageSize: number
+	query: T,
+	page: number,
+	pageSize: number
 ): T {
-  const offset = calculateOffset(page, pageSize);
-  return query.range(offset, offset + pageSize - 1);
+	const offset = calculateOffset(page, pageSize);
+	return query.range(offset, offset + pageSize - 1);
 }

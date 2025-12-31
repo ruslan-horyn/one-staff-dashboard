@@ -2,32 +2,31 @@
 
 import { createAction } from '@/services/shared';
 import {
-  applyPaginationToQuery,
-  DEFAULT_PAGE_SIZE,
-  paginateResult,
-  type PaginatedResult,
+	applyPaginationToQuery,
+	DEFAULT_PAGE_SIZE,
+	type PaginatedResult,
+	paginateResult,
 } from '@/services/shared/pagination';
 import {
-  applySearchFilter,
-  applySoftDeleteFilter,
-  applySortFilter,
-  buildSearchFilter,
+	applySearchFilter,
+	applySoftDeleteFilter,
+	applySortFilter,
+	buildSearchFilter,
 } from '@/services/shared/query-helpers';
-
+import type { Client } from '@/types';
 import {
-  CLIENT_SEARCHABLE_COLUMNS,
-  clientFilterSchema,
-  clientIdSchema,
-  createClientSchema,
-  deleteClientSchema,
-  updateClientSchema,
-  type ClientFilter,
-  type ClientIdInput,
-  type CreateClientInput,
-  type DeleteClientInput,
-  type UpdateClientInput,
+	CLIENT_SEARCHABLE_COLUMNS,
+	type ClientFilter,
+	type ClientIdInput,
+	type CreateClientInput,
+	clientFilterSchema,
+	clientIdSchema,
+	createClientSchema,
+	type DeleteClientInput,
+	deleteClientSchema,
+	type UpdateClientInput,
+	updateClientSchema,
 } from './schemas';
-import { Client } from '@/types';
 
 /**
  * Creates a new client.
@@ -44,17 +43,17 @@ import { Client } from '@/types';
  * });
  */
 export const createClient = createAction<CreateClientInput, Client>(
-  async (input, { supabase }) => {
-    const { data, error } = await supabase
-      .from('clients')
-      .insert(input)
-      .select()
-      .single();
+	async (input, { supabase }) => {
+		const { data, error } = await supabase
+			.from('clients')
+			.insert(input)
+			.select()
+			.single();
 
-    if (error) throw error;
-    return data;
-  },
-  { schema: createClientSchema }
+		if (error) throw error;
+		return data;
+	},
+	{ schema: createClientSchema }
 );
 
 /**
@@ -67,18 +66,18 @@ export const createClient = createAction<CreateClientInput, Client>(
  * const result = await getClient({ id: '123e4567-e89b-12d3-a456-426614174000' });
  */
 export const getClient = createAction<ClientIdInput, Client>(
-  async (input, { supabase }) => {
-    const { data, error } = await supabase
-      .from('clients')
-      .select('*')
-      .eq('id', input.id)
-      .is('deleted_at', null)
-      .single();
+	async (input, { supabase }) => {
+		const { data, error } = await supabase
+			.from('clients')
+			.select('*')
+			.eq('id', input.id)
+			.is('deleted_at', null)
+			.single();
 
-    if (error) throw error;
-    return data;
-  },
-  { schema: clientIdSchema }
+		if (error) throw error;
+		return data;
+	},
+	{ schema: clientIdSchema }
 );
 
 /**
@@ -97,40 +96,53 @@ export const getClient = createAction<ClientIdInput, Client>(
  * });
  */
 export const getClients = createAction<ClientFilter, PaginatedResult<Client>>(
-  async (input, { supabase }) => {
-    const {
-      page = 1,
-      pageSize = DEFAULT_PAGE_SIZE,
-      search,
-      sortBy,
-      sortOrder = 'asc',
-      includeDeleted = false,
-    } = input;
+	async (input, { supabase }) => {
+		const {
+			page = 1,
+			pageSize = DEFAULT_PAGE_SIZE,
+			search,
+			sortBy,
+			sortOrder = 'asc',
+			includeDeleted = false,
+		} = input;
 
-    // Build search filter once (reused for count and data queries)
-    const searchFilter = buildSearchFilter<Client>(search, CLIENT_SEARCHABLE_COLUMNS);
+		// Build search filter once (reused for count and data queries)
+		const searchFilter = buildSearchFilter<Client>(
+			search,
+			CLIENT_SEARCHABLE_COLUMNS
+		);
 
-    // Build count query
-    let countQuery = supabase.from('clients').select('*', { count: 'exact', head: true });
-    countQuery = applySoftDeleteFilter(countQuery, includeDeleted);
-    countQuery = applySearchFilter(countQuery, searchFilter);
+		// Build count query
+		let countQuery = supabase
+			.from('clients')
+			.select('*', { count: 'exact', head: true });
+		countQuery = applySoftDeleteFilter(countQuery, includeDeleted);
+		countQuery = applySearchFilter(countQuery, searchFilter);
 
-    // Build data query
-    let dataQuery = supabase.from('clients').select('*');
-    dataQuery = applySoftDeleteFilter(dataQuery, includeDeleted);
-    dataQuery = applySearchFilter(dataQuery, searchFilter);
-    dataQuery = applySortFilter(dataQuery, sortBy, sortOrder);
-    dataQuery = applyPaginationToQuery(dataQuery, page, pageSize);
+		// Build data query
+		let dataQuery = supabase.from('clients').select('*');
+		dataQuery = applySoftDeleteFilter(dataQuery, includeDeleted);
+		dataQuery = applySearchFilter(dataQuery, searchFilter);
+		dataQuery = applySortFilter(dataQuery, sortBy, sortOrder);
+		dataQuery = applyPaginationToQuery(dataQuery, page, pageSize);
 
-    // Execute both queries in parallel
-    const [countResult, dataResult] = await Promise.all([countQuery, dataQuery]);
+		// Execute both queries in parallel
+		const [countResult, dataResult] = await Promise.all([
+			countQuery,
+			dataQuery,
+		]);
 
-    if (countResult.error) throw countResult.error;
-    if (dataResult.error) throw dataResult.error;
+		if (countResult.error) throw countResult.error;
+		if (dataResult.error) throw dataResult.error;
 
-    return paginateResult(dataResult.data ?? [], countResult.count ?? 0, page, pageSize);
-  },
-  { schema: clientFilterSchema }
+		return paginateResult(
+			dataResult.data ?? [],
+			countResult.count ?? 0,
+			page,
+			pageSize
+		);
+	},
+	{ schema: clientFilterSchema }
 );
 
 /**
@@ -148,25 +160,25 @@ export const getClients = createAction<ClientFilter, PaginatedResult<Client>>(
  * });
  */
 export const updateClient = createAction<UpdateClientInput, Client>(
-  async (input, { supabase }) => {
-    const { id, ...updateData } = input;
+	async (input, { supabase }) => {
+		const { id, ...updateData } = input;
 
-    const updates = Object.fromEntries(
-      Object.entries(updateData).filter(([, value]) => value !== undefined)
-    );
+		const updates = Object.fromEntries(
+			Object.entries(updateData).filter(([, value]) => value !== undefined)
+		);
 
-    const { data, error } = await supabase
-      .from('clients')
-      .update(updates)
-      .eq('id', id)
-      .is('deleted_at', null)
-      .select()
-      .single();
+		const { data, error } = await supabase
+			.from('clients')
+			.update(updates)
+			.eq('id', id)
+			.is('deleted_at', null)
+			.select()
+			.single();
 
-    if (error) throw error;
-    return data;
-  },
-  { schema: updateClientSchema }
+		if (error) throw error;
+		return data;
+	},
+	{ schema: updateClientSchema }
 );
 
 /**
@@ -180,17 +192,17 @@ export const updateClient = createAction<UpdateClientInput, Client>(
  * const result = await deleteClient({ id: '123e4567-e89b-12d3-a456-426614174000' });
  */
 export const deleteClient = createAction<DeleteClientInput, Client>(
-  async (input, { supabase }) => {
-    const { data, error } = await supabase
-      .from('clients')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', input.id)
-      .is('deleted_at', null)
-      .select()
-      .single();
+	async (input, { supabase }) => {
+		const { data, error } = await supabase
+			.from('clients')
+			.update({ deleted_at: new Date().toISOString() })
+			.eq('id', input.id)
+			.is('deleted_at', null)
+			.select()
+			.single();
 
-    if (error) throw error;
-    return data;
-  },
-  { schema: deleteClientSchema }
+		if (error) throw error;
+		return data;
+	},
+	{ schema: deleteClientSchema }
 );

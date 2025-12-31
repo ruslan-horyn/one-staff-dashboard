@@ -11,20 +11,24 @@ import { uuidSchema } from '@/services/shared/schemas';
  * Validates start and end dates with refinement
  */
 const reportDateRangeSchema = z
-  .object({
-    startDate: z.iso.date({ message: 'Invalid start date format (expected YYYY-MM-DD)' }),
-    endDate: z.iso.date({ message: 'Invalid end date format (expected YYYY-MM-DD)' }),
-    clientId: uuidSchema.optional().nullable(),
-  })
-  .refine(
-    (data) => {
-      return new Date(data.startDate) <= new Date(data.endDate);
-    },
-    {
-      message: 'Start date must be before or equal to end date',
-      path: ['endDate'],
-    }
-  );
+	.object({
+		startDate: z.iso.date({
+			message: 'Invalid start date format (expected YYYY-MM-DD)',
+		}),
+		endDate: z.iso.date({
+			message: 'Invalid end date format (expected YYYY-MM-DD)',
+		}),
+		clientId: uuidSchema.optional().nullable(),
+	})
+	.refine(
+		(data) => {
+			return new Date(data.startDate) <= new Date(data.endDate);
+		},
+		{
+			message: 'Start date must be before or equal to end date',
+			path: ['endDate'],
+		}
+	);
 
 /**
  * Schema for generating hours report

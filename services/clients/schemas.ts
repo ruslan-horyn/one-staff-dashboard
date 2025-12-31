@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
 import {
-  baseFilterSchema,
-  emailSchema,
-  phoneSchema,
-  sortOrderSchema,
-  uuidSchema
+	baseFilterSchema,
+	emailSchema,
+	phoneSchema,
+	sortOrderSchema,
+	uuidSchema,
 } from '@/services/shared/schemas';
 
 // ============================================================================
@@ -17,18 +17,18 @@ import {
  * Used by createClient server action
  */
 export const createClientSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, 'Name is required')
-    .max(255, 'Name must be at most 255 characters'),
-  email: emailSchema,
-  phone: phoneSchema,
-  address: z
-    .string()
-    .trim()
-    .min(1, 'Address is required')
-    .max(500, 'Address must be at most 500 characters'),
+	name: z
+		.string()
+		.trim()
+		.min(1, 'Name is required')
+		.max(255, 'Name must be at most 255 characters'),
+	email: emailSchema,
+	phone: phoneSchema,
+	address: z
+		.string()
+		.trim()
+		.min(1, 'Address is required')
+		.max(500, 'Address must be at most 500 characters'),
 });
 
 /**
@@ -36,21 +36,21 @@ export const createClientSchema = z.object({
  * All fields except id are optional
  */
 export const updateClientSchema = z.object({
-  id: uuidSchema,
-  name: z
-    .string()
-    .trim()
-    .min(1, 'Name is required')
-    .max(255, 'Name must be at most 255 characters')
-    .optional(),
-  email: emailSchema.optional(),
-  phone: phoneSchema.optional(),
-  address: z
-    .string()
-    .trim()
-    .min(1, 'Address is required')
-    .max(500, 'Address must be at most 500 characters')
-    .optional(),
+	id: uuidSchema,
+	name: z
+		.string()
+		.trim()
+		.min(1, 'Name is required')
+		.max(255, 'Name must be at most 255 characters')
+		.optional(),
+	email: emailSchema.optional(),
+	phone: phoneSchema.optional(),
+	address: z
+		.string()
+		.trim()
+		.min(1, 'Address is required')
+		.max(500, 'Address must be at most 500 characters')
+		.optional(),
 });
 
 /**
@@ -58,27 +58,30 @@ export const updateClientSchema = z.object({
  * Used by deleteClient server action
  */
 export const deleteClientSchema = z.object({
-  id: uuidSchema,
+	id: uuidSchema,
 });
 
 /**
  * Schema for client ID parameter
  */
 export const clientIdSchema = z.object({
-  id: uuidSchema,
+	id: uuidSchema,
 });
 
 /** Allowed sort fields for clients */
-export const clientSortBySchema = z.enum(['name', 'created_at']).optional().default('created_at');
+export const clientSortBySchema = z
+	.enum(['name', 'created_at'])
+	.optional()
+	.default('created_at');
 
 /**
  * Schema for filtering clients list
  * Used by getClients query
  */
 export const clientFilterSchema = baseFilterSchema.extend({
-  sortBy: clientSortBySchema,
-  sortOrder: sortOrderSchema,
-  includeDeleted: z.boolean().optional().default(false),
+	sortBy: clientSortBySchema,
+	sortOrder: sortOrderSchema,
+	includeDeleted: z.boolean().optional().default(false),
 });
 
 // ============================================================================
@@ -86,7 +89,12 @@ export const clientFilterSchema = baseFilterSchema.extend({
 // ============================================================================
 
 /** Searchable columns for clients list (OCP - extend here to add new searchable fields) */
-export const CLIENT_SEARCHABLE_COLUMNS = ['name', 'email', 'phone', 'address'] as const;
+export const CLIENT_SEARCHABLE_COLUMNS = [
+	'name',
+	'email',
+	'phone',
+	'address',
+] as const;
 
 /** Sortable columns for clients list */
 export const CLIENT_SORTABLE_COLUMNS = ['name', 'created_at'] as const;

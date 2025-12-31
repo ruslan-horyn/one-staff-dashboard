@@ -8,12 +8,12 @@
  * Structured error object returned on failure.
  */
 export interface ActionError {
-  /** Machine-readable error code (e.g., 'NOT_AUTHENTICATED') */
-  code: string;
-  /** Human-readable error message for UI display */
-  message: string;
-  /** Optional additional context (field errors, constraint names, etc.) */
-  details?: Record<string, unknown>;
+	/** Machine-readable error code (e.g., 'NOT_AUTHENTICATED') */
+	code: string;
+	/** Human-readable error message for UI display */
+	message: string;
+	/** Optional additional context (field errors, constraint names, etc.) */
+	details?: Record<string, unknown>;
 }
 
 /**
@@ -29,8 +29,8 @@ export interface ActionError {
  * }
  */
 export type ActionResult<T> =
-  | { success: true; data: T }
-  | { success: false; error: ActionError };
+	| { success: true; data: T }
+	| { success: false; error: ActionError };
 
 /**
  * Creates a successful ActionResult with data.
@@ -42,7 +42,7 @@ export type ActionResult<T> =
  * return success({ id: '123', name: 'John' });
  */
 export function success<T>(data: T): ActionResult<T> {
-  return { success: true, data };
+	return { success: true, data };
 }
 
 /**
@@ -58,14 +58,14 @@ export function success<T>(data: T): ActionResult<T> {
  * return failure('VALIDATION_ERROR', 'Invalid input', { fieldErrors: { name: ['Required'] } });
  */
 export function failure<T = never>(
-  code: string,
-  message: string,
-  details?: Record<string, unknown>
+	code: string,
+	message: string,
+	details?: Record<string, unknown>
 ): ActionResult<T> {
-  return {
-    success: false,
-    error: { code, message, ...(details && { details }) },
-  };
+	return {
+		success: false,
+		error: { code, message, ...(details && { details }) },
+	};
 }
 
 /**
@@ -81,9 +81,9 @@ export function failure<T = never>(
  * }
  */
 export function isSuccess<T>(
-  result: ActionResult<T>
+	result: ActionResult<T>
 ): result is { success: true; data: T } {
-  return result.success === true;
+	return result.success === true;
 }
 
 /**
@@ -98,7 +98,7 @@ export function isSuccess<T>(
  * }
  */
 export function isFailure<T>(
-  result: ActionResult<T>
+	result: ActionResult<T>
 ): result is { success: false; error: ActionError } {
-  return result.success === false;
+	return result.success === false;
 }

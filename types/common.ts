@@ -9,7 +9,8 @@ import { Constants } from './database';
 export const USER_ROLE_VALUES = Constants.public.Enums.user_role;
 
 /** Assignment status enum values */
-export const ASSIGNMENT_STATUS_VALUES = Constants.public.Enums.assignment_status;
+export const ASSIGNMENT_STATUS_VALUES =
+	Constants.public.Enums.assignment_status;
 
 // ============================================================================
 // Enum Types
@@ -27,20 +28,20 @@ export type AssignmentStatus = Enums<'assignment_status'>;
 
 /** Pagination parameters for list queries */
 export interface PaginationParams {
-  page?: number;
-  pageSize?: number;
+	page?: number;
+	pageSize?: number;
 }
 
 /** Sort parameters for list queries */
 export interface SortParams<T extends string> {
-  sortBy?: T;
-  sortOrder?: 'asc' | 'desc';
+	sortBy?: T;
+	sortOrder?: 'asc' | 'desc';
 }
 
 /** Date range filter parameters */
 export interface DateRangeParams {
-  dateFrom?: string;
-  dateTo?: string;
+	dateFrom?: string;
+	dateTo?: string;
 }
 
 // ============================================================================

@@ -1,11 +1,7 @@
 {
-  "permissions": {
-    "allow": [],
-    "deny": [],
-    "ask": [
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(mkdir:*)"
-    ]
-  }
+	"permissions": {
+		"allow": [],
+		"deny": [],
+		"ask": ["Bash(git add:*)", "Bash(git commit:*)", "Bash(mkdir:*)"]
+	}
 }

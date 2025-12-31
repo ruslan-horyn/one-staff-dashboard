@@ -36,7 +36,6 @@
 
 - Code formatting and linting
 
-  - ESLint for code linting
-  - Prettier for code formatting
+  - Biome for linting and formatting (replaces ESLint + Prettier)
 
 - Dependencies: `package.json`

@@ -13,9 +13,9 @@ export type Worker = Tables<'temporary_workers'>;
 
 /** Worker with computed statistics (for main board view) */
 export interface WorkerWithStats extends Worker {
-  totalHours: number;
-  activeAssignments: number;
-  assignedLocations: string[];
+	totalHours: number;
+	activeAssignments: number;
+	assignedLocations: string[];
 }
 
 /**
@@ -24,24 +24,23 @@ export interface WorkerWithStats extends Worker {
  * When using this type, import AssignmentWithDetails separately.
  */
 export interface WorkerWithAssignments extends Worker {
-  assignments: Array<{
-    id: string;
-    position_id: string;
-    start_at: string;
-    end_at: string | null;
-    status: string;
-    position: {
-      id: string;
-      name: string;
-      work_location: {
-        id: string;
-        name: string;
-        client: {
-          id: string;
-          name: string;
-        };
-      };
-    };
-  }>;
+	assignments: Array<{
+		id: string;
+		position_id: string;
+		start_at: string;
+		end_at: string | null;
+		status: string;
+		position: {
+			id: string;
+			name: string;
+			work_location: {
+				id: string;
+				name: string;
+				client: {
+					id: string;
+					name: string;
+				};
+			};
+		};
+	}>;
 }
-

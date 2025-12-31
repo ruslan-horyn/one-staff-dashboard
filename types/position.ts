@@ -14,6 +14,5 @@ export type Position = Tables<'positions'>;
 
 /** Position with work location and client info */
 export interface PositionWithLocation extends Position {
-  work_location: WorkLocationWithClient;
+	work_location: WorkLocationWithClient;
 }
-

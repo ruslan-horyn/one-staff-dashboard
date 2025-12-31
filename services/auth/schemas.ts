@@ -9,8 +9,8 @@ import { z } from 'zod';
  * Used by signIn server action
  */
 export const signInSchema = z.object({
-  email: z.email('Invalid email format'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+	email: z.email('Invalid email format'),
+	password: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
 /**
@@ -18,18 +18,18 @@ export const signInSchema = z.object({
  * Used by signUp server action
  */
 export const signUpSchema = z.object({
-  email: z.email('Invalid email format'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  firstName: z
-    .string()
-    .trim()
-    .min(1, 'First name is required')
-    .max(100, 'First name must be at most 100 characters'),
-  lastName: z
-    .string()
-    .trim()
-    .min(1, 'Last name is required')
-    .max(100, 'Last name must be at most 100 characters'),
+	email: z.email('Invalid email format'),
+	password: z.string().min(8, 'Password must be at least 8 characters'),
+	firstName: z
+		.string()
+		.trim()
+		.min(1, 'First name is required')
+		.max(100, 'First name must be at most 100 characters'),
+	lastName: z
+		.string()
+		.trim()
+		.min(1, 'Last name is required')
+		.max(100, 'Last name must be at most 100 characters'),
 });
 
 /**
@@ -43,16 +43,16 @@ export const signOutSchema = z.object({});
  * Used by updateProfile server action
  */
 export const updateProfileSchema = z.object({
-  firstName: z
-    .string()
-    .trim()
-    .min(1, 'First name is required')
-    .max(100, 'First name must be at most 100 characters'),
-  lastName: z
-    .string()
-    .trim()
-    .min(1, 'Last name is required')
-    .max(100, 'Last name must be at most 100 characters'),
+	firstName: z
+		.string()
+		.trim()
+		.min(1, 'First name is required')
+		.max(100, 'First name must be at most 100 characters'),
+	lastName: z
+		.string()
+		.trim()
+		.min(1, 'Last name is required')
+		.max(100, 'Last name must be at most 100 characters'),
 });
 
 /**
@@ -66,7 +66,7 @@ export const getCurrentUserSchema = z.object({});
  * Used by resetPassword server action
  */
 export const resetPasswordSchema = z.object({
-  email: z.email('Invalid email format'),
+	email: z.email('Invalid email format'),
 });
 
 /**
@@ -74,7 +74,7 @@ export const resetPasswordSchema = z.object({
  * Used by updatePassword server action
  */
 export const updatePasswordSchema = z.object({
-  newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+	newPassword: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
 // ============================================================================

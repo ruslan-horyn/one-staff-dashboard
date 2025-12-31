@@ -66,14 +66,15 @@ export type Result<T, E = Error> = SuccessResult<T> | ErrorResult<E>;
  * );
  */
 export async function tryCatch<T, E = Error>(
-  handler: Promise<T> | (() => T | Promise<T>)
+	handler: Promise<T> | (() => T | Promise<T>)
 ): Promise<Result<T, E>> {
-  try {
-    const data = typeof handler === 'function' ? await handler() : await handler;
-    return [data, null] as const;
-  } catch (error) {
-    return [null, error as E] as const;
-  }
+	try {
+		const data =
+			typeof handler === 'function' ? await handler() : await handler;
+		return [data, null] as const;
+	} catch (error) {
+		return [null, error as E] as const;
+	}
 }
 
 // ============================================================================
@@ -91,7 +92,7 @@ export async function tryCatch<T, E = Error>(
  * }
  */
 export function isOk<T, E>(result: Result<T, E>): result is SuccessResult<T> {
-  return result[1] === null;
+	return result[1] === null;
 }
 
 /**
@@ -105,7 +106,7 @@ export function isOk<T, E>(result: Result<T, E>): result is SuccessResult<T> {
  * }
  */
 export function isErr<T, E>(result: Result<T, E>): result is ErrorResult<E> {
-  return result[1] !== null;
+	return result[1] !== null;
 }
 
 /**
@@ -116,10 +117,10 @@ export function isErr<T, E>(result: Result<T, E>): result is ErrorResult<E> {
  * const data = unwrap(result); // throws if error
  */
 export function unwrap<T, E>(result: Result<T, E>): T {
-  if (isErr(result)) {
-    throw result[1];
-  }
-  return result[0];
+	if (isErr(result)) {
+		throw result[1];
+	}
+	return result[0];
 }
 
 /**
@@ -130,8 +131,8 @@ export function unwrap<T, E>(result: Result<T, E>): T {
  * const user = unwrapOr(result, null);
  */
 export function unwrapOr<T, E>(result: Result<T, E>, defaultValue: T): T {
-  if (isErr(result)) {
-    return defaultValue;
-  }
-  return result[0];
+	if (isErr(result)) {
+		return defaultValue;
+	}
+	return result[0];
 }

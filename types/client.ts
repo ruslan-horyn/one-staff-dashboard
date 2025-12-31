@@ -13,6 +13,5 @@ export type Client = Tables<'clients'>;
 
 /** Client with nested work locations */
 export interface ClientWithLocations extends Client {
-  work_locations: Tables<'work_locations'>[];
+	work_locations: Tables<'work_locations'>[];
 }
-

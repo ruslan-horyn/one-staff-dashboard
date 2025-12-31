@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 import {
-  uuidSchema,
-  baseFilterSchema,
-  sortOrderSchema,
+	baseFilterSchema,
+	sortOrderSchema,
+	uuidSchema,
 } from '@/services/shared/schemas';
 
 // ============================================================================
@@ -15,12 +15,12 @@ import {
  * Used by createPosition server action
  */
 export const createPositionSchema = z.object({
-  workLocationId: uuidSchema,
-  name: z
-    .string()
-    .trim()
-    .min(1, 'Name is required')
-    .max(255, 'Name must be at most 255 characters'),
+	workLocationId: uuidSchema,
+	name: z
+		.string()
+		.trim()
+		.min(1, 'Name is required')
+		.max(255, 'Name must be at most 255 characters'),
 });
 
 /**
@@ -28,14 +28,14 @@ export const createPositionSchema = z.object({
  * All fields except id are optional
  */
 export const updatePositionSchema = z.object({
-  id: uuidSchema,
-  name: z
-    .string()
-    .trim()
-    .min(1, 'Name is required')
-    .max(255, 'Name must be at most 255 characters')
-    .optional(),
-  isActive: z.boolean().optional(),
+	id: uuidSchema,
+	name: z
+		.string()
+		.trim()
+		.min(1, 'Name is required')
+		.max(255, 'Name must be at most 255 characters')
+		.optional(),
+	isActive: z.boolean().optional(),
 });
 
 /**
@@ -43,29 +43,32 @@ export const updatePositionSchema = z.object({
  * Used by deletePosition server action
  */
 export const deletePositionSchema = z.object({
-  id: uuidSchema,
+	id: uuidSchema,
 });
 
 /**
  * Schema for position ID parameter
  */
 export const positionIdSchema = z.object({
-  id: uuidSchema,
+	id: uuidSchema,
 });
 
 /** Allowed sort fields for positions */
-export const positionSortBySchema = z.enum(['name', 'created_at']).optional().default('name');
+export const positionSortBySchema = z
+	.enum(['name', 'created_at'])
+	.optional()
+	.default('name');
 
 /**
  * Schema for filtering positions list
  * Used by getPositions query
  */
 export const positionFilterSchema = baseFilterSchema.extend({
-  workLocationId: uuidSchema.optional(),
-  isActive: z.boolean().optional(),
-  sortBy: positionSortBySchema,
-  sortOrder: sortOrderSchema,
-  includeDeleted: z.boolean().optional().default(false),
+	workLocationId: uuidSchema.optional(),
+	isActive: z.boolean().optional(),
+	sortBy: positionSortBySchema,
+	sortOrder: sortOrderSchema,
+	includeDeleted: z.boolean().optional().default(false),
 });
 
 // ============================================================================

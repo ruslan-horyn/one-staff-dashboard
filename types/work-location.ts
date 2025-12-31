@@ -1,5 +1,5 @@
-import type { Tables } from './database';
 import type { Client } from './client';
+import type { Tables } from './database';
 
 // ============================================================================
 // Base Entity Type
@@ -14,11 +14,10 @@ export type WorkLocation = Tables<'work_locations'>;
 
 /** Work location with client info (minimal) */
 export interface WorkLocationWithClient extends WorkLocation {
-  client: Pick<Client, 'id' | 'name'>;
+	client: Pick<Client, 'id' | 'name'>;
 }
 
 /** Work location with client and positions */
 export interface WorkLocationWithPositions extends WorkLocationWithClient {
-  positions: Tables<'positions'>[];
+	positions: Tables<'positions'>[];
 }
-

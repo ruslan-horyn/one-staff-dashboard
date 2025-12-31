@@ -4,18 +4,18 @@ import { createAction } from '@/services/shared';
 import type { AuthResponse, Profile, UserWithProfile } from '@/types/auth';
 
 import {
-  getCurrentUserSchema,
-  resetPasswordSchema,
-  signInSchema,
-  signOutSchema,
-  signUpSchema,
-  updatePasswordSchema,
-  updateProfileSchema,
-  type ResetPasswordInput,
-  type SignInInput,
-  type SignUpInput,
-  type UpdatePasswordInput,
-  type UpdateProfileInput,
+	getCurrentUserSchema,
+	type ResetPasswordInput,
+	resetPasswordSchema,
+	type SignInInput,
+	type SignUpInput,
+	signInSchema,
+	signOutSchema,
+	signUpSchema,
+	type UpdatePasswordInput,
+	type UpdateProfileInput,
+	updatePasswordSchema,
+	updateProfileSchema,
 } from './schemas';
 
 /**
@@ -31,12 +31,12 @@ import {
  * });
  */
 export const signIn = createAction<SignInInput, AuthResponse>(
-  async (input, { supabase }) => {
-    const { data, error } = await supabase.auth.signInWithPassword(input);
-    if (error) throw error;
-    return data;
-  },
-  { schema: signInSchema, requireAuth: false }
+	async (input, { supabase }) => {
+		const { data, error } = await supabase.auth.signInWithPassword(input);
+		if (error) throw error;
+		return data;
+	},
+	{ schema: signInSchema, requireAuth: false }
 );
 
 /**
@@ -56,21 +56,21 @@ export const signIn = createAction<SignInInput, AuthResponse>(
  * });
  */
 export const signUp = createAction<SignUpInput, AuthResponse>(
-  async (input, { supabase }) => {
-    const { data, error } = await supabase.auth.signUp({
-      email: input.email,
-      password: input.password,
-      options: {
-        data: {
-          first_name: input.firstName,
-          last_name: input.lastName,
-        },
-      },
-    });
-    if (error) throw error;
-    return data;
-  },
-  { schema: signUpSchema, requireAuth: false }
+	async (input, { supabase }) => {
+		const { data, error } = await supabase.auth.signUp({
+			email: input.email,
+			password: input.password,
+			options: {
+				data: {
+					first_name: input.firstName,
+					last_name: input.lastName,
+				},
+			},
+		});
+		if (error) throw error;
+		return data;
+	},
+	{ schema: signUpSchema, requireAuth: false }
 );
 
 /**
@@ -82,12 +82,12 @@ export const signUp = createAction<SignUpInput, AuthResponse>(
  * const result = await signOut({});
  */
 export const signOut = createAction<object, { success: boolean }>(
-  async (_, { supabase }) => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-    return { success: true };
-  },
-  { schema: signOutSchema, requireAuth: true }
+	async (_, { supabase }) => {
+		const { error } = await supabase.auth.signOut();
+		if (error) throw error;
+		return { success: true };
+	},
+	{ schema: signOutSchema, requireAuth: true }
 );
 
 /**
@@ -103,21 +103,21 @@ export const signOut = createAction<object, { success: boolean }>(
  * });
  */
 export const updateProfile = createAction<UpdateProfileInput, Profile>(
-  async (input, { supabase, user }) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .update({
-        first_name: input.firstName,
-        last_name: input.lastName,
-      })
-      .eq('id', user!.id)
-      .select()
-      .single();
+	async (input, { supabase, user }) => {
+		const { data, error } = await supabase
+			.from('profiles')
+			.update({
+				first_name: input.firstName,
+				last_name: input.lastName,
+			})
+			.eq('id', user!.id)
+			.select()
+			.single();
 
-    if (error) throw error;
-    return data;
-  },
-  { schema: updateProfileSchema }
+		if (error) throw error;
+		return data;
+	},
+	{ schema: updateProfileSchema }
 );
 
 /**
@@ -132,17 +132,17 @@ export const updateProfile = createAction<UpdateProfileInput, Profile>(
  * }
  */
 export const getCurrentUser = createAction<object, UserWithProfile>(
-  async (_, { supabase, user }) => {
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user!.id)
-      .single();
+	async (_, { supabase, user }) => {
+		const { data: profile, error } = await supabase
+			.from('profiles')
+			.select('*')
+			.eq('id', user!.id)
+			.single();
 
-    if (error) throw error;
-    return { user: user!, profile };
-  },
-  { schema: getCurrentUserSchema }
+		if (error) throw error;
+		return { user: user!, profile };
+	},
+	{ schema: getCurrentUserSchema }
 );
 
 /**
@@ -157,15 +157,18 @@ export const getCurrentUser = createAction<object, UserWithProfile>(
  *   email: 'user@example.com',
  * });
  */
-export const resetPassword = createAction<ResetPasswordInput, { success: boolean }>(
-  async (input, { supabase }) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(input.email)
-    if (error && process.env.NODE_ENV === 'development') {
-      console.error('[Reset Password Error]', error);
-    }
-    return { success: true };
-  },
-  { schema: resetPasswordSchema, requireAuth: false }
+export const resetPassword = createAction<
+	ResetPasswordInput,
+	{ success: boolean }
+>(
+	async (input, { supabase }) => {
+		const { error } = await supabase.auth.resetPasswordForEmail(input.email);
+		if (error && process.env.NODE_ENV === 'development') {
+			console.error('[Reset Password Error]', error);
+		}
+		return { success: true };
+	},
+	{ schema: resetPasswordSchema, requireAuth: false }
 );
 
 /**
@@ -180,13 +183,16 @@ export const resetPassword = createAction<ResetPasswordInput, { success: boolean
  *   newPassword: 'newSecurePassword123',
  * });
  */
-export const updatePassword = createAction<UpdatePasswordInput, { success: boolean }>(
-  async (input, { supabase }) => {
-    const { error } = await supabase.auth.updateUser({
-      password: input.newPassword,
-    });
-    if (error) throw error;
-    return { success: true };
-  },
-  { schema: updatePasswordSchema }
+export const updatePassword = createAction<
+	UpdatePasswordInput,
+	{ success: boolean }
+>(
+	async (input, { supabase }) => {
+		const { error } = await supabase.auth.updateUser({
+			password: input.newPassword,
+		});
+		if (error) throw error;
+		return { success: true };
+	},
+	{ schema: updatePasswordSchema }
 );
