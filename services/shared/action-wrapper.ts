@@ -11,6 +11,7 @@
 import type { z, ZodError } from 'zod';
 import type { SupabaseClient, PostgrestError, AuthError } from '@supabase/supabase-js';
 import type { User } from '@supabase/supabase-js';
+import { revalidatePath } from 'next/cache';
 
 import { createClient } from '@/lib/supabase/server';
 import type { Database } from '@/types/database';
@@ -44,6 +45,18 @@ export type ActionHandler<TInput, TOutput> = (
 ) => Promise<TOutput>;
 
 /**
+ * Configuration for a single path to revalidate.
+ *
+ * @example
+ * { path: '/profile' }
+ * { path: '/dashboard/[id]', type: 'layout' }
+ */
+export type RevalidatePathConfig = {
+  path: string;
+  type?: 'page' | 'layout';
+};
+
+/**
  * Configuration options for the action wrapper.
  */
 export interface ActionOptions<TInput> {
@@ -58,6 +71,19 @@ export interface ActionOptions<TInput> {
    * Default: true (most actions require auth)
    */
   requireAuth?: boolean;
+
+  /**
+   * Paths to revalidate after successful action execution.
+   * Uses Next.js revalidatePath() to invalidate cached data.
+   *
+   * @example
+   * revalidatePaths: [
+   *   { path: '/profile' },
+   *   { path: '/dashboard/[id]', type: 'layout' },  // revalidates layout + all nested pages
+   *   { path: '/blog/[slug]', type: 'page' }        // revalidates only that page
+   * ]
+   */
+  revalidatePaths?: RevalidatePathConfig[];
 }
 
 // ============================================================================
@@ -158,7 +184,7 @@ export function createAction<TInput, TOutput>(
   handler: ActionHandler<TInput, TOutput>,
   options: ActionOptions<TInput> = {}
 ): (input: TInput) => Promise<ActionResult<TOutput>> {
-  const { schema, requireAuth = true } = options;
+  const { schema, requireAuth = true, revalidatePaths } = options;
 
   return async (input: TInput): Promise<ActionResult<TOutput>> => {
     const [result, error] = await tryCatch(async () => {
@@ -177,6 +203,13 @@ export function createAction<TInput, TOutput>(
 
     if (error) {
       return handleActionError(error);
+    }
+
+    // 5. Revalidate paths after successful execution
+    if (revalidatePaths?.length) {
+      for (const { path, type } of revalidatePaths) {
+        revalidatePath(path, type);
+      }
     }
 
     return success(result);
