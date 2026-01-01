@@ -200,10 +200,11 @@ export function mapSupabaseError(error: PostgrestError): ActionError {
 
 /**
  * Maps Supabase AuthError to application ActionError.
- * Handles authentication-specific errors.
+ * Uses error.code for reliable error identification per Supabase best practices.
  *
  * @param error - AuthError from Supabase auth methods
  * @returns ActionError with appropriate code and message
+ * @see https://supabase.com/docs/guides/auth/debugging/error-codes
  */
 export function mapAuthError(error: AuthError): ActionError {
 	// Log in development
@@ -212,52 +213,125 @@ export function mapAuthError(error: AuthError): ActionError {
 			name: error.name,
 			message: error.message,
 			status: error.status,
+			code: error.code,
 		});
 	}
 
-	const message = error.message.toLowerCase();
+	// Use error.code for reliable error identification (not message matching)
+	switch (error.code) {
+		// Credential errors
+		case 'invalid_credentials':
+			return createError(
+				ErrorCodes.INVALID_CREDENTIALS,
+				'Invalid email or password'
+			);
 
-	if (
-		message.includes('invalid login credentials') ||
-		message.includes('invalid email or password')
-	) {
-		return createError(
-			ErrorCodes.INVALID_CREDENTIALS,
-			'Invalid email or password'
-		);
+		// Email/phone confirmation
+		case 'email_not_confirmed':
+			return createError(
+				ErrorCodes.FORBIDDEN,
+				'Please confirm your email address before logging in'
+			);
+
+		case 'phone_not_confirmed':
+			return createError(
+				ErrorCodes.FORBIDDEN,
+				'Please confirm your phone number before logging in'
+			);
+
+		// Session/JWT errors
+		case 'session_expired':
+		case 'refresh_token_not_found':
+		case 'refresh_token_already_used':
+		case 'bad_jwt':
+			return createError(
+				ErrorCodes.SESSION_EXPIRED,
+				'Your session has expired. Please log in again.'
+			);
+
+		// OTP errors
+		case 'otp_expired':
+			return createError(
+				ErrorCodes.SESSION_EXPIRED,
+				'The verification code has expired. Please request a new one.'
+			);
+
+		case 'otp_disabled':
+			return createError(
+				ErrorCodes.FORBIDDEN,
+				'This sign-in method is not available'
+			);
+
+		// Password errors
+		case 'weak_password':
+			return createError(
+				ErrorCodes.VALIDATION_ERROR,
+				'Password does not meet security requirements',
+				{ originalMessage: error.message }
+			);
+
+		case 'same_password':
+			return createError(
+				ErrorCodes.VALIDATION_ERROR,
+				'New password must be different from current password'
+			);
+
+		// Rate limiting
+		case 'over_request_rate_limit':
+		case 'over_email_send_rate_limit':
+		case 'over_sms_send_rate_limit':
+			return createError(
+				ErrorCodes.FORBIDDEN,
+				'Too many requests. Please wait a moment and try again.'
+			);
+
+		// User existence
+		case 'user_not_found':
+			return createError(
+				ErrorCodes.NOT_FOUND,
+				'No account found with this email address'
+			);
+
+		case 'user_already_exists':
+		case 'email_exists':
+			return createError(
+				ErrorCodes.DUPLICATE_ENTRY,
+				'An account with this email already exists'
+			);
+
+		// Validation
+		case 'validation_failed':
+			return createError(
+				ErrorCodes.VALIDATION_ERROR,
+				'Invalid input provided',
+				{ originalMessage: error.message }
+			);
+
+		// Provider disabled
+		case 'signup_disabled':
+		case 'email_provider_disabled':
+		case 'phone_provider_disabled':
+		case 'provider_disabled':
+			return createError(
+				ErrorCodes.FORBIDDEN,
+				'This sign-in method is currently disabled'
+			);
+
+		// User banned
+		case 'user_banned':
+			return createError(
+				ErrorCodes.FORBIDDEN,
+				'This account has been suspended'
+			);
+
+		// Default: unhandled auth error
+		default:
+			return createError(
+				ErrorCodes.NOT_AUTHENTICATED,
+				'An authentication error occurred. Please try again.',
+				{ code: error.code, originalMessage: error.message }
+			);
 	}
-
-	if (message.includes('email not confirmed')) {
-		return createError(
-			ErrorCodes.FORBIDDEN,
-			'Please confirm your email address before logging in'
-		);
-	}
-
-	if (message.includes('user not found') || message.includes('no user found')) {
-		return createError(
-			ErrorCodes.NOT_FOUND,
-			'No account found with this email address'
-		);
-	}
-
-	if (
-		error.status === 401 ||
-		message.includes('session') ||
-		message.includes('jwt')
-	) {
-		return createError(
-			ErrorCodes.SESSION_EXPIRED,
-			'Your session has expired. Please log in again.'
-		);
-	}
-
-	// Default auth error
-	return createError(
-		ErrorCodes.INTERNAL_ERROR,
-		'An authentication error occurred. Please try again.',
-		{ originalMessage: error.message }
-	);
 }
 
 // ============================================================================
