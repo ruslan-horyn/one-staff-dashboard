@@ -8,11 +8,11 @@
 // is a factory function, not a server action itself. The returned function
 // should be exported from files that have 'use server'.
 
-import type {
-	AuthError,
-	PostgrestError,
-	SupabaseClient,
-	User,
+import {
+	isAuthError,
+	type PostgrestError,
+	type SupabaseClient,
+	type User,
 } from '@supabase/supabase-js';
 import { revalidatePath } from 'next/cache';
 import type { ZodError, z } from 'zod';
@@ -35,22 +35,26 @@ import { type ActionResult, failure, success } from './result';
 
 /**
  * Context passed to action handlers.
+ * Type of `user` depends on `requireAuth` option:
+ * - `requireAuth: true` (default) → `user: User`
+ * - `requireAuth: false` → `user: null`
  */
-export interface ActionContext {
+export interface ActionContext<RequireAuth extends boolean = true> {
 	/** Supabase client instance (already created) */
 	supabase: SupabaseClient<Database>;
-	/** Authenticated user (null if requireAuth is false) */
-	user: User | null;
+	/** Authenticated user (User when requireAuth=true, null when requireAuth=false) */
+	user: RequireAuth extends true ? User : null;
 }
 
 /**
  * The actual action handler function signature.
  * Receives validated input and context, returns data or throws.
  */
-export type ActionHandler<TInput, TOutput> = (
-	input: TInput,
-	context: ActionContext
-) => Promise<TOutput>;
+export type ActionHandler<
+	TInput,
+	TOutput,
+	RequireAuth extends boolean = true,
+> = (input: TInput, context: ActionContext<RequireAuth>) => Promise<TOutput>;
 
 /**
  * Configuration for a single path to revalidate.
@@ -67,7 +71,7 @@ export type RevalidatePathConfig = {
 /**
  * Configuration options for the action wrapper.
  */
-export interface ActionOptions<TInput> {
+export interface ActionOptions<TInput, RequireAuth extends boolean = true> {
 	/**
 	 * Zod schema for input validation.
 	 * If provided, input will be validated before handler is called.
@@ -78,7 +82,7 @@ export interface ActionOptions<TInput> {
 	 * Whether authentication is required.
 	 * Default: true (most actions require auth)
 	 */
-	requireAuth?: boolean;
+	requireAuth?: RequireAuth;
 
 	/**
 	 * Paths to revalidate after successful action execution.
@@ -116,27 +120,19 @@ function validateInput<TInput>(
 /**
  * Authenticates the user if required.
  * Throws AuthenticationError if not authenticated (handled by handleActionError).
- *
- * @param supabase - Supabase client instance to use for authentication
- * @param requireAuth - Whether authentication is required
  */
 async function authenticateUser(
 	supabase: SupabaseClient<Database>,
 	requireAuth: boolean
 ): Promise<User | null> {
-	if (!requireAuth) {
-		return null;
-	}
+	if (!requireAuth) return null;
 
 	const {
 		data: { user },
 		error,
 	} = await supabase.auth.getUser();
 
-	if (error) {
-		throw error;
-	}
-
+	if (error) throw error;
 	if (!user) {
 		throw new AuthenticationError(
 			'You must be logged in to perform this action'
@@ -155,10 +151,11 @@ async function authenticateUser(
  *
  * Features:
  * - Optional Zod schema validation
- * - Optional authentication check
+ * - Optional authentication check (default: true)
  * - Supabase client creation
  * - Consistent ActionResult return type
  * - Development logging for errors
+ * - Type-safe user context based on requireAuth option
  *
  * @param handler - The action logic function
  * @param options - Configuration options
@@ -173,9 +170,10 @@ async function authenticateUser(
  *
  * export const createWorker = createAction(
  *   async (input, { supabase, user }) => {
+ *     // user.id is guaranteed (no optional chaining needed)
  *     const { data, error } = await supabase
  *       .from('temporary_workers')
- *       .insert({ ...input, created_by: user?.id })
+ *       .insert({ ...input, created_by: user.id })
  *       .select()
  *       .single();
  *
@@ -188,7 +186,8 @@ async function authenticateUser(
  * @example
  * // Without auth (e.g., sign in)
  * export const signIn = createAction(
- *   async (input, { supabase }) => {
+ *   async (input, { supabase, user }) => {
+ *     // user is null when requireAuth: false
  *     const { data, error } = await supabase.auth.signInWithPassword(input);
  *     if (error) throw error;
  *     return data;
@@ -196,32 +195,45 @@ async function authenticateUser(
  *   { schema: signInSchema, requireAuth: false }
  * );
  */
+
+// Overload: requireAuth: false - user is null
 export function createAction<TInput, TOutput>(
-	handler: ActionHandler<TInput, TOutput>,
-	options: ActionOptions<TInput> = {}
+	handler: ActionHandler<TInput, TOutput, false>,
+	options: ActionOptions<TInput, false> & { requireAuth: false }
+): (input: TInput) => Promise<ActionResult<TOutput>>;
+
+// Overload: requireAuth: true (default) - user is guaranteed
+export function createAction<TInput, TOutput>(
+	handler: ActionHandler<TInput, TOutput, true>,
+	options?: ActionOptions<TInput, true>
+): (input: TInput) => Promise<ActionResult<TOutput>>;
+
+// Implementation
+export function createAction<TInput, TOutput>(
+	handler: ActionHandler<TInput, TOutput, boolean>,
+	options: ActionOptions<TInput, boolean> = {}
 ): (input: TInput) => Promise<ActionResult<TOutput>> {
 	const { schema, requireAuth = true, revalidatePaths } = options;
 
 	return async (input: TInput): Promise<ActionResult<TOutput>> => {
 		const [result, error] = await tryCatch(async () => {
-			// 1. Validate input (throws ZodError if invalid)
 			const validatedInput = validateInput(input, schema);
 
-			// 2. Create Supabase client
 			const supabase = await createClient();
 
-			// 3. Authenticate user (throws AuthenticationError if not authenticated)
 			const user = await authenticateUser(supabase, requireAuth);
 
-			// 4. Execute the handler
-			return handler(validatedInput, { supabase, user });
+			return handler(validatedInput, {
+				supabase,
+				user,
+			});
 		});
 
 		if (error) {
 			return handleActionError(error);
 		}
 
-		// 5. Revalidate paths after successful execution
+		// Revalidate paths after successful execution
 		if (revalidatePaths?.length) {
 			for (const { path, type } of revalidatePaths) {
 				revalidatePath(path, type);
@@ -303,18 +315,6 @@ function isPostgrestError(error: unknown): error is PostgrestError {
 		'message' in error &&
 		'details' in error &&
 		typeof (error as Record<string, unknown>).code === 'string'
-	);
-}
-
-/**
- * Type guard for Supabase AuthError.
- */
-function isAuthError(error: unknown): error is AuthError {
-	return (
-		typeof error === 'object' &&
-		error !== null &&
-		'__isAuthError' in error &&
-		(error as Record<string, unknown>).__isAuthError === true
 	);
 }
 
