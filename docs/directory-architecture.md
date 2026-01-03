@@ -61,6 +61,7 @@ one-staff-dashboard/
 │   └── index.ts                  # Barrel exports
 ├── services/                     # Server actions, queries, validation
 │   ├── shared/                   # Shared utilities
+│   │   ├── __tests__/            # Unit tests for shared module
 │   │   ├── result.ts             # ActionResult<T> type and helpers
 │   │   ├── errors.ts             # Error codes and Supabase/Zod mapping
 │   │   ├── auth.ts               # Session checking utilities
@@ -201,11 +202,11 @@ Pure helper functions (formatting, validation, export).
 ### /lib - Configurations
 External service clients (Supabase), environment configuration.
 
-### Unit Tests (Colocation)
-`.test.ts` / `.test.tsx` files placed **alongside the tested code** in the same folder:
-- `components/ui/Button.tsx` → `components/ui/Button.test.tsx`
-- `hooks/useAuth.ts` → `hooks/useAuth.test.ts`
-- `services/workers.service.ts` → `services/workers.service.test.ts`
+### Unit Tests (__tests__/ Folders)
+`.test.ts` / `.test.tsx` files placed in `__tests__/` subfolder within each module:
+- `components/ui/Button.tsx` → `components/ui/__tests__/Button.test.tsx`
+- `hooks/useAuth.ts` → `hooks/__tests__/useAuth.test.ts`
+- `services/shared/result.ts` → `services/shared/__tests__/result.test.ts`
 
 ### /e2e - E2E Tests
 Playwright end-to-end tests.
@@ -269,7 +270,7 @@ import { cn } from '@/lib/utils/cn';
 | Utility Function               | `/utils/`                                 |
 | API Endpoint (REST)            | `/app/api/[resource]/route.ts`            |
 | Page                           | `/app/(dashboard)/[resource]/page.tsx`    |
-| Unit Test                      | Next to file: `[file].test.ts(x)`         |
+| Unit Test                      | `[module]/__tests__/[file].test.ts(x)`    |
 | E2E Test                       | `/e2e/`                                   |
 
 ## Server vs Client Components

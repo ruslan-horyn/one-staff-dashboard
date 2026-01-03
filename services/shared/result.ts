@@ -16,6 +16,9 @@ export interface ActionError {
 	details?: Record<string, unknown>;
 }
 
+export type SuccessActionResult<T> = { success: true; data: T };
+export type FailedActionResult = { success: false; error: ActionError };
+
 /**
  * Discriminated union for Server Action responses.
  * Uses `success` boolean as discriminator for type narrowing.
@@ -28,9 +31,7 @@ export interface ActionError {
  *   console.log(result.error.message); // TypeScript knows error exists
  * }
  */
-export type ActionResult<T> =
-	| { success: true; data: T }
-	| { success: false; error: ActionError };
+export type ActionResult<T> = SuccessActionResult<T> | FailedActionResult;
 
 /**
  * Creates a successful ActionResult with data.
@@ -41,7 +42,7 @@ export type ActionResult<T> =
  * @example
  * return success({ id: '123', name: 'John' });
  */
-export function success<T>(data: T): ActionResult<T> {
+export function success<T>(data: T): SuccessActionResult<T> {
 	return { success: true, data };
 }
 
@@ -57,11 +58,11 @@ export function success<T>(data: T): ActionResult<T> {
  * return failure('NOT_FOUND', 'Worker not found');
  * return failure('VALIDATION_ERROR', 'Invalid input', { fieldErrors: { name: ['Required'] } });
  */
-export function failure<T = never>(
+export function failure(
 	code: string,
 	message: string,
 	details?: Record<string, unknown>
-): ActionResult<T> {
+): FailedActionResult {
 	return {
 		success: false,
 		error: { code, message, ...(details && { details }) },
@@ -82,7 +83,7 @@ export function failure<T = never>(
  */
 export function isSuccess<T>(
 	result: ActionResult<T>
-): result is { success: true; data: T } {
+): result is SuccessActionResult<T> {
 	return result.success === true;
 }
 
@@ -99,6 +100,6 @@ export function isSuccess<T>(
  */
 export function isFailure<T>(
 	result: ActionResult<T>
-): result is { success: false; error: ActionError } {
+): result is FailedActionResult {
 	return result.success === false;
 }
