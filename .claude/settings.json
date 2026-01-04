@@ -1,7 +1,9 @@
 {
 	"permissions": {
-		"allow": [],
+		"allow": [
+      "Bash(mkdir:*)"
+    ],
 		"deny": [],
-		"ask": ["Bash(git add:*)", "Bash(git commit:*)", "Bash(mkdir:*)"]
+		"ask": ["Bash(git add:*)", "Bash(git commit:*)"]
 	}
 }
