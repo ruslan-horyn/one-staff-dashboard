@@ -1,5 +1,20 @@
 # Server Actions & Data Layer Plan
 
+## Implementation Status
+
+| Module | Actions | Schemas | Status |
+|--------|---------|---------|--------|
+| **Shared** | ✅ `createAction` wrapper | ✅ | Complete |
+| **Auth** | ✅ All implemented | ✅ | Complete |
+| **Clients** | ✅ All implemented | ✅ | Complete |
+| **WorkLocations** | ❌ Not implemented | ✅ | Schemas only |
+| **Positions** | ❌ Not implemented | ✅ | Schemas only |
+| **Workers** | ❌ Not implemented | ✅ | Schemas only |
+| **Assignments** | ❌ Not implemented | ✅ | Schemas only |
+| **Reports** | ❌ Not implemented | ✅ | Schemas only |
+
+---
+
 ## 1. Data Modules
 
 List of modules corresponding to business entities:
@@ -14,85 +29,103 @@ List of modules corresponding to business entities:
 | **Assignments** | `assignments` | Assignment lifecycle management (create, end, cancel) |
 | **Reports** | `assignments`, `temporary_workers`, aggregations | Hours reports and exports |
 
-### Recommended File Structure
+### File Structure
 
 ```
 /services/
   /shared/
-    result.ts            # ActionResult<T> type and utilities
-    errors.ts            # Error codes and Supabase error mapping
+    action-wrapper.ts    # createAction HOF wrapper
+    auth.ts              # Authentication helpers (AuthenticationError)
+    errors.ts            # Error codes and Supabase/Auth/Zod error mapping
     pagination.ts        # Pagination helpers and constants
+    query-helpers.ts     # Search, sort, soft-delete query builders
+    result.ts            # ActionResult<T> type and utilities
+    schemas.ts           # Shared validation schemas (uuid, pagination)
     index.ts             # Barrel exports
   /auth/
-    actions.ts           # Server actions for auth
-    queries.ts           # Data fetching functions
+    actions.ts           # Server actions (mutations + queries)
     schemas.ts           # Zod validation schemas
-    types.ts             # Module-specific types
+    index.ts             # Barrel exports
   /clients/
-    actions.ts
-    queries.ts
-    schemas.ts
-    types.ts
+    actions.ts           # Server actions (mutations + queries)
+    schemas.ts           # Zod validation schemas
+    index.ts             # Barrel exports
   /work-locations/
-    actions.ts
-    queries.ts
-    schemas.ts
-    types.ts
+    actions.ts           # Server actions (mutations + queries)
+    schemas.ts           # Zod validation schemas
+    index.ts             # Barrel exports
   /positions/
-    actions.ts
-    queries.ts
-    schemas.ts
-    types.ts
+    actions.ts           # Server actions (mutations + queries)
+    schemas.ts           # Zod validation schemas
+    index.ts             # Barrel exports
   /workers/
-    actions.ts
-    queries.ts
-    schemas.ts
-    types.ts
+    actions.ts           # Server actions (mutations + queries)
+    schemas.ts           # Zod validation schemas
+    index.ts             # Barrel exports
   /assignments/
-    actions.ts
-    queries.ts
-    schemas.ts
-    types.ts
+    actions.ts           # Server actions (mutations + queries)
+    schemas.ts           # Zod validation schemas
+    index.ts             # Barrel exports
   /reports/
-    actions.ts
-    queries.ts
-    schemas.ts
-    types.ts
+    actions.ts           # Server actions (mutations + queries)
+    schemas.ts           # Zod validation schemas
+    index.ts             # Barrel exports
   index.ts               # Barrel exports
 ```
+
+**Note:** Both mutations and queries are implemented in `actions.ts` using the `createAction` wrapper. This simplifies the architecture and provides consistent error handling for all operations.
 
 ---
 
 ## 2. Server Actions (Mutations)
 
-### Auth Module
+### Auth Module ✅ IMPLEMENTED
 
-#### signIn
+#### signIn ✅
 - **Description**: Authenticate user with email/password via Supabase Auth
 - **Input Parameters**:
   - `email` (string, required): User email address
   - `password` (string, required): User password
-- **Return Type**: `ActionResult<{ user: User; session: Session }>`
+- **Return Type**: `ActionResult<AuthResponse>`
 - **Validation**:
   - `email`: Valid email format
   - `password`: Minimum 8 characters
-- **Authorization**: Public (no auth required)
+- **Authorization**: Public (`requireAuth: false`)
 - **Error Handling**:
-  - `INVALID_CREDENTIALS`: Wrong email or password
-  - `USER_NOT_FOUND`: User does not exist
+  - `INVALID_CREDENTIALS`: Wrong email or password (via `error.code`)
+  - `SESSION_EXPIRED`: JWT issues
 - **Supabase**: `supabase.auth.signInWithPassword()`
 
-#### signOut
+#### signUp ✅
+- **Description**: Register a new user with email, password, and profile data
+- **Input Parameters**:
+  - `email` (string, required): User email address
+  - `password` (string, required): User password (min 8 chars)
+  - `firstName` (string, required): First name (1-100 chars)
+  - `lastName` (string, required): Last name (1-100 chars)
+- **Return Type**: `ActionResult<AuthResponse>`
+- **Validation**:
+  - `email`: Valid email format
+  - `password`: Minimum 8 characters
+  - `firstName`: 1-100 characters
+  - `lastName`: 1-100 characters
+- **Authorization**: Public (`requireAuth: false`)
+- **Error Handling**:
+  - `DUPLICATE_ENTRY`: Email already exists
+  - `VALIDATION_ERROR`: Weak password
+- **Supabase**: `supabase.auth.signUp()` with `options.data` for profile
+
+#### signOut ✅
 - **Description**: Sign out current user and invalidate session
-- **Input Parameters**: None
-- **Return Type**: `ActionResult<void>`
+- **Input Parameters**: None (empty object)
+- **Return Type**: `ActionResult<{ success: boolean }>`
 - **Validation**: None
 - **Authorization**: Any authenticated user
 - **Error Handling**:
   - `NOT_AUTHENTICATED`: No active session
 - **Supabase**: `supabase.auth.signOut()`
 
-#### updateProfile
+#### updateProfile ✅
 - **Description**: Update current user's profile information
 - **Input Parameters**:
   - `firstName` (string, required): First name (1-100 chars)
@@ -107,11 +140,45 @@ List of modules corresponding to business entities:
   - `VALIDATION_ERROR`: Invalid input data
 - **Supabase**: `supabase.from('profiles').update()`
 
+#### getCurrentUser ✅
+- **Description**: Get current authenticated user with profile data
+- **Input Parameters**: None (empty object)
+- **Return Type**: `ActionResult<UserWithProfile>`
+- **Validation**: None
+- **Authorization**: Any authenticated user
+- **Error Handling**:
+  - `NOT_AUTHENTICATED`: No active session
+  - `NOT_FOUND`: Profile not found
+- **Supabase**: `supabase.from('profiles').select().eq('id', user.id)`
+
+#### resetPassword ✅
+- **Description**: Send password reset email (always returns success for security)
+- **Input Parameters**:
+  - `email` (string, required): User email address
+- **Return Type**: `ActionResult<{ success: boolean }>`
+- **Validation**:
+  - `email`: Valid email format
+- **Authorization**: Public (`requireAuth: false`)
+- **Error Handling**: Always returns success (security best practice)
+- **Supabase**: `supabase.auth.resetPasswordForEmail()`
+
+#### updatePassword ✅
+- **Description**: Update password for current user (after reset link)
+- **Input Parameters**:
+  - `newPassword` (string, required): New password (min 8 chars)
+- **Return Type**: `ActionResult<{ success: boolean }>`
+- **Validation**:
+  - `newPassword`: Minimum 8 characters
+- **Authorization**: Any authenticated user
+- **Error Handling**:
+  - `VALIDATION_ERROR`: Weak password or same as current
+- **Supabase**: `supabase.auth.updateUser()`
+
 ---
 
-### Clients Module
+### Clients Module ✅ IMPLEMENTED
 
-#### createClient
+#### createClient ✅
 - **Description**: Create a new client company
 - **Input Parameters**:
   - `name` (string, required): Company name (1-255 chars)
@@ -131,7 +198,35 @@ List of modules corresponding to business entities:
   - `DUPLICATE_ENTRY`: Client with same name exists
 - **Supabase**: `supabase.from('clients').insert()`
 
-#### updateClient
+#### getClient ✅
+- **Description**: Retrieve a single client by ID
+- **Input Parameters**:
+  - `id` (string, required): Client UUID
+- **Return Type**: `ActionResult<Client>`
+- **Validation**:
+  - `id`: Valid UUID format
+- **Authorization**: Any authenticated user (RLS enforced)
+- **Error Handling**:
+  - `NOT_FOUND`: Client does not exist or is deleted
+- **Supabase**: `supabase.from('clients').select().eq('id', id).is('deleted_at', null)`
+
+#### getClients ✅
+- **Description**: Retrieve paginated list of clients with filtering and sorting
+- **Input Parameters**:
+  - `page` (number, optional): Page number (default: 1)
+  - `pageSize` (number, optional): Items per page (default: 20, max: 100)
+  - `search` (string, optional): Text search on name, email, phone, address
+  - `sortBy` ('name' | 'created_at', optional): Sort field
+  - `sortOrder` ('asc' | 'desc', optional): Sort direction (default: 'asc')
+  - `includeDeleted` (boolean, optional): Include soft-deleted records (default: false)
+- **Return Type**: `ActionResult<PaginatedResult<Client>>`
+- **Validation**: All fields validated via Zod schema
+- **Authorization**: Any authenticated user (RLS enforced)
+- **Error Handling**:
+  - `VALIDATION_ERROR`: Invalid pagination or filter params
+- **Supabase**: Complex query with count + data in parallel
+
+#### updateClient ✅
 - **Description**: Update an existing client's information
 - **Input Parameters**:
   - `id` (string, required): Client UUID
@@ -146,13 +241,13 @@ List of modules corresponding to business entities:
   - `FORBIDDEN`: User is not admin
   - `NOT_FOUND`: Client does not exist
   - `VALIDATION_ERROR`: Invalid input
-- **Supabase**: `supabase.from('clients').update().eq('id', id)`
+- **Supabase**: `supabase.from('clients').update().eq('id', id).is('deleted_at', null)`
 
-#### deleteClient
+#### deleteClient ✅
 - **Description**: Soft-delete a client (sets deleted_at timestamp)
 - **Input Parameters**:
   - `id` (string, required): Client UUID
-- **Return Type**: `ActionResult<void>`
+- **Return Type**: `ActionResult<Client>`
 - **Validation**:
   - `id`: Valid UUID format
 - **Authorization**: Admin only (RLS enforced)
@@ -160,11 +255,11 @@ List of modules corresponding to business entities:
   - `FORBIDDEN`: User is not admin
   - `NOT_FOUND`: Client does not exist
   - `HAS_DEPENDENCIES`: Client has active work locations
-- **Supabase**: `supabase.from('clients').update({ deleted_at: new Date().toISOString() }).eq('id', id)`
+- **Supabase**: `supabase.from('clients').update({ deleted_at }).eq('id', id).is('deleted_at', null)`
 
 ---
 
-### WorkLocations Module
+### WorkLocations Module ⏳ TODO
 
 #### createWorkLocation
 - **Description**: Create a new work location for a client
@@ -221,7 +316,7 @@ List of modules corresponding to business entities:
 
 ---
 
-### Positions Module
+### Positions Module ⏳ TODO
 
 #### createPosition
 - **Description**: Create a new position at a work location
@@ -270,7 +365,7 @@ List of modules corresponding to business entities:
 
 ---
 
-### Workers Module
+### Workers Module ⏳ TODO
 
 #### createWorker
 - **Description**: Create a new temporary worker
@@ -323,7 +418,7 @@ List of modules corresponding to business entities:
 
 ---
 
-### Assignments Module
+### Assignments Module ⏳ TODO
 
 #### createAssignment
 - **Description**: Create a new assignment for a worker to a position
@@ -381,7 +476,7 @@ List of modules corresponding to business entities:
 
 ---
 
-### Reports Module
+### Reports Module ⏳ TODO
 
 #### generateHoursReport
 - **Description**: Generate a report of worked hours for a date range
@@ -414,215 +509,43 @@ List of modules corresponding to business entities:
 
 ## 3. Data Fetching Functions (Queries)
 
-### Auth Module
+> **Note:** In the current architecture, queries are implemented as server actions using the `createAction` wrapper. This provides consistent error handling and authentication for both mutations and queries. See Section 2 for implemented query actions (e.g., `getClient`, `getClients`, `getCurrentUser`).
 
-#### getCurrentUser
-- **Description**: Get the currently authenticated user
-- **Parameters**: None
-- **Return Type**: `User | null`
-- **Authorization**: Returns null if not authenticated
-- **Supabase**: `supabase.auth.getUser()`
+### Planned Query Actions (Not Yet Implemented)
 
-#### getCurrentProfile
-- **Description**: Get the profile of the currently authenticated user
-- **Parameters**: None
-- **Return Type**: `Profile | null`
-- **Authorization**: Returns null if not authenticated
-- **Supabase**: `supabase.from('profiles').select('*').eq('id', userId).single()`
+The following query actions should be implemented in their respective module `actions.ts` files:
 
-#### getUserRole
-- **Description**: Get the role of the current user
-- **Parameters**: None
-- **Return Type**: `'admin' | 'coordinator' | null`
-- **Authorization**: Returns null if not authenticated
-- **Supabase**: `supabase.rpc('user_role')`
+#### Auth Module
+- ~~`getCurrentUser`~~ → ✅ Implemented in Section 2
+- `getUserRole` - Get current user's role via `supabase.rpc('user_role')`
 
----
+#### Clients Module
+- ~~`getClient`~~ → ✅ Implemented in Section 2
+- ~~`getClients`~~ → ✅ Implemented in Section 2
+- `getClientWithLocations` - Client with nested work_locations
 
-### Clients Module
+#### WorkLocations Module ⏳
+- `getWorkLocation` - Single work location with client info
+- `getWorkLocations` - Paginated list with filtering
+- `getWorkLocationWithPositions` - Location with nested positions
 
-#### getClients
-- **Description**: Get paginated list of clients with optional filtering
-- **Parameters**:
-  - `search` (string, optional): Text search on name
-  - `page` (number, optional): Page number (default: 1)
-  - `pageSize` (number, optional): Items per page (default: 20, max: 100)
-  - `sortBy` ('name' | 'created_at', optional): Sort field (default: 'name')
-  - `sortOrder` ('asc' | 'desc', optional): Sort direction (default: 'asc')
-  - `includeDeleted` (boolean, optional): Include soft-deleted records (default: false)
-- **Return Type**: `PaginatedResult<Client>`
-- **Authorization**: Any authenticated user (RLS enforced)
-- **Supabase**: Query with filters, ordering, and range
+#### Positions Module ⏳
+- `getPosition` - Single position with location info
+- `getPositions` - Paginated list with filtering
 
-#### getClientById
-- **Description**: Get a single client by ID
-- **Parameters**:
-  - `id` (string): Client UUID
-- **Return Type**: `Client | null`
-- **Authorization**: Any authenticated user (RLS enforced)
-- **Supabase**: `supabase.from('clients').select('*').eq('id', id).single()`
+#### Workers Module ⏳
+- `getWorker` - Single worker by ID
+- `getWorkers` - Paginated list with stats (total hours, active assignments)
+- `getWorkerWithAssignments` - Worker with nested assignments
+- `checkWorkerAvailability` - RPC call to check availability
 
-#### getClientWithLocations
-- **Description**: Get a client with all its work locations
-- **Parameters**:
-  - `id` (string): Client UUID
-- **Return Type**: `ClientWithLocations | null`
-- **Authorization**: Any authenticated user (RLS enforced)
-- **Supabase**: Nested select with work_locations
+#### Assignments Module ⏳
+- `getAssignment` - Single assignment with full details
+- `getAssignments` - Paginated list with filtering
+- `getAssignmentAuditLog` - Audit log entries for assignment
 
----
-
-### WorkLocations Module
-
-#### getWorkLocations
-- **Description**: Get paginated list of work locations with client info
-- **Parameters**:
-  - `clientId` (string, optional): Filter by client
-  - `search` (string, optional): Text search on name/address
-  - `page` (number, optional): Page number (default: 1)
-  - `pageSize` (number, optional): Items per page (default: 20)
-  - `sortBy` ('name' | 'created_at', optional): Sort field (default: 'name')
-  - `sortOrder` ('asc' | 'desc', optional): Sort direction (default: 'asc')
-- **Return Type**: `PaginatedResult<WorkLocationWithClient>`
-- **Authorization**: Any authenticated user (RLS enforced)
-- **Supabase**: Query with client relation, filters, and ordering
-
-#### getWorkLocationById
-- **Description**: Get a single work location with client info
-- **Parameters**:
-  - `id` (string): Work location UUID
-- **Return Type**: `WorkLocationWithClient | null`
-- **Authorization**: Any authenticated user (RLS enforced)
-- **Supabase**: Select with client relation
-
-#### getWorkLocationWithPositions
-- **Description**: Get a work location with all its positions
-- **Parameters**:
-  - `id` (string): Work location UUID
-- **Return Type**: `WorkLocationWithPositions | null`
-- **Authorization**: Any authenticated user (RLS enforced)
-- **Supabase**: Nested select with client and positions
-
----
-
-### Positions Module
-
-#### getPositions
-- **Description**: Get paginated list of positions with location info
-- **Parameters**:
-  - `workLocationId` (string, optional): Filter by work location
-  - `isActive` (boolean, optional): Filter by active status
-  - `search` (string, optional): Text search on name
-  - `page` (number, optional): Page number
-  - `pageSize` (number, optional): Items per page
-- **Return Type**: `PaginatedResult<PositionWithLocation>`
-- **Authorization**: Any authenticated user (RLS enforced)
-- **Supabase**: Query with work_location and client relations
-
-#### getPositionById
-- **Description**: Get a single position with location info
-- **Parameters**:
-  - `id` (string): Position UUID
-- **Return Type**: `PositionWithLocation | null`
-- **Authorization**: Any authenticated user (RLS enforced)
-- **Supabase**: Select with work_location and client relations
-
----
-
-### Workers Module
-
-#### getWorkers
-- **Description**: Get paginated list of workers with computed stats (Main Board View)
-- **Parameters**:
-  - `search` (string, optional): Text search on name/phone (uses pg_trgm for fuzzy matching)
-  - `availableAt` (string, optional): Filter workers available at specific datetime
-  - `page` (number, optional): Page number (default: 1)
-  - `pageSize` (number, optional): Items per page (default: 20)
-  - `sortBy` ('name' | 'total_hours' | 'created_at', optional): Sort field
-  - `sortOrder` ('asc' | 'desc', optional): Sort direction
-- **Return Type**: `PaginatedResult<WorkerWithStats>`
-- **Authorization**: Any authenticated user (RLS enforced)
-- **Supabase**: Complex query with aggregations for total hours and active assignments
-
-#### getWorkerById
-- **Description**: Get a single worker by ID
-- **Parameters**:
-  - `id` (string): Worker UUID
-- **Return Type**: `Worker | null`
-- **Authorization**: Any authenticated user (RLS enforced)
-- **Supabase**: `supabase.from('temporary_workers').select('*').eq('id', id).single()`
-
-#### getWorkerWithAssignments
-- **Description**: Get a worker with their assignments (for expanded row view)
-- **Parameters**:
-  - `id` (string): Worker UUID
-  - `assignmentStatus` (AssignmentStatus[], optional): Filter assignments by status
-  - `dateFrom` (string, optional): Filter assignments starting from date
-  - `dateTo` (string, optional): Filter assignments ending before date
-- **Return Type**: `WorkerWithAssignments | null`
-- **Authorization**: Any authenticated user (RLS enforced)
-- **Supabase**: Nested select with assignments, positions, and locations
-
-#### checkWorkerAvailability
-- **Description**: Check if a worker is available at a specific datetime
-- **Parameters**:
-  - `workerId` (string): Worker UUID
-  - `checkDatetime` (string): ISO datetime to check
-- **Return Type**: `boolean`
-- **Authorization**: Any authenticated user
-- **Supabase**: `supabase.rpc('is_worker_available', { p_worker_id, p_check_datetime })`
-
----
-
-### Assignments Module
-
-#### getAssignments
-- **Description**: Get paginated list of assignments with full details
-- **Parameters**:
-  - `workerId` (string, optional): Filter by worker
-  - `positionId` (string, optional): Filter by position
-  - `status` (AssignmentStatus[], optional): Filter by status(es)
-  - `dateFrom` (string, optional): Filter by start date (>= dateFrom)
-  - `dateTo` (string, optional): Filter by start date (<= dateTo)
-  - `page` (number, optional): Page number
-  - `pageSize` (number, optional): Items per page
-  - `sortBy` ('start_at' | 'created_at', optional): Sort field
-  - `sortOrder` ('asc' | 'desc', optional): Sort direction
-- **Return Type**: `PaginatedResult<AssignmentWithDetails>`
-- **Authorization**: Any authenticated user (RLS enforced)
-- **Supabase**: Query with worker, position, location, client, and profile relations
-
-#### getAssignmentById
-- **Description**: Get a single assignment with full details
-- **Parameters**:
-  - `id` (string): Assignment UUID
-- **Return Type**: `AssignmentWithDetails | null`
-- **Authorization**: Any authenticated user (RLS enforced)
-- **Supabase**: Select with all relations
-
-#### getAssignmentAuditLog
-- **Description**: Get audit log entries for an assignment
-- **Parameters**:
-  - `assignmentId` (string): Assignment UUID
-  - `page` (number, optional): Page number
-  - `pageSize` (number, optional): Items per page
-- **Return Type**: `PaginatedResult<AuditLogEntry>`
-- **Authorization**: Any authenticated user (RLS enforced)
-- **Supabase**: Select from assignment_audit_log with profile relation
-
----
-
-### Reports Module
-
-#### getHoursReport
-- **Description**: Get hours report data for a date range
-- **Parameters**:
-  - `startDate` (string): Report start date (ISO)
-  - `endDate` (string): Report end date (ISO)
-  - `clientId` (string, optional): Optional client filter
-- **Return Type**: `HoursReportData[]`
-- **Authorization**: Any authenticated user (RLS enforced)
-- **Supabase**: `supabase.rpc('get_hours_report', { p_start_date, p_end_date, p_client_id })`
+#### Reports Module ⏳
+- `getHoursReport` - Hours report via RPC
 
 ---
 
@@ -766,7 +689,7 @@ See `.ai/promts/generate-schemas.md` for schema generation instructions and `.ai
 
 ---
 
-## 6. Error Handling
+## 6. Error Handling ✅ IMPLEMENTED
 
 ### Error Codes
 
@@ -774,28 +697,26 @@ See `.ai/promts/generate-schemas.md` for schema generation instructions and `.ai
 // /services/shared/errors.ts
 
 export const ErrorCodes = {
-  // Authentication errors
+  // Authentication Errors (user identity)
   NOT_AUTHENTICATED: 'NOT_AUTHENTICATED',
   INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
   SESSION_EXPIRED: 'SESSION_EXPIRED',
 
-  // Authorization errors
+  // Authorization Errors (user permissions)
   FORBIDDEN: 'FORBIDDEN',
 
-  // Validation errors
+  // Validation Errors (input data)
   VALIDATION_ERROR: 'VALIDATION_ERROR',
 
-  // Resource errors
+  // Resource Errors (database entities)
   NOT_FOUND: 'NOT_FOUND',
   DUPLICATE_ENTRY: 'DUPLICATE_ENTRY',
   HAS_DEPENDENCIES: 'HAS_DEPENDENCIES',
 
-  // Business logic errors
+  // Business Logic Errors (domain rules)
   INVALID_DATE_RANGE: 'INVALID_DATE_RANGE',
-  ALREADY_ENDED: 'ALREADY_ENDED',
-  CANNOT_CANCEL: 'CANNOT_CANCEL',
 
-  // Generic errors
+  // System Errors (infrastructure)
   INTERNAL_ERROR: 'INTERNAL_ERROR',
   DATABASE_ERROR: 'DATABASE_ERROR',
 } as const;
@@ -803,128 +724,216 @@ export const ErrorCodes = {
 export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
 ```
 
+> **Note:** `ALREADY_ENDED` and `CANNOT_CANCEL` were removed - use `VALIDATION_ERROR` with descriptive message instead.
+
 ### Error Response Structure
 
 ```typescript
 export interface ActionError {
   code: ErrorCode;
   message: string;
-  details?: {
-    field?: string;
-    constraint?: string;
-    [key: string]: unknown;
-  };
+  details?: Record<string, unknown>;
 }
 
 // Helper to create errors
 export function createError(
   code: ErrorCode,
   message: string,
-  details?: ActionError['details']
+  details?: Record<string, unknown>
 ): ActionError {
-  return { code, message, details };
+  return { code, message, ...(details && { details }) };
 }
 ```
 
-### Supabase Error Mapping
+### Supabase PostgrestError Mapping
 
 ```typescript
 import type { PostgrestError } from '@supabase/supabase-js';
 
+const PG_ERROR_CODES = {
+  UNIQUE_VIOLATION: '23505',
+  FOREIGN_KEY_VIOLATION: '23503',
+  NOT_NULL_VIOLATION: '23502',
+  CHECK_VIOLATION: '23514',
+  INSUFFICIENT_PRIVILEGE: '42501',
+} as const;
+
+const POSTGREST_ERROR_CODES = {
+  NO_ROWS_RETURNED: 'PGRST116',
+  JWT_EXPIRED: 'PGRST301',
+  JWT_INVALID: 'PGRST302',
+} as const;
+
 export function mapSupabaseError(error: PostgrestError): ActionError {
   switch (error.code) {
-    case '23505': // unique_violation
+    case PG_ERROR_CODES.UNIQUE_VIOLATION:
       return createError(
         ErrorCodes.DUPLICATE_ENTRY,
-        'A record with this value already exists',
-        { constraint: error.details }
+        extractDuplicateFieldMessage(error.details),
+        { constraint: error.details, hint: error.hint }
       );
-    case '23503': // foreign_key_violation
+    case PG_ERROR_CODES.FOREIGN_KEY_VIOLATION:
       return createError(
         ErrorCodes.HAS_DEPENDENCIES,
-        'Cannot delete record with existing dependencies',
+        'This record cannot be deleted because other records depend on it',
         { constraint: error.details }
       );
-    case 'PGRST116': // JWT expired
+    case PG_ERROR_CODES.NOT_NULL_VIOLATION:
       return createError(
-        ErrorCodes.SESSION_EXPIRED,
-        'Your session has expired, please log in again'
+        ErrorCodes.VALIDATION_ERROR,
+        'A required field is missing',
+        { field: extractFieldFromError(error.message) }
       );
-    case '42501': // insufficient_privilege
+    case PG_ERROR_CODES.INSUFFICIENT_PRIVILEGE:
       return createError(
         ErrorCodes.FORBIDDEN,
         'You do not have permission to perform this action'
       );
+    case POSTGREST_ERROR_CODES.NO_ROWS_RETURNED:
+      return createError(
+        ErrorCodes.NOT_FOUND,
+        'The requested resource was not found'
+      );
+    case POSTGREST_ERROR_CODES.JWT_EXPIRED:
+    case POSTGREST_ERROR_CODES.JWT_INVALID:
+      return createError(
+        ErrorCodes.SESSION_EXPIRED,
+        'Your session has expired. Please log in again.'
+      );
     default:
       return createError(
         ErrorCodes.DATABASE_ERROR,
-        'An unexpected database error occurred',
+        'An unexpected database error occurred. Please try again.',
         { originalCode: error.code, originalMessage: error.message }
       );
   }
 }
 ```
 
-### Server Action Pattern
+### Supabase AuthError Mapping
+
+Uses `error.code` for reliable error identification per Supabase best practices:
+
+```typescript
+import type { AuthError } from '@supabase/supabase-js';
+
+export function mapAuthError(error: AuthError): ActionError {
+  switch (error.code) {
+    case 'invalid_credentials':
+      return createError(ErrorCodes.INVALID_CREDENTIALS, 'Invalid email or password');
+    case 'email_not_confirmed':
+      return createError(ErrorCodes.FORBIDDEN, 'Please confirm your email address');
+    case 'session_expired':
+    case 'refresh_token_not_found':
+    case 'bad_jwt':
+      return createError(ErrorCodes.SESSION_EXPIRED, 'Your session has expired');
+    case 'weak_password':
+      return createError(ErrorCodes.VALIDATION_ERROR, 'Password does not meet requirements');
+    case 'user_not_found':
+      return createError(ErrorCodes.NOT_FOUND, 'No account found with this email');
+    case 'user_already_exists':
+    case 'email_exists':
+      return createError(ErrorCodes.DUPLICATE_ENTRY, 'An account with this email already exists');
+    case 'over_request_rate_limit':
+      return createError(ErrorCodes.FORBIDDEN, 'Too many requests. Please wait and try again.');
+    default:
+      return createError(ErrorCodes.NOT_AUTHENTICATED, 'An authentication error occurred');
+  }
+}
+```
+
+### Zod Validation Error Mapping
+
+```typescript
+import type { ZodError } from 'zod';
+
+export function mapZodError(error: ZodError): ActionError {
+  const fieldErrors: Record<string, string[]> = {};
+
+  for (const issue of error.issues) {
+    const path = issue.path.join('.') || '_root';
+    if (!fieldErrors[path]) fieldErrors[path] = [];
+    fieldErrors[path].push(issue.message);
+  }
+
+  const firstIssue = error.issues[0];
+  const mainMessage = firstIssue
+    ? `${firstIssue.path.join('.') || 'Input'}: ${firstIssue.message}`
+    : 'Invalid input data';
+
+  return createError(ErrorCodes.VALIDATION_ERROR, mainMessage, {
+    fieldErrors,
+    issues: error.issues,
+  });
+}
+```
+
+### Server Action Pattern (Using createAction Wrapper)
+
+The `createAction` wrapper handles all boilerplate automatically:
 
 ```typescript
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
-import {
-  createError,
-  mapSupabaseError,
-  ErrorCodes,
-} from '@/services/shared/errors';
-import type { ActionResult } from '@/services/shared/result';
+import { createAction } from '@/services/shared';
+import { someSchema, type SomeInput } from './schemas';
+import type { SomeOutput } from '@/types';
 
-export async function someAction(
-  input: SomeInput
-): Promise<ActionResult<SomeOutput>> {
-  try {
-    // 1. Validate input
-    const validationResult = someSchema.safeParse(input);
-    if (!validationResult.success) {
-      return {
-        success: false,
-        error: createError(ErrorCodes.VALIDATION_ERROR, 'Invalid input data', {
-          issues: validationResult.error.issues,
-        }),
-      };
-    }
+export const someAction = createAction<SomeInput, SomeOutput>(
+  async (input, { supabase, user }) => {
+    // Input is already validated by schema
+    // User is guaranteed to exist (requireAuth: true by default)
+    // supabase client is already created
 
-    // 2. Create Supabase client (handles auth)
-    const supabase = await createClient();
-
-    // 3. Perform operation (RLS handles authorization)
     const { data, error } = await supabase
       .from('some_table')
-      .insert(validationResult.data)
+      .insert({ ...input, created_by: user.id })
       .select()
       .single();
 
-    // 4. Handle Supabase errors
-    if (error) {
-      return {
-        success: false,
-        error: mapSupabaseError(error),
-      };
-    }
+    // Throw errors - they're automatically mapped by the wrapper
+    if (error) throw error;
 
-    // 5. Return success
-    return {
-      success: true,
-      data,
-    };
-  } catch (error) {
-    // 6. Handle unexpected errors
-    console.error('Unexpected error in someAction:', error);
-    return {
-      success: false,
-      error: createError(ErrorCodes.INTERNAL_ERROR, 'An unexpected error occurred'),
-    };
+    return data;
+  },
+  {
+    schema: someSchema,
+    // Optional: revalidate paths after success
+    revalidatePaths: [{ path: '/dashboard' }],
   }
+);
+```
+
+#### createAction Options
+
+```typescript
+interface ActionOptions<TInput, RequireAuth extends boolean = true> {
+  /** Zod schema for input validation (optional) */
+  schema?: z.ZodType<TInput>;
+
+  /** Whether authentication is required (default: true) */
+  requireAuth?: RequireAuth;
+
+  /** Paths to revalidate after successful action */
+  revalidatePaths?: Array<{
+    path: string;
+    type?: 'page' | 'layout';
+  }>;
 }
+```
+
+#### Public Action (No Auth Required)
+
+```typescript
+export const signIn = createAction<SignInInput, AuthResponse>(
+  async (input, { supabase, user }) => {
+    // user is null when requireAuth: false
+    const { data, error } = await supabase.auth.signInWithPassword(input);
+    if (error) throw error;
+    return data;
+  },
+  { schema: signInSchema, requireAuth: false }
+);
 ```
 
 ---
@@ -951,7 +960,7 @@ Authorization is primarily handled by **Supabase Row Level Security (RLS)** poli
 | **Assignments** | Full CRUD + hard delete | Full CRUD (soft) | Cancellation via status change |
 | **Audit Log** | Full access | Read + Insert | Insert via triggers |
 
-### Client-Side Role Check Hook
+### Client-Side Role Check Hook ⏳ TODO
 
 ```typescript
 // /hooks/useUserRole.ts
@@ -984,15 +993,23 @@ export function useUserRole() {
 }
 ```
 
-### Server-Side Role Check
+### Server-Side Role Check ⏳ TODO
 
 ```typescript
-// /services/auth/queries.ts
+// /services/auth/actions.ts
 
+export const getUserRole = createAction<object, UserRole | null>(
+  async (_, { supabase }) => {
+    const { data } = await supabase.rpc('user_role');
+    return data;
+  },
+  { schema: z.object({}) }
+);
+
+// Helper for Server Components
 export async function isAdmin(): Promise<boolean> {
-  const supabase = await createClient();
-  const { data } = await supabase.rpc('user_role');
-  return data === 'admin';
+  const result = await getUserRole({});
+  return isSuccess(result) && result.data === 'admin';
 }
 
 // Usage in Server Component
@@ -1006,24 +1023,29 @@ async function AdminOnlySection() {
 
 ### Defense-in-Depth Pattern (Optional)
 
+For admin-only actions, you can add explicit role checks:
+
 ```typescript
 'use server';
 
-export async function adminOnlyAction(
-  input: Input
-): Promise<ActionResult<Output>> {
-  const supabase = await createClient();
+export const adminOnlyAction = createAction<Input, Output>(
+  async (input, { supabase, user }) => {
+    // Explicit role check (defense-in-depth, RLS also enforces)
+    const { data: role } = await supabase.rpc('user_role');
+    if (role !== 'admin') {
+      throw new Error('Admin access required');
+    }
 
-  // Explicit role check (defense-in-depth)
-  const { data: role } = await supabase.rpc('user_role');
-  if (role !== 'admin') {
-    return {
-      success: false,
-      error: createError(ErrorCodes.FORBIDDEN, 'Admin access required'),
-    };
-  }
+    // Proceed with operation
+    const { data, error } = await supabase
+      .from('admin_table')
+      .insert(input)
+      .select()
+      .single();
 
-  // Proceed with operation (RLS will also enforce)
-  // ...
-}
+    if (error) throw error;
+    return data;
+  },
+  { schema: inputSchema }
+);
 ```
