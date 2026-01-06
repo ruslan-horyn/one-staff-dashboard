@@ -73,7 +73,7 @@ pnpm test:e2e        # Run Playwright E2E tests
 - Temporary workers do not have system login access
 - No automatic notifications in MVP scope
 - Overlapping assignments are permitted by design (coordinator responsibility)
-- CI/CD via GitHub Actions with Cloudflare Pages hosting
+- CI/CD via GitHub Actions with Vercel hosting
 
 ## FRONTEND
 
