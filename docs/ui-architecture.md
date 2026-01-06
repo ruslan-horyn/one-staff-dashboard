@@ -402,6 +402,205 @@ Client Components ('use client')
 
 ---
 
+### 2.10. Forgot Password
+
+| Atrybut | Wartość |
+|---------|---------|
+| **Ścieżka** | `/forgot-password` |
+| **Grupa routingu** | `(auth)` |
+| **Cel** | Zainicjowanie procesu resetowania hasła |
+
+**Kluczowe informacje do wyświetlenia:**
+
+- Formularz z polem email
+- Komunikat sukcesu (bez ujawniania czy email istnieje)
+- Link powrotny do logowania
+
+**Kluczowe komponenty:**
+
+- `ForgotPasswordForm` (Client) - formularz z react-hook-form
+- `EmailInput` - pole email
+- `SubmitButton` - przycisk z loading state (useFormStatus)
+
+**UX:**
+
+- Formularz z jednym polem (email)
+- Po submit: komunikat "Sprawdź swoją skrzynkę email"
+- Loading spinner podczas wysyłania
+- Link powrotny do `/login`
+
+**Dostępność:**
+
+- `aria-describedby` dla pola email
+- `aria-live="polite"` dla komunikatu sukcesu
+
+**Bezpieczeństwo:**
+
+- Server Action bez `requireAuth`
+- Rate limiting (Supabase Auth)
+- Brak ujawniania czy email istnieje w systemie
+
+---
+
+### 2.11. Reset Password Callback
+
+| Atrybut | Wartość |
+|---------|---------|
+| **Ścieżka** | `/reset-password` |
+| **Grupa routingu** | `(auth)` |
+| **Cel** | Ustawienie nowego hasła po resecie |
+
+**Kluczowe informacje do wyświetlenia:**
+
+- Formularz z polami: nowe hasło, potwierdzenie hasła
+- Komunikaty walidacji
+- Obsługa wygasłego tokenu
+
+**Kluczowe komponenty:**
+
+- `ResetPasswordForm` (Client) - formularz z react-hook-form
+- `PasswordInput` - input z toggle visibility (x2)
+- `SubmitButton` - przycisk z loading state
+
+**UX:**
+
+- Walidacja: min 8 znaków, oba pola identyczne
+- Po sukcesie: przekierowanie na `/login` z toast "Hasło zostało zmienione"
+- Obsługa wygasłego tokenu: komunikat + link do `/forgot-password`
+
+**Dostępność:**
+
+- `aria-invalid` dla błędnych pól
+- `aria-describedby` łączące pole z komunikatem błędu
+
+**Bezpieczeństwo:**
+
+- Token z URL obsługiwany przez Supabase Auth
+- Sesja tymczasowa tylko do zmiany hasła
+
+---
+
+### 2.12. Profile / Settings
+
+| Atrybut | Wartość |
+|---------|---------|
+| **Ścieżka** | `/profile` |
+| **Grupa routingu** | `(dashboard)` |
+| **Cel** | Edycja danych profilowych użytkownika |
+
+**Kluczowe informacje do wyświetlenia:**
+
+- Dane użytkownika: Imię, Nazwisko (edytowalne)
+- Email (readonly)
+- Rola (readonly)
+- Data ostatniego logowania (opcjonalnie)
+
+**Kluczowe komponenty:**
+
+- `ProfileForm` (Client) - formularz z react-hook-form
+- `FormField` - pola formularza
+- `FormActions` - Zapisz/Anuluj z loading states
+
+**UX:**
+
+- Pre-filled z danymi z `getCurrentUser`
+- Toast po zapisie "Profil zaktualizowany"
+- Przycisk Zapisz disabled podczas submitu
+
+**Dostępność:**
+
+- `aria-required` dla wymaganych pól
+- `aria-readonly` dla pól tylko do odczytu
+
+**Bezpieczeństwo:**
+
+- Wymaga uwierzytelnienia
+- Użytkownik może edytować tylko swoje dane
+
+---
+
+### 2.13. Admin: User Management (Lista)
+
+| Atrybut | Wartość |
+|---------|---------|
+| **Ścieżka** | `/admin/users` |
+| **Grupa routingu** | `(dashboard)` |
+| **Cel** | Zarządzanie kontami użytkowników systemu |
+
+**Kluczowe informacje do wyświetlenia:**
+
+- Lista użytkowników z paginacją
+- Kolumny: Imię i Nazwisko, Email, Rola, Status (aktywny/nieaktywny), Ostatnie logowanie
+- Akcje: Dezaktywuj/Aktywuj
+
+**Kluczowe komponenty:**
+
+- `UsersTable` (Client) - tabela z sortowaniem i paginacją
+- `SearchInput` (Client) - wyszukiwanie po imieniu/email
+- `PageHeader` (Server) - tytuł + przycisk "Dodaj użytkownika"
+- `Pagination` (Client) - nawigacja stron
+- `UserStatusBadge` (Client) - badge ze statusem (aktywny/nieaktywny)
+- `DeactivateUserDialog` (Client) - dialog potwierdzenia dezaktywacji
+
+**UX:**
+
+- Server-side pagination (DEFAULT_PAGE_SIZE: 20)
+- Wyszukiwanie przez URL params
+- Loading skeleton podczas ładowania
+- Empty state z CTA gdy brak użytkowników
+
+**Dostępność:**
+
+- Nawigacja klawiszowa w tabeli
+- `aria-label` dla przycisków akcji
+
+**Bezpieczeństwo:**
+
+- **Tylko Admin** - sprawdzanie roli w proxy.ts i Server Action
+- RLS na poziomie bazy danych
+
+---
+
+### 2.14. Admin: Create User Form
+
+| Atrybut | Wartość |
+|---------|---------|
+| **Ścieżka** | `/admin/users/new` |
+| **Grupa routingu** | `(dashboard)` |
+| **Cel** | Tworzenie nowego konta użytkownika |
+
+**Kluczowe informacje do wyświetlenia:**
+
+- Formularz: Email, Hasło tymczasowe, Imię, Nazwisko, Rola
+
+**Kluczowe komponenty:**
+
+- `CreateUserForm` (Client) - formularz z react-hook-form
+- `EmailInput` - pole email z walidacją
+- `PasswordInput` - hasło tymczasowe (z generatorem)
+- `FormField` - pola: Imię, Nazwisko
+- `RoleSelect` (Client) - dropdown wyboru roli (admin/coordinator)
+- `FormActions` - Zapisz/Anuluj
+
+**UX:**
+
+- Walidacja email w czasie rzeczywistym
+- Generator hasła tymczasowego (przycisk "Generuj")
+- Sukces → przekierowanie na listę z toast
+
+**Dostępność:**
+
+- `aria-required` dla wymaganych pól
+- `aria-invalid` + `aria-describedby` dla błędów
+- Focus na pierwszym polu przy otwarciu
+
+**Bezpieczeństwo:**
+
+- **Tylko Admin** - sprawdzanie roli
+- Hasło tymczasowe - użytkownik powinien je zmienić przy pierwszym logowaniu
+
+---
+
 ## 3. Mapa podróży użytkownika
 
 ### 3.1. Flow logowania (US-001)
@@ -501,6 +700,44 @@ Client Components ('use client')
     [Sukces: Redirect]           [Sukces: Redirect]
 ```
 
+### 3.7. Flow resetowania hasła (US-011)
+
+```
+[Login] → [Kliknij "Zapomniałem hasła"] → [/forgot-password]
+                                                ↓
+                                        [Wpisz email]
+                                                ↓
+                                        [Submit]
+                                                ↓
+                                    [Komunikat: sprawdź email]
+                                                ↓
+                            [Użytkownik otwiera email]
+                                                ↓
+                            [Kliknij link] → [/reset-password?token=...]
+                                                ↓
+                                        [Wpisz nowe hasło x2]
+                                                ↓
+                                        [Submit]
+                                                ↓
+                                [Sukces: Redirect → Login + Toast]
+```
+
+### 3.8. Flow zarządzania użytkownikami (Admin) - US-012
+
+```
+[Dashboard] → [Sidebar: Użytkownicy] → [/admin/users]
+                                            ↓
+                                    [Lista użytkowników]
+                                            ↓
+                        [Dodaj użytkownika] → [/admin/users/new]
+                                                    ↓
+                                            [Formularz: email, hasło, imię, nazwisko, rola]
+                                                    ↓
+                                            [Submit]
+                                                    ↓
+                                    [Sukces: Redirect → /admin/users + Toast]
+```
+
 ---
 
 ## 4. Układ i struktura nawigacji
@@ -542,6 +779,7 @@ Client Components ('use client')
 |---------|-------|---------|------|
 | Klienci | `Building2` | `/clients` | Zarządzanie klientami |
 | Lokalizacje | `MapPin` | `/locations` | Zarządzanie miejscami pracy |
+| Użytkownicy | `Users` | `/admin/users` | Zarządzanie kontami użytkowników |
 
 ### 4.3. Responsywność
 
@@ -646,6 +884,14 @@ Client Components ('use client')
 | `ReportFilters` | Reports | Filtry raportu |
 | `ReportTable` | Reports | Tabela wyników raportu |
 | `ExportButton` | Reports | Przycisk eksportu CSV |
+| `ForgotPasswordForm` | Auth | Formularz przypomnienia hasła |
+| `ResetPasswordForm` | Auth | Formularz ustawiania nowego hasła |
+| `ProfileForm` | Profile | Formularz edycji profilu |
+| `UsersTable` | Admin | Tabela użytkowników systemu |
+| `CreateUserForm` | Admin | Formularz tworzenia użytkownika |
+| `RoleSelect` | Admin | Dropdown wyboru roli |
+| `UserStatusBadge` | Admin | Badge ze statusem użytkownika |
+| `DeactivateUserDialog` | Admin | Dialog dezaktywacji użytkownika |
 
 ### 5.6. Komponenty współdzielone
 
@@ -673,6 +919,9 @@ Client Components ('use client')
 | **US-008** Kończenie przypisania | `/` (Board) | `EndAssignmentModal`, `DateTimePicker` |
 | **US-009** Anulowanie przypisania | `/` (Board) | `CancelAssignmentDialog` |
 | **US-010** Raporty godzin | `/reports` | `ReportFilters`, `DateRangePicker`, `ReportTable`, `ExportButton` |
+| **US-011** Resetowanie hasła | `/forgot-password`, `/reset-password` | `ForgotPasswordForm`, `ResetPasswordForm`, `PasswordInput`, `SubmitButton` |
+| **US-012** Zarządzanie użytkownikami (Admin) | `/admin/users/*` | `UsersTable`, `CreateUserForm`, `RoleSelect`, `DeactivateUserDialog` |
+| **US-013** Edycja profilu | `/profile` | `ProfileForm`, `FormField`, `FormActions` |
 
 ---
 
@@ -727,11 +976,15 @@ Client Components ('use client')
 | Widok | Server Actions |
 |-------|----------------|
 | Login | `signIn` |
+| Forgot Password | `resetPassword` |
+| Reset Password | `updatePassword` |
 | Board | `getWorkers`, `createAssignment`, `endAssignment`, `cancelAssignment` |
 | Workers | `getWorkers`, `getWorker`, `createWorker`, `updateWorker`, `deleteWorker` |
 | Clients | `getClients`, `getClient`, `createClient`, `updateClient`, `deleteClient` |
 | Locations | `getWorkLocations`, `getWorkLocation`, `createWorkLocation`, `updateWorkLocation`, `deleteWorkLocation` |
 | Reports | `generateHoursReport`, `exportReportToCsv` |
+| Profile | `getCurrentUser`, `updateProfile` |
+| Admin: Users | `getUsers`, `signUp`, `deactivateUser` |
 
 ### 8.2. Hooki integracyjne
 
@@ -767,6 +1020,7 @@ const { execute, isPending, isError, error } = useServerAction(createAssignment,
 2. Board z podstawową listą
 3. Tworzenie przypisań
 4. Kończenie/anulowanie przypisań
+5. Admin: Zarządzanie użytkownikami (`/admin/users`)
 
 ### Faza 2: CRUD
 
@@ -774,12 +1028,18 @@ const { execute, isPending, isError, error } = useServerAction(createAssignment,
 2. Clients CRUD (Admin)
 3. Locations CRUD (Admin)
 
-### Faza 3: Raportowanie
+### Faza 3: Auth & Profile
+
+1. Forgot Password (`/forgot-password`)
+2. Reset Password (`/reset-password`)
+3. Profile (`/profile`)
+
+### Faza 4: Raportowanie
 
 1. Reports z filtrowaniem
 2. Eksport CSV
 
-### Faza 4: Polish
+### Faza 5: Polish
 
 1. Optimistic updates
 2. Advanced filtering

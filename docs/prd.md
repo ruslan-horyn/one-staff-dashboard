@@ -22,7 +22,10 @@ Users need a single, integrated tool that will automate and simplify these proce
 
 * System based on two roles: `Administrator` and `Agency Employee (Coordinator)`.
 * Administrator manages Coordinator accounts.
+* Administrator can create a Coordinator account through a form in the system.
+* Administrator can deactivate a user account.
 * System login is done using username and password.
+* Users can reset their password via email.
 
 ### 3.2. Master Data Management
 
@@ -160,6 +163,38 @@ The following functionalities are intentionally excluded from the MVP scope:
     2. After confirmation, the system generates a table with a summary of worked hours broken down by workers and work locations.
     3. On the report page, there is an "Export to CSV/Excel" button.
     4. Clicking the button downloads a file containing data from the generated report.
+
+### ID: US-011
+
+* Title: Password Reset
+* Description: As a user, I want to reset my password when I forget it so that I can regain access to the system.
+* Acceptance Criteria:
+    1. On the login page, there is a "Forgot password" link.
+    2. Clicking the link leads to a form with an email field.
+    3. After submitting, a message is displayed (without revealing whether the email exists in the system).
+    4. User receives an email with a link to set a new password.
+    5. The link leads to a form for setting a new password.
+    6. After setting the password, user is redirected to the login page.
+
+### ID: US-012
+
+* Title: User Account Management by Administrator
+* Description: As an Administrator, I want to manage Coordinator accounts so that I can control system access.
+* Acceptance Criteria:
+    1. I can view a list of all system users.
+    2. I can create a new account by providing email, temporary password, first name, and last name.
+    3. I can deactivate a user account.
+    4. The new user can log in with the provided credentials.
+
+### ID: US-013
+
+* Title: User Profile Editing
+* Description: As a logged-in user, I want to edit my profile data so that my information is up to date.
+* Acceptance Criteria:
+    1. From the user menu, I can navigate to my profile.
+    2. I can see my data: first name, last name, email (read-only), role (read-only).
+    3. I can edit my first name and last name.
+    4. After saving, I see a confirmation message.
 
 ## 6. Success Metrics
 
