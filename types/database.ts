@@ -190,6 +190,27 @@ export type Database = {
 				};
 				Relationships: [];
 			};
+			organizations: {
+				Row: {
+					created_at: string;
+					id: string;
+					name: string;
+					updated_at: string;
+				};
+				Insert: {
+					created_at?: string;
+					id?: string;
+					name: string;
+					updated_at?: string;
+				};
+				Update: {
+					created_at?: string;
+					id?: string;
+					name?: string;
+					updated_at?: string;
+				};
+				Relationships: [];
+			};
 			positions: {
 				Row: {
 					created_at: string;
@@ -234,6 +255,7 @@ export type Database = {
 					first_name: string;
 					id: string;
 					last_name: string;
+					organization_id: string;
 					role: Database['public']['Enums']['user_role'];
 					updated_at: string;
 				};
@@ -242,6 +264,7 @@ export type Database = {
 					first_name: string;
 					id: string;
 					last_name: string;
+					organization_id: string;
 					role?: Database['public']['Enums']['user_role'];
 					updated_at?: string;
 				};
@@ -250,10 +273,19 @@ export type Database = {
 					first_name?: string;
 					id?: string;
 					last_name?: string;
+					organization_id?: string;
 					role?: Database['public']['Enums']['user_role'];
 					updated_at?: string;
 				};
-				Relationships: [];
+				Relationships: [
+					{
+						foreignKeyName: 'profiles_organization_id_fkey';
+						columns: ['organization_id'];
+						isOneToOne: false;
+						referencedRelation: 'organizations';
+						referencedColumns: ['id'];
+					},
+				];
 			};
 			temporary_workers: {
 				Row: {
@@ -356,6 +388,7 @@ export type Database = {
 					isSetofReturn: false;
 				};
 			};
+			custom_access_token_hook: { Args: { event: Json }; Returns: Json };
 			end_assignment: {
 				Args: { p_assignment_id: string; p_end_at?: string };
 				Returns: {
@@ -399,6 +432,7 @@ export type Database = {
 			normalize_phone: { Args: { phone: string }; Returns: string };
 			show_limit: { Args: never; Returns: number };
 			show_trgm: { Args: { '': string }; Returns: string[] };
+			user_organization_id: { Args: never; Returns: string };
 			user_role: {
 				Args: never;
 				Returns: Database['public']['Enums']['user_role'];

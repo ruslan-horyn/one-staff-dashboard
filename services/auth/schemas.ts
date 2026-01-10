@@ -30,6 +30,11 @@ export const signUpSchema = z.object({
 		.trim()
 		.min(1, 'Last name is required')
 		.max(100, 'Last name must be at most 100 characters'),
+	organizationName: z
+		.string()
+		.trim()
+		.min(1, 'Organization name is required')
+		.max(255, 'Organization name must be at most 255 characters'),
 });
 
 /**

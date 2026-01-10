@@ -2,18 +2,32 @@
 
 ## 1. Lista tabel z kolumnami, typami danych i ograniczeniami
 
-### 1.1. Tabela `profiles`
+### 1.1. Tabela `organizations`
 
-Rozszerzenie wbudowanej tabeli `auth.users` z Supabase Auth.
+Organizacje/firmy korzystające z systemu. Umożliwia multi-tenancy.
 
 | Kolumna      | Typ danych                          | Ograniczenia                                           |
 |--------------|-------------------------------------|--------------------------------------------------------|
-| id           | UUID                                | PRIMARY KEY, REFERENCES auth.users(id) ON DELETE CASCADE |
-| role         | user_role (ENUM)                    | NOT NULL, DEFAULT 'coordinator'                        |
-| first_name   | VARCHAR(100)                        | NOT NULL                                               |
-| last_name    | VARCHAR(100)                        | NOT NULL                                               |
+| id           | UUID                                | PRIMARY KEY, DEFAULT gen_random_uuid()                 |
+| name         | VARCHAR(255)                        | NOT NULL                                               |
 | created_at   | TIMESTAMPTZ                         | NOT NULL, DEFAULT NOW()                                |
 | updated_at   | TIMESTAMPTZ                         | NOT NULL, DEFAULT NOW()                                |
+
+---
+
+### 1.2. Tabela `profiles`
+
+Rozszerzenie wbudowanej tabeli `auth.users` z Supabase Auth.
+
+| Kolumna         | Typ danych                          | Ograniczenia                                           |
+|-----------------|-------------------------------------|--------------------------------------------------------|
+| id              | UUID                                | PRIMARY KEY, REFERENCES auth.users(id) ON DELETE CASCADE |
+| organization_id | UUID                                | NOT NULL, REFERENCES organizations(id) ON DELETE RESTRICT |
+| role            | user_role (ENUM)                    | NOT NULL, DEFAULT 'coordinator'                        |
+| first_name      | VARCHAR(100)                        | NOT NULL                                               |
+| last_name       | VARCHAR(100)                        | NOT NULL                                               |
+| created_at      | TIMESTAMPTZ                         | NOT NULL, DEFAULT NOW()                                |
+| updated_at      | TIMESTAMPTZ                         | NOT NULL, DEFAULT NOW()                                |
 
 **Typ ENUM `user_role`:**
 ```sql
@@ -22,7 +36,7 @@ CREATE TYPE user_role AS ENUM ('admin', 'coordinator');
 
 ---
 
-### 1.2. Tabela `clients`
+### 1.3. Tabela `clients`
 
 Przechowuje dane klientów agencji.
 
@@ -39,7 +53,7 @@ Przechowuje dane klientów agencji.
 
 ---
 
-### 1.3. Tabela `work_locations`
+### 1.4. Tabela `work_locations`
 
 Miejsca pracy powiązane z klientami.
 
@@ -57,7 +71,7 @@ Miejsca pracy powiązane z klientami.
 
 ---
 
-### 1.4. Tabela `positions`
+### 1.5. Tabela `positions`
 
 Stanowiska dostępne w miejscach pracy.
 
@@ -73,7 +87,7 @@ Stanowiska dostępne w miejscach pracy.
 
 ---
 
-### 1.5. Tabela `temporary_workers`
+### 1.6. Tabela `temporary_workers`
 
 Pracownicy tymczasowi.
 
@@ -89,7 +103,7 @@ Pracownicy tymczasowi.
 
 ---
 
-### 1.6. Tabela `assignments`
+### 1.7. Tabela `assignments`
 
 Przypisania pracowników do stanowisk.
 
@@ -119,7 +133,7 @@ CHECK (end_at IS NULL OR end_at > start_at)
 
 ---
 
-### 1.7. Tabela `assignment_audit_log`
+### 1.8. Tabela `assignment_audit_log`
 
 Niemodyfikowalny dziennik zdarzeń dla operacji na przypisaniach.
 
@@ -146,15 +160,16 @@ auth.users (Supabase Auth)
     │
     │ 1:1 (ON DELETE CASCADE)
     ▼
-profiles
-    │
-    │ 1:N (created_by, ended_by, cancelled_by)
-    ▼
-assignments ◄────────────────────────────┐
-    │                                     │
-    │ 1:N (ON DELETE CASCADE)             │ N:1 (worker_id, ON DELETE RESTRICT)
-    ▼                                     │
-assignment_audit_log              temporary_workers
+profiles ◄──────────────────────────────┐
+    │                                    │
+    │ 1:N (created_by, ended_by,         │ N:1 (organization_id)
+    │      cancelled_by)                 │
+    ▼                                    │
+assignments ◄────────────────────┐   organizations
+    │                            │
+    │ 1:N (ON DELETE CASCADE)    │ N:1 (worker_id, ON DELETE RESTRICT)
+    ▼                            │
+assignment_audit_log      temporary_workers
 
 clients
     │
@@ -175,6 +190,7 @@ assignments
 
 | Relacja | Typ | Opis |
 |---------|-----|------|
+| organizations → profiles | 1:N | Organizacja może mieć wielu użytkowników |
 | auth.users → profiles | 1:1 | Każdy użytkownik ma dokładnie jeden profil |
 | profiles → assignments (created_by) | 1:N | Koordynator tworzący przypisanie |
 | profiles → assignments (ended_by) | 1:N | Koordynator kończący przypisanie |
@@ -197,6 +213,9 @@ Automatycznie tworzone przez PostgreSQL dla PRIMARY KEY każdej tabeli.
 ### 3.2. Indeksy dla kluczy obcych
 
 ```sql
+-- profiles
+CREATE INDEX idx_profiles_organization_id ON profiles(organization_id);
+
 -- work_locations
 CREATE INDEX idx_work_locations_client_id ON work_locations(client_id);
 
@@ -284,6 +303,7 @@ ON assignment_audit_log(created_at DESC);
 ### 4.1. Włączenie RLS dla tabel
 
 ```sql
+ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE work_locations ENABLE ROW LEVEL SECURITY;
@@ -293,21 +313,55 @@ ALTER TABLE assignments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE assignment_audit_log ENABLE ROW LEVEL SECURITY;
 ```
 
-### 4.2. Funkcja pomocnicza do sprawdzania roli
+### 4.2. Funkcje pomocnicze
 
 ```sql
-CREATE OR REPLACE FUNCTION auth.user_role()
+-- Pobiera rolę użytkownika z JWT (ustawiane przez custom_access_token_hook)
+CREATE OR REPLACE FUNCTION public.user_role()
 RETURNS user_role AS $$
-  SELECT role FROM profiles WHERE id = auth.uid()
-$$ LANGUAGE sql SECURITY DEFINER STABLE;
+  SELECT COALESCE(
+    (auth.jwt() ->> 'user_role')::user_role,
+    'coordinator'::user_role
+  )
+$$ LANGUAGE sql STABLE;
+
+-- Pobiera organization_id użytkownika z JWT
+CREATE OR REPLACE FUNCTION public.user_organization_id()
+RETURNS uuid AS $$
+  SELECT (auth.jwt() ->> 'organization_id')::uuid
+$$ LANGUAGE sql STABLE;
 ```
 
-### 4.3. Polityki dla tabeli `profiles`
+### 4.3. Polityki dla tabeli `organizations`
 
 ```sql
--- Odczyt: użytkownik widzi wszystkie profile
+-- Użytkownicy widzą tylko swoją organizację
+CREATE POLICY organizations_select ON organizations
+  FOR SELECT USING (
+    id IN (SELECT organization_id FROM profiles WHERE id = auth.uid())
+  );
+
+-- Insert: dozwolony przez trigger SECURITY DEFINER (handle_new_user)
+CREATE POLICY organizations_insert ON organizations
+  FOR INSERT WITH CHECK (true);
+
+-- Update: tylko admin może zmienić nazwę organizacji
+CREATE POLICY organizations_update ON organizations
+  FOR UPDATE USING (
+    id IN (SELECT organization_id FROM profiles WHERE id = auth.uid())
+    AND public.user_role() = 'admin'
+  );
+```
+
+### 4.4. Polityki dla tabeli `profiles`
+
+```sql
+-- Odczyt: użytkownik widzi profile w swojej organizacji lub swój własny
 CREATE POLICY profiles_select ON profiles
-  FOR SELECT USING (true);
+  FOR SELECT USING (
+    organization_id = public.user_organization_id()
+    OR id = auth.uid()
+  );
 
 -- Insert: tylko podczas rejestracji (triggered by auth)
 CREATE POLICY profiles_insert ON profiles
@@ -324,7 +378,7 @@ CREATE POLICY profiles_delete ON profiles
   FOR DELETE USING (auth.user_role() = 'admin');
 ```
 
-### 4.4. Polityki dla tabeli `clients`
+### 4.5. Polityki dla tabeli `clients`
 
 ```sql
 -- Odczyt: wszyscy zalogowani użytkownicy
@@ -342,7 +396,7 @@ CREATE POLICY clients_delete ON clients
   FOR DELETE USING (auth.user_role() = 'admin');
 ```
 
-### 4.5. Polityki dla tabeli `work_locations`
+### 4.6. Polityki dla tabeli `work_locations`
 
 ```sql
 -- Odczyt: wszyscy zalogowani użytkownicy
@@ -360,7 +414,7 @@ CREATE POLICY work_locations_delete ON work_locations
   FOR DELETE USING (auth.user_role() = 'admin');
 ```
 
-### 4.6. Polityki dla tabeli `positions`
+### 4.7. Polityki dla tabeli `positions`
 
 ```sql
 -- Odczyt: wszyscy zalogowani użytkownicy
@@ -378,7 +432,7 @@ CREATE POLICY positions_delete ON positions
   FOR DELETE USING (auth.uid() IS NOT NULL);
 ```
 
-### 4.7. Polityki dla tabeli `temporary_workers`
+### 4.8. Polityki dla tabeli `temporary_workers`
 
 ```sql
 -- Odczyt: wszyscy zalogowani użytkownicy
@@ -396,7 +450,7 @@ CREATE POLICY workers_delete ON temporary_workers
   FOR DELETE USING (auth.uid() IS NOT NULL);
 ```
 
-### 4.8. Polityki dla tabeli `assignments`
+### 4.9. Polityki dla tabeli `assignments`
 
 ```sql
 -- Odczyt: wszyscy zalogowani użytkownicy
@@ -415,7 +469,7 @@ CREATE POLICY assignments_delete ON assignments
   FOR DELETE USING (auth.user_role() = 'admin');
 ```
 
-### 4.9. Polityki dla tabeli `assignment_audit_log`
+### 4.10. Polityki dla tabeli `assignment_audit_log`
 
 ```sql
 -- Odczyt: wszyscy zalogowani użytkownicy
@@ -438,7 +492,98 @@ CREATE POLICY audit_log_delete ON assignment_audit_log
 
 ## 5. Funkcje i triggery
 
-### 5.1. Funkcja automatycznej aktualizacji `updated_at`
+### 5.1. Auth Hook: handle_new_user()
+
+Trigger uruchamiany przy rejestracji nowego użytkownika. Automatycznie tworzy organizację i profil.
+
+```sql
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_org_id UUID;
+  v_org_name TEXT;
+  v_first_name TEXT;
+  v_last_name TEXT;
+BEGIN
+  -- Pobierz dane z user_metadata
+  v_org_name := NEW.raw_user_meta_data->>'organization_name';
+  v_first_name := COALESCE(NEW.raw_user_meta_data->>'first_name', '');
+  v_last_name := COALESCE(NEW.raw_user_meta_data->>'last_name', '');
+
+  -- Utwórz nową organizację
+  INSERT INTO public.organizations (name)
+  VALUES (COALESCE(v_org_name, 'My Organization'))
+  RETURNING id INTO v_org_id;
+
+  -- Utwórz profil użytkownika jako admin
+  INSERT INTO public.profiles (id, organization_id, role, first_name, last_name)
+  VALUES (NEW.id, v_org_id, 'admin', v_first_name, v_last_name);
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger na auth.users
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+```
+
+### 5.2. Auth Hook: custom_access_token_hook()
+
+Supabase Auth Hook dodający `user_role` i `organization_id` do JWT claims.
+
+```sql
+CREATE OR REPLACE FUNCTION public.custom_access_token_hook(event jsonb)
+RETURNS jsonb
+LANGUAGE plpgsql
+STABLE
+AS $$
+DECLARE
+  claims jsonb;
+  profile_role public.user_role;
+  profile_org_id uuid;
+BEGIN
+  -- Pobierz role i organization_id z profiles
+  SELECT role, organization_id
+  INTO profile_role, profile_org_id
+  FROM public.profiles
+  WHERE id = (event->>'user_id')::uuid;
+
+  claims := event->'claims';
+
+  -- Ustaw custom claims
+  IF profile_role IS NOT NULL THEN
+    claims := jsonb_set(claims, '{user_role}', to_jsonb(profile_role));
+  ELSE
+    claims := jsonb_set(claims, '{user_role}', '"coordinator"');
+  END IF;
+
+  IF profile_org_id IS NOT NULL THEN
+    claims := jsonb_set(claims, '{organization_id}', to_jsonb(profile_org_id));
+  END IF;
+
+  event := jsonb_set(event, '{claims}', claims);
+  RETURN event;
+END;
+$$;
+
+-- Uprawnienia dla supabase_auth_admin
+GRANT USAGE ON SCHEMA public TO supabase_auth_admin;
+GRANT EXECUTE ON FUNCTION public.custom_access_token_hook TO supabase_auth_admin;
+REVOKE EXECUTE ON FUNCTION public.custom_access_token_hook FROM authenticated, anon, public;
+GRANT SELECT ON TABLE public.profiles TO supabase_auth_admin;
+GRANT SELECT ON TABLE public.organizations TO supabase_auth_admin;
+```
+
+**Konfiguracja w `supabase/config.toml`:**
+```toml
+[auth.hook.custom_access_token]
+enabled = true
+uri = "pg-functions://postgres/public/custom_access_token_hook"
+```
+
+### 5.3. Funkcja automatycznej aktualizacji `updated_at`
 
 ```sql
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -475,7 +620,7 @@ CREATE TRIGGER update_assignments_updated_at
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 ```
 
-### 5.2. Funkcja normalizacji numeru telefonu
+### 5.4. Funkcja normalizacji numeru telefonu
 
 ```sql
 CREATE OR REPLACE FUNCTION normalize_phone(phone TEXT)
@@ -499,7 +644,7 @@ CREATE TRIGGER normalize_worker_phone
   FOR EACH ROW EXECUTE FUNCTION normalize_phone_trigger();
 ```
 
-### 5.3. Trigger dla logów audytowych
+### 5.5. Trigger dla logów audytowych
 
 ```sql
 CREATE OR REPLACE FUNCTION log_assignment_changes()
@@ -548,7 +693,7 @@ CREATE TRIGGER log_assignment_changes_trigger
   FOR EACH ROW EXECUTE FUNCTION log_assignment_changes();
 ```
 
-### 5.4. Funkcja sprawdzania dostępności pracownika
+### 5.6. Funkcja sprawdzania dostępności pracownika
 
 ```sql
 CREATE OR REPLACE FUNCTION is_worker_available(
@@ -568,7 +713,7 @@ END;
 $$ LANGUAGE plpgsql STABLE;
 ```
 
-### 5.5. Funkcja RPC dla raportu przepracowanych godzin
+### 5.7. Funkcja RPC dla raportu przepracowanych godzin
 
 ```sql
 CREATE OR REPLACE FUNCTION get_hours_report(
@@ -613,7 +758,7 @@ END;
 $$ LANGUAGE plpgsql STABLE;
 ```
 
-### 5.6. Funkcja RPC do zakończenia przypisania
+### 5.8. Funkcja RPC do zakończenia przypisania
 
 ```sql
 CREATE OR REPLACE FUNCTION end_assignment(
@@ -643,7 +788,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 ```
 
-### 5.7. Funkcja RPC do anulowania przypisania
+### 5.9. Funkcja RPC do anulowania przypisania
 
 ```sql
 CREATE OR REPLACE FUNCTION cancel_assignment(

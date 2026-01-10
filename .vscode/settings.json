@@ -7,13 +7,22 @@
     "source.fixAll.biome": "explicit"
   },
   "editor.defaultFormatter": "biomejs.biome",
-  "[javascript][typescript]": {
+  "[javascript]": {
     "editor.defaultFormatter": "biomejs.biome"
   },
-  "[javascriptreact][typescriptreact]": {
+  "[typescript]": {
     "editor.defaultFormatter": "biomejs.biome"
   },
-  "[json][jsonc]": {
+  "[javascriptreact]": {
     "editor.defaultFormatter": "biomejs.biome"
   },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  }
 }

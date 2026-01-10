@@ -41,11 +41,11 @@ export const signIn = createAction<SignInInput, AuthResponse>(
 );
 
 /**
- * Registers a new user with email, password, and profile data.
- * Profile data (firstName, lastName) is stored in user_metadata
- * and should be used by a database trigger to create the profile record.
+ * Registers a new user with email, password, profile data, and organization.
+ * Data is stored in user_metadata and used by the database trigger
+ * (handle_new_user) to create organization and profile records.
  *
- * @param input - Object with email, password, firstName, and lastName
+ * @param input - Object with email, password, firstName, lastName, and organizationName
  * @returns Auth response with user (session may be null if email confirmation required)
  *
  * @example
@@ -54,6 +54,7 @@ export const signIn = createAction<SignInInput, AuthResponse>(
  *   password: 'securePassword123',
  *   firstName: 'John',
  *   lastName: 'Doe',
+ *   organizationName: 'My Company',
  * });
  */
 export const signUp = createAction<SignUpInput, AuthResponse>(
@@ -65,6 +66,7 @@ export const signUp = createAction<SignUpInput, AuthResponse>(
 				data: {
 					first_name: input.firstName,
 					last_name: input.lastName,
+					organization_name: input.organizationName,
 				},
 			},
 		});

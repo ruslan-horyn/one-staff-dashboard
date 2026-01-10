@@ -24,9 +24,14 @@ pnpm install         # Install dependencies
 pnpm dev             # Start development server
 pnpm build           # Production build
 pnpm start           # Run production server
-pnpm lint            # Run Biome linter
+pnpm lint            # Run Biome linter (check mode)
+pnpm lint:fix        # Run Biome linter with auto-fix
 pnpm format          # Run Biome formatter
-pnpm check           # Run Biome lint + format check
+pnpm test            # Run Vitest in watch mode
+pnpm test:run        # Run Vitest once
+pnpm test:ui         # Run Vitest with UI
+pnpm test:coverage   # Run Vitest with coverage
+pnpm test:watch      # Run Vitest in watch mode
 ```
 
 **Note:** Uses pnpm as package manager. Node.js v24.11.1 (see .nvmrc).
@@ -34,7 +39,6 @@ pnpm check           # Run Biome lint + format check
 Future commands (not yet configured):
 
 ```bash
-pnpm test            # Run Vitest unit tests
 pnpm test:e2e        # Run Playwright E2E tests
 ```
 
@@ -49,12 +53,13 @@ pnpm test:e2e        # Run Playwright E2E tests
 - Biome (linting + formatting)
 - Supabase (PostgreSQL + JWT auth)
 - Zod (validation for forms and server actions)
+- Lucide React (icons)
+- Vitest + React Testing Library + MSW (testing)
+- react-hook-form (forms)
 
 **Planned (not yet added):**
 
 - Zustand (state management)
-- Lucide React (icons)
-- Vitest + React Testing Library + MSW (testing)
 - Playwright (E2E)
 
 ## Key Domain Concepts
