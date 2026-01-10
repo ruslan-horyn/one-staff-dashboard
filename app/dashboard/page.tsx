@@ -1,7 +1,13 @@
 import { redirect } from 'next/navigation';
-
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+	Card,
+	CardContent,
+	CardFooter,
+	CardHeader,
+	CardTitle,
+} from '@/components/ui/card';
 import { getSession } from '@/services/shared/auth';
+import { SignOutButton } from './_components/SignOutButton';
 
 export default async function DashboardPage() {
 	const { user } = await getSession();
@@ -13,7 +19,7 @@ export default async function DashboardPage() {
 	return (
 		<div className="min-h-screen bg-background p-8">
 			<div className="mx-auto max-w-7xl space-y-6">
-				<h1 className="text-3xl font-bold">Dashboard</h1>
+				<h1 className="font-bold text-3xl">Dashboard</h1>
 
 				<Card>
 					<CardHeader>
@@ -24,6 +30,9 @@ export default async function DashboardPage() {
 							Zalogowano jako: <strong>{user.email}</strong>
 						</p>
 					</CardContent>
+					<CardFooter>
+						<SignOutButton />
+					</CardFooter>
 				</Card>
 			</div>
 		</div>

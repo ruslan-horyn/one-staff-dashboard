@@ -8,6 +8,7 @@ import {
 	type ResetPasswordInput,
 	resetPasswordSchema,
 	type SignInInput,
+	type SignOutInput,
 	type SignUpInput,
 	signInSchema,
 	signOutSchema,
@@ -81,8 +82,8 @@ export const signUp = createAction<SignUpInput, AuthResponse>(
  * @example
  * const result = await signOut({});
  */
-export const signOut = createAction<unknown, { success: boolean }>(
-	async (_, { supabase }) => {
+export const signOut = createAction<SignOutInput, { success: boolean }>(
+	async (_, { supabase }): Promise<{ success: boolean }> => {
 		const { error } = await supabase.auth.signOut();
 		if (error) throw error;
 		return { success: true };

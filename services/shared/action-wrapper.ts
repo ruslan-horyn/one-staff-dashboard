@@ -27,7 +27,12 @@ import {
 	mapSupabaseError,
 	mapZodError,
 } from './errors';
-import { type ActionResult, failure, success } from './result';
+import {
+	type ActionResult,
+	type FailedActionResult,
+	failure,
+	success,
+} from './result';
 
 // ============================================================================
 // Types
@@ -213,7 +218,7 @@ export function createAction<TInput, TOutput>(
 	handler: ActionHandler<TInput, TOutput, boolean>,
 	options: ActionOptions<TInput, boolean> = {}
 ): (input: TInput) => Promise<ActionResult<TOutput>> {
-	const { schema, requireAuth = true, revalidatePaths } = options;
+	const { schema, requireAuth = true, revalidatePaths = [] } = options;
 
 	return async (input: TInput): Promise<ActionResult<TOutput>> => {
 		const [result, error] = await tryCatch(async () => {
@@ -230,14 +235,14 @@ export function createAction<TInput, TOutput>(
 		});
 
 		if (error) {
+			console.log('🚀 ~ createAction ~ error:', error);
 			return handleActionError(error);
 		}
 
 		// Revalidate paths after successful execution
-		if (revalidatePaths?.length) {
-			for (const { path, type } of revalidatePaths) {
-				revalidatePath(path, type);
-			}
+
+		for (const { path, type } of revalidatePaths) {
+			revalidatePath(path, type);
 		}
 
 		return success(result);
@@ -252,7 +257,7 @@ export function createAction<TInput, TOutput>(
  * Handles errors thrown by action handlers.
  * Maps various error types to ActionResult failures.
  */
-function handleActionError<T>(error: unknown): ActionResult<T> {
+function handleActionError(error: unknown): FailedActionResult {
 	// Authentication errors (from requireSession or manual throws)
 	if (error instanceof AuthenticationError) {
 		return failure(ErrorCodes.NOT_AUTHENTICATED, error.message);
@@ -327,5 +332,18 @@ function isZodError(error: unknown): error is ZodError {
 		error !== null &&
 		'issues' in error &&
 		Array.isArray((error as Record<string, unknown>).issues)
+	);
+}
+
+/**
+ * Type guard for Next.js router errors (redirect, notFound).
+ * These errors should be re-thrown, not handled as application errors.
+ */
+export function isNextRouterError(error: unknown): boolean {
+	if (typeof error !== 'object' || error === null) return false;
+	const digest = (error as { digest?: string }).digest;
+	return (
+		typeof digest === 'string' &&
+		(digest.startsWith('NEXT_REDIRECT') || digest.startsWith('NEXT_NOT_FOUND'))
 	);
 }

@@ -36,7 +36,7 @@ export const signUpSchema = z.object({
  * Schema for sign out (no input required)
  * Used by signOut server action
  */
-export const signOutSchema = z.object({});
+export const signOutSchema = z.void().optional();
 
 /**
  * Schema for updating user profile

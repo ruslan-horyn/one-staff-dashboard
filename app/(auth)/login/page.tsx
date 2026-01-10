@@ -8,7 +8,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@/components/ui/card';
-import { createClient } from '@/lib/supabase/server';
+import { getSession } from '@/services';
 import { LoginForm } from './_components/LoginForm';
 
 export const metadata: Metadata = {
@@ -21,13 +21,10 @@ interface LoginPageProps {
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
-	const supabase = await createClient();
-	const {
-		data: { user },
-	} = await supabase.auth.getUser();
+	const { user } = await getSession();
 
 	if (user) {
-		redirect('/');
+		redirect('/'); // todo: make it type safe
 	}
 
 	const params = await searchParams;

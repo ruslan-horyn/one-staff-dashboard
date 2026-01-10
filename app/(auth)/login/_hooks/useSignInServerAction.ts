@@ -17,6 +17,7 @@ export const useSignInServerAction = ({
 	return useServerAction(signIn, {
 		onSuccess: () => {
 			onSuccess?.();
+			router.refresh();
 			router.push(redirectTo);
 		},
 	});
