@@ -7,31 +7,6 @@ export type Json =
 	| Json[];
 
 export type Database = {
-	graphql_public: {
-		Tables: {
-			[_ in never]: never;
-		};
-		Views: {
-			[_ in never]: never;
-		};
-		Functions: {
-			graphql: {
-				Args: {
-					extensions?: Json;
-					operationName?: string;
-					query?: string;
-					variables?: Json;
-				};
-				Returns: Json;
-			};
-		};
-		Enums: {
-			[_ in never]: never;
-		};
-		CompositeTypes: {
-			[_ in never]: never;
-		};
-	};
 	public: {
 		Tables: {
 			assignment_audit_log: {
@@ -165,6 +140,7 @@ export type Database = {
 					email: string;
 					id: string;
 					name: string;
+					organization_id: string;
 					phone: string;
 					updated_at: string;
 				};
@@ -175,6 +151,7 @@ export type Database = {
 					email: string;
 					id?: string;
 					name: string;
+					organization_id: string;
 					phone: string;
 					updated_at?: string;
 				};
@@ -185,10 +162,19 @@ export type Database = {
 					email?: string;
 					id?: string;
 					name?: string;
+					organization_id?: string;
 					phone?: string;
 					updated_at?: string;
 				};
-				Relationships: [];
+				Relationships: [
+					{
+						foreignKeyName: 'clients_organization_id_fkey';
+						columns: ['organization_id'];
+						isOneToOne: false;
+						referencedRelation: 'organizations';
+						referencedColumns: ['id'];
+					},
+				];
 			};
 			organizations: {
 				Row: {
@@ -294,6 +280,7 @@ export type Database = {
 					first_name: string;
 					id: string;
 					last_name: string;
+					organization_id: string;
 					phone: string;
 					updated_at: string;
 				};
@@ -303,6 +290,7 @@ export type Database = {
 					first_name: string;
 					id?: string;
 					last_name: string;
+					organization_id: string;
 					phone: string;
 					updated_at?: string;
 				};
@@ -312,10 +300,19 @@ export type Database = {
 					first_name?: string;
 					id?: string;
 					last_name?: string;
+					organization_id?: string;
 					phone?: string;
 					updated_at?: string;
 				};
-				Relationships: [];
+				Relationships: [
+					{
+						foreignKeyName: 'temporary_workers_organization_id_fkey';
+						columns: ['organization_id'];
+						isOneToOne: false;
+						referencedRelation: 'organizations';
+						referencedColumns: ['id'];
+					},
+				];
 			};
 			work_locations: {
 				Row: {
@@ -569,9 +566,6 @@ export type CompositeTypes<
 		: never;
 
 export const Constants = {
-	graphql_public: {
-		Enums: {},
-	},
 	public: {
 		Enums: {
 			assignment_status: ['scheduled', 'active', 'completed', 'cancelled'],
