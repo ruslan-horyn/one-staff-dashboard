@@ -67,6 +67,27 @@ If user flow was not specified, you MUST ask the user about redirections and nav
 
 Always document the user flow decisions in `01-requirements.md` under "User Flow" section.
 
+**Route Configuration Verification (REQUIRED):**
+
+Before finalizing requirements, verify the route is properly configured in the proxy/middleware:
+
+1. Check `proxy.ts` (or `middleware.ts`) for `publicRoutes` array
+2. For public routes (login, register, etc.) - ensure path is in `publicRoutes`
+3. For protected routes - ensure route is NOT in `publicRoutes`
+
+| Route Type | Required in publicRoutes |
+|------------|-------------------------|
+| /login | Yes |
+| /register | Yes |
+| /forgot-password | Yes |
+| /reset-password | Yes |
+| /auth/* | Yes |
+| /dashboard/* | No (protected) |
+| /workers/* | No (protected) |
+| /clients/* | No (protected) |
+
+If the route is missing from `publicRoutes`, add it to the implementation plan as a required step.
+
 ### Stage 2: UX Consultation
 
 Analyze design patterns and propose solutions:
@@ -272,6 +293,30 @@ Use the Task tool with multiple invocations to run agents in parallel.
 - URL as source of truth for filters/search
 - Server Actions with `createAction()` wrapper
 - Zod schemas shared between client and server
+
+### SOLID Principles
+
+Follow SOLID principles in component design:
+- **S**ingle Responsibility: Each component/hook has one purpose
+- **O**pen/Closed: Use composition over modification
+- **L**iskov Substitution: Components should be interchangeable
+- **I**nterface Segregation: Props interfaces should be minimal
+- **D**ependency Inversion: Depend on abstractions (hooks, actions)
+
+## Pre-Planning Research (REQUIRED)
+
+Before generating plans, explore the codebase for existing utilities:
+
+1. **Existing Types** - Check `types/` folder for relevant types (e.g., `Database`, `UserRole`)
+2. **Shared Helpers** - Check `services/shared/` for:
+   - `result.ts` - ActionResult, isSuccess, isFailure
+   - `pagination.ts` - paginateResult, applyPaginationToQuery
+   - `auth.ts` - getSession, requireSession
+3. **Existing Hooks** - Check `hooks/` for reusable hooks (e.g., `useServerAction`)
+4. **UI Components** - Check `components/ui/` for available shadcn components
+5. **Service Patterns** - Check `services/<module>/` for existing action patterns
+
+Document discovered utilities in the implementation plan to ensure ui-builder uses them.
 
 ## Additional Resources
 

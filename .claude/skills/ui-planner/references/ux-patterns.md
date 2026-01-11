@@ -148,82 +148,29 @@ xl: 1280px  /* Large desktop */
 
 ## Form Patterns
 
-### Form Structure
+### Form Structure Principles
 
-```tsx
-// Standard form layout
-<form onSubmit={handleSubmit}>
-  <div className="space-y-6">
-    {/* Form sections */}
-    <div className="space-y-4">
-      <FormField />
-      <FormField />
-    </div>
+- Group related fields in sections with `space-y-4` or `space-y-6`
+- Actions (Cancel/Submit) always at bottom, right-aligned with `flex gap-4 justify-end`
+- Use `fieldset` to disable all inputs during submission
+- Form wrapper uses `space-y-6` for section separation
 
-    {/* Actions always at bottom */}
-    <div className="flex gap-4 justify-end">
-      <Button type="button" variant="outline">Cancel</Button>
-      <Button type="submit">Save</Button>
-    </div>
-  </div>
-</form>
-```
+### Validation Strategy
 
-### Validation Patterns
-
-**Real-time validation:**
-```tsx
-// Validate on blur, show errors on blur/submit
-const form = useForm({
-  mode: 'onBlur',
-  reValidateMode: 'onChange',
-});
-```
-
-**Error display:**
-```tsx
-<div className="space-y-2">
-  <Label htmlFor="email">Email</Label>
-  <Input
-    id="email"
-    aria-invalid={!!errors.email}
-    aria-describedby={errors.email ? "email-error" : undefined}
-  />
-  {errors.email && (
-    <p id="email-error" className="text-sm text-destructive">
-      {errors.email.message}
-    </p>
-  )}
-</div>
-```
+- Use react-hook-form with zodResolver
+- Default validation mode: use form defaults (avoid `mode: 'onBlur'`)
+- Show errors inline below inputs with `text-sm text-destructive`
+- Associate errors with inputs via `aria-describedby`
+- Mark invalid fields with `aria-invalid`
 
 ### Loading States
 
-**Button loading:**
-```tsx
-<Button disabled={isPending}>
-  {isPending ? (
-    <>
-      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-      Saving...
-    </>
-  ) : (
-    'Save'
-  )}
-</Button>
-```
+- Disable submit button during pending state
+- Show loading text (e.g., "Saving..." instead of "Save")
+- Optionally show spinner icon (`Loader2` from lucide-react)
+- Consider using `useFormStatus` for Server Actions
 
-**Form loading (useFormStatus):**
-```tsx
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <Button disabled={pending}>
-      {pending ? 'Saving...' : 'Save'}
-    </Button>
-  );
-}
-```
+*Implementation details and code examples are in ui-builder skill.*
 
 ## Table Patterns
 
@@ -290,89 +237,29 @@ function SubmitButton() {
 
 ### Focus Management
 
-**Dialog focus:**
-```tsx
-<Dialog>
-  <DialogContent>
-    {/* Focus trapped inside */}
-    <DialogHeader>
-      <DialogTitle>Title</DialogTitle>
-    </DialogHeader>
-    {/* First focusable element auto-focused */}
-    <Input autoFocus />
-  </DialogContent>
-</Dialog>
-```
-
-**After action focus:**
-```tsx
-const handleDelete = async () => {
-  await deleteItem(id);
-  // Return focus to logical element
-  addButtonRef.current?.focus();
-};
-```
+- Dialog: Focus trapped inside, first focusable element auto-focused
+- After destructive action: Return focus to logical element (e.g., add button)
+- Use `autoFocus` on primary input in dialogs/forms
+- Manage focus with refs when needed
 
 ### Keyboard Navigation
 
-**Table keyboard:**
-```tsx
-<TableRow
-  tabIndex={0}
-  onKeyDown={(e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      handleRowClick(item);
-    }
-  }}
->
-```
-
-**Action shortcuts:**
-```tsx
-useEffect(() => {
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') closeDialog();
-    if (e.key === 'Enter' && e.metaKey) submitForm();
-  };
-  window.addEventListener('keydown', handleKeyDown);
-  return () => window.removeEventListener('keydown', handleKeyDown);
-}, []);
-```
+- Tables: Add `tabIndex={0}` to rows, handle Enter/Space for row actions
+- Shortcuts: Escape to close dialogs, Cmd+Enter to submit
+- Ensure all interactive elements are keyboard accessible
 
 ### Live Regions
 
-**Toast announcements:**
-```tsx
-// sonner handles this automatically
-toast.success('Worker created');
-```
-
-**Custom announcements:**
-```tsx
-<div aria-live="polite" aria-atomic="true" className="sr-only">
-  {message}
-</div>
-```
+- Toast notifications: Use sonner (handles aria-live automatically)
+- Custom announcements: Use `aria-live="polite"` with `aria-atomic="true"`
+- Place announcements in visually hidden container
 
 ### Screen Reader Only
 
-```tsx
-// Tailwind's sr-only class
-<span className="sr-only">Open menu</span>
+- Use Tailwind's `sr-only` class for visually hidden but accessible text
+- Common use: icon-only buttons, additional context for links
 
-// Or custom:
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-```
+*Implementation details and code examples are in ui-builder skill.*
 
 ## WCAG Quick Reference
 
@@ -466,48 +353,23 @@ gap-8 for major sections
 
 ### URL State for Filters
 
-```tsx
-// Use nuqs or manual searchParams
-import { useSearchParams } from 'next/navigation';
-
-const searchParams = useSearchParams();
-const search = searchParams.get('search') ?? '';
-const page = Number(searchParams.get('page')) || 1;
-
-// Update URL
-const updateSearch = (value: string) => {
-  const params = new URLSearchParams(searchParams);
-  if (value) {
-    params.set('search', value);
-  } else {
-    params.delete('search');
-  }
-  params.set('page', '1'); // Reset page
-  router.push(`?${params.toString()}`);
-};
-```
+- Use `useSearchParams` from next/navigation for URL-based state
+- Store: search query, page number, sort column/direction, active filters
+- Reset page to 1 when filters change
+- Consider using `nuqs` library for type-safe URL state
 
 ### Debounced Search
 
-```tsx
-const [inputValue, setInputValue] = useState(search);
-const debouncedValue = useDebounce(inputValue, 300);
-
-useEffect(() => {
-  updateSearch(debouncedValue);
-}, [debouncedValue]);
-```
+- Debounce search input (300ms recommended)
+- Use local state for immediate input feedback
+- Update URL only after debounce settles
+- Show loading indicator during debounce
 
 ### Optimistic Updates
 
-```tsx
-const [optimisticItems, setOptimisticItems] = useOptimistic(
-  items,
-  (state, newItem) => [...state, newItem]
-);
+- Use `useOptimistic` hook for instant UI feedback
+- Update local state immediately before server response
+- Revert on error, confirm on success
+- Use for: adding items to lists, toggling states, delete operations
 
-const handleAdd = async (data) => {
-  setOptimisticItems({ ...data, id: 'temp' });
-  await createItem(data);
-};
-```
+*Implementation details and code examples are in ui-builder skill.*

@@ -96,6 +96,17 @@ export const LoginForm = ({ redirectTo }: LoginFormProps) => {
 				<Button type="submit" className="w-full" disabled={isPending}>
 					{isPending ? 'Signing in...' : 'Sign in'}
 				</Button>
+
+				{/* Link to register */}
+				<p className="text-center text-muted-foreground text-sm">
+					Don&apos;t have an account?{' '}
+					<Link
+						href="/register"
+						className="font-medium text-primary underline-offset-4 hover:underline"
+					>
+						Create organization
+					</Link>
+				</p>
 			</form>
 		</Form>
 	);
