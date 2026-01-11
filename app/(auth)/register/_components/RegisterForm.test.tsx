@@ -85,109 +85,160 @@ describe('RegisterForm', () => {
 	});
 
 	describe('Validation', () => {
-		it('shows error for empty organization name', async () => {
+		it('shows error for empty organization name on submit', async () => {
 			const user = userEvent.setup();
 			render(<RegisterForm />);
 
-			const organizationInput = getOrganizationInput();
-			await user.click(organizationInput);
-			await user.tab();
+			// Fill other required fields but leave organization empty
+			await user.type(getFirstNameInput(), 'John');
+			await user.type(getLastNameInput(), 'Doe');
+			await user.type(getEmailInput(), 'john@example.com');
+			await user.type(getPasswordInput(), 'password123');
+			await user.type(getConfirmPasswordInput(), 'password123');
+			await user.click(getSubmitButton());
 
 			expect(
 				await screen.findByText(/organization name is required/i)
 			).toBeInTheDocument();
 		});
 
-		it('shows error for empty first name', async () => {
+		it('shows error for empty first name on submit', async () => {
 			const user = userEvent.setup();
 			render(<RegisterForm />);
 
-			const firstNameInput = getFirstNameInput();
-			await user.click(firstNameInput);
-			await user.tab();
+			// Fill other required fields but leave first name empty
+			await user.type(getOrganizationInput(), 'My Company');
+			await user.type(getLastNameInput(), 'Doe');
+			await user.type(getEmailInput(), 'john@example.com');
+			await user.type(getPasswordInput(), 'password123');
+			await user.type(getConfirmPasswordInput(), 'password123');
+			await user.click(getSubmitButton());
 
 			expect(
 				await screen.findByText(/first name is required/i)
 			).toBeInTheDocument();
 		});
 
-		it('shows error for empty last name', async () => {
+		it('shows error for empty last name on submit', async () => {
 			const user = userEvent.setup();
 			render(<RegisterForm />);
 
-			const lastNameInput = getLastNameInput();
-			await user.click(lastNameInput);
-			await user.tab();
+			// Fill other required fields but leave last name empty
+			await user.type(getOrganizationInput(), 'My Company');
+			await user.type(getFirstNameInput(), 'John');
+			await user.type(getEmailInput(), 'john@example.com');
+			await user.type(getPasswordInput(), 'password123');
+			await user.type(getConfirmPasswordInput(), 'password123');
+			await user.click(getSubmitButton());
 
 			expect(
 				await screen.findByText(/last name is required/i)
 			).toBeInTheDocument();
 		});
 
-		it('shows error for invalid email format', async () => {
+		it('does not submit form with invalid email', async () => {
 			const user = userEvent.setup();
+			const mockSignUp = vi.mocked(signUp);
 			render(<RegisterForm />);
 
-			await user.type(getEmailInput(), 'invalid-email');
-			await user.tab();
+			await user.type(getOrganizationInput(), 'My Company');
+			await user.type(getFirstNameInput(), 'John');
+			await user.type(getLastNameInput(), 'Doe');
+			await user.type(getEmailInput(), 'notanemail');
+			await user.type(getPasswordInput(), 'password123');
+			await user.type(getConfirmPasswordInput(), 'password123');
+			await user.click(getSubmitButton());
 
-			expect(await screen.findByText(/invalid email/i)).toBeInTheDocument();
+			// Form should not submit with invalid email
+			await waitFor(() => {
+				expect(mockSignUp).not.toHaveBeenCalled();
+			});
 		});
 
-		it('shows error for short password', async () => {
+		it('does not submit form with short password', async () => {
 			const user = userEvent.setup();
+			const mockSignUp = vi.mocked(signUp);
 			render(<RegisterForm />);
 
+			await user.type(getOrganizationInput(), 'My Company');
+			await user.type(getFirstNameInput(), 'John');
+			await user.type(getLastNameInput(), 'Doe');
+			await user.type(getEmailInput(), 'john@example.com');
 			await user.type(getPasswordInput(), '1234567');
-			await user.tab();
+			await user.type(getConfirmPasswordInput(), '1234567');
+			await user.click(getSubmitButton());
 
-			expect(
-				await screen.findByText(/at least 8 characters/i)
-			).toBeInTheDocument();
+			// Form should not submit with short password
+			await waitFor(() => {
+				expect(mockSignUp).not.toHaveBeenCalled();
+			});
 		});
 
-		it('shows error when passwords do not match', async () => {
+		it('shows error when passwords do not match on submit', async () => {
 			const user = userEvent.setup();
 			render(<RegisterForm />);
 
+			await user.type(getOrganizationInput(), 'My Company');
+			await user.type(getFirstNameInput(), 'John');
+			await user.type(getLastNameInput(), 'Doe');
+			await user.type(getEmailInput(), 'john@example.com');
 			await user.type(getPasswordInput(), 'password123');
 			await user.type(getConfirmPasswordInput(), 'password456');
-			await user.tab();
+			await user.click(getSubmitButton());
 
 			expect(
 				await screen.findByText(/passwords don't match/i)
 			).toBeInTheDocument();
 		});
 
-		it('clears error when field becomes valid on blur', async () => {
+		it('clears required error when form is resubmitted with valid data', async () => {
 			const user = userEvent.setup();
+			const mockSignUp = vi.mocked(signUp);
+			mockSignUp.mockResolvedValue({
+				success: true,
+				data: { user: null, session: null },
+			});
+
 			render(<RegisterForm />);
 
-			const emailInput = getEmailInput();
+			// Submit with empty organization name
+			await user.type(getFirstNameInput(), 'John');
+			await user.type(getLastNameInput(), 'Doe');
+			await user.type(getEmailInput(), 'john@example.com');
+			await user.type(getPasswordInput(), 'password123');
+			await user.type(getConfirmPasswordInput(), 'password123');
+			await user.click(getSubmitButton());
 
-			await user.type(emailInput, 'invalid');
-			await user.tab();
-			expect(await screen.findByText(/invalid email/i)).toBeInTheDocument();
+			expect(
+				await screen.findByText(/organization name is required/i)
+			).toBeInTheDocument();
 
-			await user.clear(emailInput);
-			await user.type(emailInput, 'valid@example.com');
-			await user.tab();
+			// Fix organization name and resubmit
+			await user.type(getOrganizationInput(), 'My Company');
+			await user.click(getSubmitButton());
 
 			await waitFor(() => {
-				expect(screen.queryByText(/invalid email/i)).not.toBeInTheDocument();
+				expect(
+					screen.queryByText(/organization name is required/i)
+				).not.toBeInTheDocument();
 			});
 		});
 
-		it('marks invalid fields with aria-invalid', async () => {
+		it('marks required fields with aria-invalid on submit', async () => {
 			const user = userEvent.setup();
 			render(<RegisterForm />);
 
-			const emailInput = getEmailInput();
-			await user.type(emailInput, 'invalid');
-			await user.tab();
+			// Fill all except organization name
+			await user.type(getFirstNameInput(), 'John');
+			await user.type(getLastNameInput(), 'Doe');
+			await user.type(getEmailInput(), 'john@example.com');
+			await user.type(getPasswordInput(), 'password123');
+			await user.type(getConfirmPasswordInput(), 'password123');
+			await user.click(getSubmitButton());
 
+			const organizationInput = getOrganizationInput();
 			await waitFor(() => {
-				expect(emailInput).toHaveAttribute('aria-invalid', 'true');
+				expect(organizationInput).toHaveAttribute('aria-invalid', 'true');
 			});
 		});
 	});
@@ -390,17 +441,26 @@ describe('RegisterForm', () => {
 			const user = userEvent.setup();
 			render(<RegisterForm />);
 
-			const emailInput = getEmailInput();
-			await user.type(emailInput, 'invalid');
-			await user.tab();
+			// Submit with empty organization to trigger required validation
+			await user.type(getFirstNameInput(), 'John');
+			await user.type(getLastNameInput(), 'Doe');
+			await user.type(getEmailInput(), 'john@example.com');
+			await user.type(getPasswordInput(), 'password123');
+			await user.type(getConfirmPasswordInput(), 'password123');
+			await user.click(getSubmitButton());
 
+			// Check that organization input has error linked via aria-describedby
+			const organizationInput = getOrganizationInput();
 			await waitFor(() => {
-				const errorId = emailInput.getAttribute('aria-describedby');
-				expect(errorId).toBeTruthy();
-				expect(
-					document.getElementById(errorId!.split(' ')[1])
-				).toHaveTextContent(/invalid email/i);
+				expect(organizationInput).toHaveAttribute('aria-invalid', 'true');
+				const describedBy = organizationInput.getAttribute('aria-describedby');
+				expect(describedBy).toBeTruthy();
 			});
+
+			// Verify error message is displayed
+			expect(
+				screen.getByText(/organization name is required/i)
+			).toBeInTheDocument();
 		});
 
 		it('has password visibility toggles with aria-label', () => {

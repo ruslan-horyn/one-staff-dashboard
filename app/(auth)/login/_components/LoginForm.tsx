@@ -31,7 +31,7 @@ export const LoginForm = ({ redirectTo }: LoginFormProps) => {
 
 	return (
 		<Form {...form}>
-			<form onSubmit={onSubmit} className="space-y-4">
+			<form onSubmit={onSubmit} className="space-y-4" aria-label="Login form">
 				<fieldset disabled={isPending} className="space-y-4">
 					{/* Email field */}
 					<FormField
