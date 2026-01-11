@@ -52,6 +52,7 @@ one-staff-dashboard/
 │   ├── database.ts               # Supabase types (auto-generated)
 │   ├── common.ts                 # Enums, pagination, sort params
 │   ├── auth.ts                   # Auth user types
+│   ├── organization.ts           # Organization entity and DTOs
 │   ├── client.ts                 # Client entity and DTOs
 │   ├── work-location.ts          # WorkLocation entity and DTOs
 │   ├── position.ts               # Position entity and DTOs
@@ -70,8 +71,16 @@ one-staff-dashboard/
 │   │   ├── pagination.ts         # Pagination helpers
 │   │   └── index.ts
 │   ├── auth/                     # Auth module
-│   │   ├── actions.ts            # Server actions (signIn, signOut)
+│   │   ├── actions.ts            # Server actions (signIn, signOut, signUp)
 │   │   ├── queries.ts            # Data fetching (getCurrentUser)
+│   │   ├── schemas.ts            # Zod validation schemas
+│   │   └── index.ts
+│   ├── organizations/            # Organizations module
+│   │   ├── actions.ts            # Server actions (get, update)
+│   │   ├── schemas.ts            # Zod validation schemas
+│   │   └── index.ts
+│   ├── users/                    # Users module (admin only)
+│   │   ├── actions.ts            # Server actions (getUsers, invite, deactivate)
 │   │   ├── schemas.ts            # Zod validation schemas
 │   │   └── index.ts
 │   ├── clients/                  # Clients module (admin only)
@@ -127,21 +136,26 @@ one-staff-dashboard/
 ## Directory Descriptions
 
 ### /app - Next.js App Router
+
 Application routing and pages. Uses route groups for different layouts.
+
 - `(auth)/` - pages for unauthenticated users (login)
 - `(dashboard)/` - pages for authenticated users
 - `api/` - Route handlers (REST API)
 
 ### /components - React Components
+
 - `ui/` - Base, reusable UI components (Button, Input, Modal, Table)
 - `layout/` - Page structure components (Header, Sidebar, Footer)
 - `features/` - Domain-specific components, per feature
 - `forms/` - Forms with react-hook-form
 
 ### /hooks - Custom React Hooks
+
 Hooks for data fetching, local state management, helpers.
 
 ### /stores - Zustand Stores
+
 Global stores for application state.
 
 ### /types - TypeScript Types & DTOs
@@ -151,11 +165,13 @@ Type definitions organized by domain entity. Each entity file follows a consiste
 **Type Categories:**
 
 1. **Base Entity Types** - Direct database table types derived from Supabase
+
    ```typescript
    export type Worker = Tables<'temporary_workers'>;
    ```
 
 2. **Extended DTOs** - Entities with computed fields and relations
+
    ```typescript
    export interface WorkerWithStats extends Worker {
      totalHours: number;
@@ -171,6 +187,7 @@ Type definitions organized by domain entity. Each entity file follows a consiste
 - `database.ts` - Auto-generated Supabase types (run `pnpm supabase gen types`)
 - `common.ts` - Shared types: enums (`UserRole`, `AssignmentStatus`), pagination, sort params
 - `auth.ts` - `Profile` entity type
+- `organization.ts` - `Organization` entity, `OrganizationWithStats` DTO
 - `client.ts` - `Client` entity, `ClientWithLocations` DTO
 - `work-location.ts` - `WorkLocation` entity, `WorkLocationWithClient`, `WorkLocationWithPositions` DTOs
 - `position.ts` - `Position` entity, `PositionWithLocation` DTO
@@ -197,21 +214,27 @@ Modular structure for server-side operations. Each domain module contains:
 - `pagination.ts` - Pagination types (`PaginatedResult<T>`, `PaginationMeta`) and helpers (`calculateOffset`, `calculateTotalPages`, `createPaginationMeta`, `paginateResult`, `applyPaginationToQuery`)
 
 ### /utils - Pure Utilities
+
 Pure helper functions (formatting, validation, export).
 
 ### /lib - Configurations
+
 External service clients (Supabase), environment configuration.
 
-### Unit Tests (__tests__/ Folders)
+### Unit Tests (**tests**/ Folders)
+
 `.test.ts` / `.test.tsx` files placed in `__tests__/` subfolder within each module:
+
 - `components/ui/Button.tsx` → `components/ui/__tests__/Button.test.tsx`
 - `hooks/useAuth.ts` → `hooks/__tests__/useAuth.test.ts`
 - `services/shared/result.ts` → `services/shared/__tests__/result.test.ts`
 
 ### /e2e - E2E Tests
+
 Playwright end-to-end tests.
 
-### /__mocks__ - Test Mocks
+### /**mocks** - Test Mocks
+
 MSW handlers, Supabase service mocks.
 
 ## Import Examples
@@ -226,10 +249,10 @@ import { useWorkers } from '@/hooks';
 import { useAuthStore } from '@/stores';
 
 // Types - Base entities
-import type { Worker, Client, Assignment } from '@/types';
+import type { Worker, Client, Assignment, Organization } from '@/types';
 
 // Types - Extended DTOs (with relations/computed fields)
-import type { WorkerWithStats, WorkerWithAssignments } from '@/types';
+import type { WorkerWithStats, WorkerWithAssignments, OrganizationWithStats } from '@/types';
 import type { AssignmentWithDetails } from '@/types';
 
 // Types - Common utilities
@@ -238,6 +261,8 @@ import type { PaginationParams, SortParams, UserRole } from '@/types';
 // Server Actions & Queries
 import { createWorker, updateWorker } from '@/services/workers/actions';
 import { getWorkers, getWorkerById } from '@/services/workers/queries';
+import { getOrganization, updateOrganization } from '@/services/organizations/actions';
+import { getUsers, inviteUser, deactivateUser } from '@/services/users/actions';
 
 // Validation Schemas & Input Types (from services)
 import { createWorkerSchema } from '@/services/workers/schemas';

@@ -2,7 +2,9 @@
 
 ## 1. Product Overview
 
-One Staff Dashboard is an internal web application (panel) in MVP (Minimum Viable Product) version, designed to streamline basic operations in a temporary staffing agency. The product's goal is to replace existing manual processes based on spreadsheets by centralizing management of temporary worker data, clients, work locations, and schedules. The panel will enable coordinators to quickly assign workers to open positions, monitor their workload, and generate key reports on worked hours. The RWD (Responsive Web Design) architecture will provide a foundation for future development, including a potential PWA (Progressive Web App) application.
+One Staff Dashboard is a SaaS web application (panel) in MVP (Minimum Viable Product) version, designed to streamline basic operations in temporary staffing agencies. The product's goal is to replace existing manual processes based on spreadsheets by centralizing management of temporary worker data, clients, work locations, and schedules. The panel will enable coordinators to quickly assign workers to open positions, monitor their workload, and generate key reports on worked hours. The RWD (Responsive Web Design) architecture will provide a foundation for future development, including a potential PWA (Progressive Web App) application.
+
+The system supports **multi-tenancy**, allowing multiple independent organizations (staffing agencies) to use the platform. Each organization has isolated data and manages its own users, clients, workers, and assignments.
 
 ## 2. User Problem
 
@@ -21,11 +23,21 @@ Users need a single, integrated tool that will automate and simplify these proce
 ### 3.1. User and Access Management
 
 * System based on two roles: `Administrator` and `Agency Employee (Coordinator)`.
-* Administrator manages Coordinator accounts.
-* Administrator can create a Coordinator account through a form in the system.
-* Administrator can deactivate a user account.
-* System login is done using username and password.
-* Users can reset their password via email.
+* **Organization Registration (Self-service):**
+  * New users can register an organization through a sign-up form.
+  * Upon registration, the system creates a new organization and assigns the registering user as its Administrator.
+  * Registration requires: organization name, email, password, first name, last name.
+* **User Management within Organization:**
+  * Administrator manages Coordinator accounts within their organization.
+  * Administrator can invite a Coordinator by providing email, first name, and last name.
+  * Invited Coordinator receives an email with a link to set their password.
+  * Administrator can deactivate a user account.
+* **Authentication:**
+  * System login is done using email and password.
+  * Users can reset their password via email.
+* **Data Isolation:**
+  * Each organization's data (users, clients, workers, assignments) is completely isolated.
+  * Users can only access data belonging to their organization.
 
 ### 3.2. Master Data Management
 
@@ -69,14 +81,25 @@ The following functionalities are intentionally excluded from the MVP scope:
 
 ### ID: US-001
 
+* Title: Organization Registration
+* Description: As a new user, I want to register my organization so that I can start using the system as an Administrator.
+* Acceptance Criteria:
+    1. System displays a registration page accessible from the login page.
+    2. Registration form requires: organization name, email, password, first name, last name.
+    3. After successful registration, a new organization is created and the user becomes its Administrator.
+    4. User is automatically logged in and redirected to the main application view ("Board").
+    5. If email is already registered, system displays an appropriate error message.
+
+### ID: US-002
+
 * Title: System Login
 * Description: As a user (Administrator or Coordinator), I want to be able to securely log into the system to access the panel.
 * Acceptance Criteria:
-    1. System displays a login page with username and password fields.
+    1. System displays a login page with email and password fields.
     2. After entering correct credentials, user is redirected to the main application view ("Board").
     3. After entering incorrect credentials, system displays an error message.
 
-### ID: US-002
+### ID: US-003
 
 * Title: Client Management by Administrator
 * Description: As an Administrator, I want to manage the client list to maintain up-to-date data in the system.
@@ -86,7 +109,7 @@ The following functionalities are intentionally excluded from the MVP scope:
     3. I can edit an existing client's name.
     4. I can delete a client (if there are no Work Locations associated with it).
 
-### ID: US-003
+### ID: US-004
 
 * Title: Work Location Management by Administrator
 * Description: As an Administrator, I want to manage Work Locations and assign them to clients so that Coordinators can create assignments in correct locations.
@@ -95,7 +118,7 @@ The following functionalities are intentionally excluded from the MVP scope:
     2. Each Work Location must be assigned to an existing Client.
     3. I can edit data of an existing Work Location.
 
-### ID: US-004
+### ID: US-005
 
 * Title: Temporary Worker Management
 * Description: As a Coordinator, I want to quickly add and edit temporary worker data to maintain an up-to-date database.
@@ -105,7 +128,7 @@ The following functionalities are intentionally excluded from the MVP scope:
     3. After saving, the new worker appears on the main worker list.
     4. I can edit existing worker data.
 
-### ID: US-005
+### ID: US-006
 
 * Title: Displaying and Filtering Worker List
 * Description: As a Coordinator, I want to see a list of all workers on one screen and filter it to quickly find available people.
@@ -115,7 +138,7 @@ The following functionalities are intentionally excluded from the MVP scope:
     3. A date and time filter (`Available From`) is available, showing only workers without assignments at a given moment.
     4. A search field is available, filtering the list by entering part of name, surname, or phone number.
 
-### ID: US-006
+### ID: US-007
 
 * Title: Creating and Assigning Worker to Position
 * Description: As a Coordinator, I want to create an "Open Position" at a given Work Location, and then assign a worker to it.
@@ -126,7 +149,7 @@ The following functionalities are intentionally excluded from the MVP scope:
     4. Optionally, I can provide `end date and time`.
     5. After saving, the assignment is visible in the expanded row of the given worker.
 
-### ID: US-007
+### ID: US-008
 
 * Title: Assignment Details View
 * Description: As a Coordinator, I want to see details of all assignments for a given worker to have a complete picture of their schedule.
@@ -135,7 +158,7 @@ The following functionalities are intentionally excluded from the MVP scope:
     2. Each assignment on the list shows Work Location, Position, and work hours in `HH:MM - HH:MM` format.
     3. The `Total Hours` column in the main row shows the sum of duration of all assignments.
 
-### ID: US-008
+### ID: US-009
 
 * Title: Ending Active Assignment
 * Description: As a Coordinator, I want to be able to end an active work assignment when a worker has actually finished it.
@@ -144,7 +167,7 @@ The following functionalities are intentionally excluded from the MVP scope:
     2. After clicking it, a modal window appears for entering the end date and time.
     3. After saving, the assignment is updated with the end date.
 
-### ID: US-009
+### ID: US-010
 
 * Title: Canceling Erroneous Assignment
 * Description: As a Coordinator, I want to be able to cancel an erroneously created assignment before it starts.
@@ -154,7 +177,7 @@ The following functionalities are intentionally excluded from the MVP scope:
     3. After clicking the action and confirming, the assignment is permanently deleted.
     4. The cancellation operation is recorded in the event log.
 
-### ID: US-010
+### ID: US-011
 
 * Title: Generating and Exporting Hours Report
 * Description: As a Coordinator, I want to generate a worked hours report for a selected period and client, and then export it to a file for further processing.
@@ -164,7 +187,7 @@ The following functionalities are intentionally excluded from the MVP scope:
     3. On the report page, there is an "Export to CSV/Excel" button.
     4. Clicking the button downloads a file containing data from the generated report.
 
-### ID: US-011
+### ID: US-012
 
 * Title: Password Reset
 * Description: As a user, I want to reset my password when I forget it so that I can regain access to the system.
@@ -176,17 +199,18 @@ The following functionalities are intentionally excluded from the MVP scope:
     5. The link leads to a form for setting a new password.
     6. After setting the password, user is redirected to the login page.
 
-### ID: US-012
+### ID: US-013
 
 * Title: User Account Management by Administrator
-* Description: As an Administrator, I want to manage Coordinator accounts so that I can control system access.
+* Description: As an Administrator, I want to manage Coordinator accounts within my organization so that I can control system access.
 * Acceptance Criteria:
-    1. I can view a list of all system users.
-    2. I can create a new account by providing email, temporary password, first name, and last name.
-    3. I can deactivate a user account.
-    4. The new user can log in with the provided credentials.
+    1. I can view a list of all users in my organization.
+    2. I can invite a new Coordinator by providing their email, first name, and last name.
+    3. The invited user receives an email with a link to set their password and activate the account.
+    4. I can deactivate a user account.
+    5. Deactivated users cannot log into the system.
 
-### ID: US-013
+### ID: US-014
 
 * Title: User Profile Editing
 * Description: As a logged-in user, I want to edit my profile data so that my information is up to date.

@@ -6,6 +6,8 @@
 |--------|---------|---------|--------|
 | **Shared** | ✅ `createAction` wrapper | ✅ | Complete |
 | **Auth** | ✅ All implemented | ✅ | Complete |
+| **Organizations** | ❌ Not implemented | ❌ | Not started |
+| **Users** | ❌ Not implemented | ❌ | Not started |
 | **Clients** | ✅ All implemented | ✅ | Complete |
 | **WorkLocations** | ❌ Not implemented | ✅ | Schemas only |
 | **Positions** | ❌ Not implemented | ✅ | Schemas only |
@@ -22,6 +24,8 @@ List of modules corresponding to business entities:
 | Module | Database Table(s) | Responsibility |
 |--------|-------------------|----------------|
 | **Auth** | `profiles`, `auth.users` | User authentication, session management, profile data |
+| **Organizations** | `organizations` | Organization settings, name management |
+| **Users** | `profiles`, `auth.users` | User management within organization (invite, deactivate, list) |
 | **Clients** | `clients` | Client company CRUD operations (admin only) |
 | **WorkLocations** | `work_locations` | Work location CRUD operations (admin only) |
 | **Positions** | `positions` | Position CRUD operations (any authenticated) |
@@ -44,6 +48,14 @@ List of modules corresponding to business entities:
     index.ts             # Barrel exports
   /auth/
     actions.ts           # Server actions (mutations + queries)
+    schemas.ts           # Zod validation schemas
+    index.ts             # Barrel exports
+  /organizations/
+    actions.ts           # Server actions (get, update)
+    schemas.ts           # Zod validation schemas
+    index.ts             # Barrel exports
+  /users/
+    actions.ts           # Server actions (getUsers, invite, deactivate, reactivate)
     schemas.ts           # Zod validation schemas
     index.ts             # Barrel exports
   /clients/
@@ -82,6 +94,7 @@ List of modules corresponding to business entities:
 ### Auth Module ✅ IMPLEMENTED
 
 #### signIn ✅
+
 - **Description**: Authenticate user with email/password via Supabase Auth
 - **Input Parameters**:
   - `email` (string, required): User email address
@@ -97,25 +110,43 @@ List of modules corresponding to business entities:
 - **Supabase**: `supabase.auth.signInWithPassword()`
 
 #### signUp ✅
-- **Description**: Register a new user with email, password, and profile data
+
+- **Description**: Register a new user with organization. Creates new organization and assigns user as Administrator.
 - **Input Parameters**:
   - `email` (string, required): User email address
   - `password` (string, required): User password (min 8 chars)
   - `firstName` (string, required): First name (1-100 chars)
   - `lastName` (string, required): Last name (1-100 chars)
+  - `organizationName` (string, required): Organization name (1-255 chars)
 - **Return Type**: `ActionResult<AuthResponse>`
 - **Validation**:
   - `email`: Valid email format
   - `password`: Minimum 8 characters
   - `firstName`: 1-100 characters
   - `lastName`: 1-100 characters
+  - `organizationName`: 1-255 characters, required, trimmed
 - **Authorization**: Public (`requireAuth: false`)
 - **Error Handling**:
   - `DUPLICATE_ENTRY`: Email already exists
-  - `VALIDATION_ERROR`: Weak password
-- **Supabase**: `supabase.auth.signUp()` with `options.data` for profile
+  - `VALIDATION_ERROR`: Weak password or invalid organization name
+- **Supabase**:
+
+  ```typescript
+  supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        first_name: firstName,
+        last_name: lastName,
+        organization_name: organizationName, // Trigger handle_new_user() uses this
+      },
+    },
+  })
+  ```
 
 #### signOut ✅
+
 - **Description**: Sign out current user and invalidate session
 - **Input Parameters**: None (empty object)
 - **Return Type**: `ActionResult<{ success: boolean }>`
@@ -126,6 +157,7 @@ List of modules corresponding to business entities:
 - **Supabase**: `supabase.auth.signOut()`
 
 #### updateProfile ✅
+
 - **Description**: Update current user's profile information
 - **Input Parameters**:
   - `firstName` (string, required): First name (1-100 chars)
@@ -141,6 +173,7 @@ List of modules corresponding to business entities:
 - **Supabase**: `supabase.from('profiles').update()`
 
 #### getCurrentUser ✅
+
 - **Description**: Get current authenticated user with profile data
 - **Input Parameters**: None (empty object)
 - **Return Type**: `ActionResult<UserWithProfile>`
@@ -152,6 +185,7 @@ List of modules corresponding to business entities:
 - **Supabase**: `supabase.from('profiles').select().eq('id', user.id)`
 
 #### resetPassword ✅
+
 - **Description**: Send password reset email (always returns success for security)
 - **Input Parameters**:
   - `email` (string, required): User email address
@@ -163,6 +197,7 @@ List of modules corresponding to business entities:
 - **Supabase**: `supabase.auth.resetPasswordForEmail()`
 
 #### updatePassword ✅
+
 - **Description**: Update password for current user (after reset link)
 - **Input Parameters**:
   - `newPassword` (string, required): New password (min 8 chars)
@@ -176,9 +211,162 @@ List of modules corresponding to business entities:
 
 ---
 
+### Organizations Module ⏳ TODO
+
+#### getOrganization
+
+- **Description**: Get current user's organization
+- **Input Parameters**: None (empty object)
+- **Return Type**: `ActionResult<Organization>`
+- **Validation**: None
+- **Authorization**: Any authenticated user
+- **Error Handling**:
+  - `NOT_AUTHENTICATED`: No active session
+  - `NOT_FOUND`: Organization not found (should not happen)
+- **Supabase**: `supabase.from('organizations').select().eq('id', user_organization_id()).single()`
+
+#### updateOrganization
+
+- **Description**: Update organization name
+- **Input Parameters**:
+  - `name` (string, required): Organization name (1-255 chars)
+- **Return Type**: `ActionResult<Organization>`
+- **Validation**:
+  - `name`: 1-255 characters, trimmed, required
+- **Authorization**: Admin only (RLS enforced via `organizations_update` policy)
+- **Error Handling**:
+  - `NOT_AUTHENTICATED`: No active session
+  - `FORBIDDEN`: User is not admin
+  - `VALIDATION_ERROR`: Invalid input (empty name, too long)
+- **Supabase**: `supabase.from('organizations').update({ name }).select().single()`
+
+---
+
+### Users Module ⏳ TODO
+
+#### getUsers
+
+- **Description**: List all users in current organization
+- **Input Parameters**:
+  - `page` (number, optional): Page number (default: 1)
+  - `pageSize` (number, optional): Items per page (default: 20, max: 100)
+  - `search` (string, optional): Search by name or email
+- **Return Type**: `ActionResult<PaginatedResult<Profile>>`
+- **Validation**:
+  - `page`: Positive integer
+  - `pageSize`: 1-100
+  - `search`: Optional string, max 100 chars
+- **Authorization**: Admin only
+- **Error Handling**:
+  - `NOT_AUTHENTICATED`: No active session
+  - `FORBIDDEN`: User is not admin
+  - `VALIDATION_ERROR`: Invalid pagination params
+- **Supabase**:
+
+  ```typescript
+  supabase
+    .from('profiles')
+    .select('*', { count: 'exact' })
+    .eq('organization_id', user_organization_id())
+    .ilike('first_name || last_name || email', `%${search}%`)
+    .range(offset, offset + pageSize - 1)
+  ```
+
+#### inviteUser
+
+- **Description**: Invite a new Coordinator to the organization
+- **Input Parameters**:
+  - `email` (string, required): User email address
+  - `firstName` (string, required): First name (1-100 chars)
+  - `lastName` (string, required): Last name (1-100 chars)
+- **Return Type**: `ActionResult<{ success: boolean }>`
+- **Validation**:
+  - `email`: Valid email format, required
+  - `firstName`: 1-100 characters, trimmed
+  - `lastName`: 1-100 characters, trimmed
+- **Authorization**: Admin only
+- **Error Handling**:
+  - `NOT_AUTHENTICATED`: No active session
+  - `FORBIDDEN`: User is not admin
+  - `DUPLICATE_ENTRY`: Email already exists in system
+  - `VALIDATION_ERROR`: Invalid input
+- **Supabase**:
+
+  ```typescript
+  // Use Supabase Admin API (requires service role key)
+  supabase.auth.admin.inviteUserByEmail(email, {
+    data: {
+      first_name: firstName,
+      last_name: lastName,
+      invited_to_organization_id: currentUser.organization_id,
+      role: 'coordinator',
+    },
+  })
+  ```
+
+- **Notes**:
+  - Requires trigger `handle_user_invitation()` to create profile for invited users
+  - Invited user receives email with link to set password
+
+#### deactivateUser
+
+- **Description**: Deactivate a user account (soft ban)
+- **Input Parameters**:
+  - `userId` (string, required): User UUID
+- **Return Type**: `ActionResult<Profile>`
+- **Validation**:
+  - `userId`: Valid UUID
+  - Cannot deactivate self
+  - User must belong to same organization
+- **Authorization**: Admin only
+- **Error Handling**:
+  - `NOT_AUTHENTICATED`: No active session
+  - `FORBIDDEN`: User is not admin or trying to deactivate self
+  - `NOT_FOUND`: User not found in organization
+  - `VALIDATION_ERROR`: Invalid UUID or trying to deactivate self
+- **Supabase**:
+
+  ```typescript
+  // Use Supabase Admin API to ban user
+  supabase.auth.admin.updateUserById(userId, {
+    ban_duration: 'none', // Permanent ban (until reactivated)
+    banned: true,
+  })
+  ```
+
+- **Notes**:
+  - Banned users cannot log in
+  - Consider adding `is_active` column to profiles for RLS filtering
+
+#### reactivateUser
+
+- **Description**: Reactivate a deactivated user
+- **Input Parameters**:
+  - `userId` (string, required): User UUID
+- **Return Type**: `ActionResult<Profile>`
+- **Validation**:
+  - `userId`: Valid UUID
+  - User must belong to same organization
+- **Authorization**: Admin only
+- **Error Handling**:
+  - `NOT_AUTHENTICATED`: No active session
+  - `FORBIDDEN`: User is not admin
+  - `NOT_FOUND`: User not found in organization
+  - `VALIDATION_ERROR`: Invalid UUID
+- **Supabase**:
+
+  ```typescript
+  supabase.auth.admin.updateUserById(userId, {
+    banned: false,
+  })
+  ```
+
+---
+
 ### Clients Module ✅ IMPLEMENTED
 
 #### createClient ✅
+
 - **Description**: Create a new client company
 - **Input Parameters**:
   - `name` (string, required): Company name (1-255 chars)
@@ -199,6 +387,7 @@ List of modules corresponding to business entities:
 - **Supabase**: `supabase.from('clients').insert()`
 
 #### getClient ✅
+
 - **Description**: Retrieve a single client by ID
 - **Input Parameters**:
   - `id` (string, required): Client UUID
@@ -211,6 +400,7 @@ List of modules corresponding to business entities:
 - **Supabase**: `supabase.from('clients').select().eq('id', id).is('deleted_at', null)`
 
 #### getClients ✅
+
 - **Description**: Retrieve paginated list of clients with filtering and sorting
 - **Input Parameters**:
   - `page` (number, optional): Page number (default: 1)
@@ -227,6 +417,7 @@ List of modules corresponding to business entities:
 - **Supabase**: Complex query with count + data in parallel
 
 #### updateClient ✅
+
 - **Description**: Update an existing client's information
 - **Input Parameters**:
   - `id` (string, required): Client UUID
@@ -244,6 +435,7 @@ List of modules corresponding to business entities:
 - **Supabase**: `supabase.from('clients').update().eq('id', id).is('deleted_at', null)`
 
 #### deleteClient ✅
+
 - **Description**: Soft-delete a client (sets deleted_at timestamp)
 - **Input Parameters**:
   - `id` (string, required): Client UUID
@@ -262,6 +454,7 @@ List of modules corresponding to business entities:
 ### WorkLocations Module ⏳ TODO
 
 #### createWorkLocation
+
 - **Description**: Create a new work location for a client
 - **Input Parameters**:
   - `clientId` (string, required): Parent client UUID
@@ -284,6 +477,7 @@ List of modules corresponding to business entities:
 - **Supabase**: `supabase.from('work_locations').insert()`
 
 #### updateWorkLocation
+
 - **Description**: Update an existing work location
 - **Input Parameters**:
   - `id` (string, required): Work location UUID
@@ -301,6 +495,7 @@ List of modules corresponding to business entities:
 - **Supabase**: `supabase.from('work_locations').update().eq('id', id)`
 
 #### deleteWorkLocation
+
 - **Description**: Soft-delete a work location
 - **Input Parameters**:
   - `id` (string, required): Work location UUID
@@ -319,6 +514,7 @@ List of modules corresponding to business entities:
 ### Positions Module ⏳ TODO
 
 #### createPosition
+
 - **Description**: Create a new position at a work location
 - **Input Parameters**:
   - `workLocationId` (string, required): Parent work location UUID
@@ -335,6 +531,7 @@ List of modules corresponding to business entities:
 - **Supabase**: `supabase.from('positions').insert()`
 
 #### updatePosition
+
 - **Description**: Update an existing position
 - **Input Parameters**:
   - `id` (string, required): Position UUID
@@ -350,6 +547,7 @@ List of modules corresponding to business entities:
 - **Supabase**: `supabase.from('positions').update().eq('id', id)`
 
 #### deletePosition
+
 - **Description**: Soft-delete a position
 - **Input Parameters**:
   - `id` (string, required): Position UUID
@@ -368,6 +566,7 @@ List of modules corresponding to business entities:
 ### Workers Module ⏳ TODO
 
 #### createWorker
+
 - **Description**: Create a new temporary worker
 - **Input Parameters**:
   - `firstName` (string, required): First name (1-100 chars)
@@ -386,6 +585,7 @@ List of modules corresponding to business entities:
 - **Supabase**: `supabase.from('temporary_workers').insert()`
 
 #### updateWorker
+
 - **Description**: Update an existing temporary worker
 - **Input Parameters**:
   - `id` (string, required): Worker UUID
@@ -403,6 +603,7 @@ List of modules corresponding to business entities:
 - **Supabase**: `supabase.from('temporary_workers').update().eq('id', id)`
 
 #### deleteWorker
+
 - **Description**: Soft-delete a temporary worker
 - **Input Parameters**:
   - `id` (string, required): Worker UUID
@@ -421,6 +622,7 @@ List of modules corresponding to business entities:
 ### Assignments Module ⏳ TODO
 
 #### createAssignment
+
 - **Description**: Create a new assignment for a worker to a position
 - **Input Parameters**:
   - `workerId` (string, required): Worker UUID
@@ -444,6 +646,7 @@ List of modules corresponding to business entities:
 **Note**: Per PRD, overlapping assignments are allowed. The `is_worker_available` RPC can be used to warn users but does not block creation.
 
 #### endAssignment
+
 - **Description**: End an active or scheduled assignment
 - **Input Parameters**:
   - `assignmentId` (string, required): Assignment UUID
@@ -461,6 +664,7 @@ List of modules corresponding to business entities:
 - **Supabase**: `supabase.rpc('end_assignment', { p_assignment_id, p_end_at })`
 
 #### cancelAssignment
+
 - **Description**: Cancel a scheduled assignment (only before it starts)
 - **Input Parameters**:
   - `assignmentId` (string, required): Assignment UUID
@@ -479,6 +683,7 @@ List of modules corresponding to business entities:
 ### Reports Module ⏳ TODO
 
 #### generateHoursReport
+
 - **Description**: Generate a report of worked hours for a date range
 - **Input Parameters**:
   - `startDate` (string, required): Report start date (ISO format)
@@ -497,6 +702,7 @@ List of modules corresponding to business entities:
 - **Supabase**: `supabase.rpc('get_hours_report', { p_start_date, p_end_date, p_client_id })`
 
 #### exportReportToCsv
+
 - **Description**: Generate CSV export of hours report
 - **Input Parameters**: Same as generateHoursReport
 - **Return Type**: `ActionResult<{ csv: string; filename: string }>`
@@ -516,35 +722,42 @@ List of modules corresponding to business entities:
 The following query actions should be implemented in their respective module `actions.ts` files:
 
 #### Auth Module
+
 - ~~`getCurrentUser`~~ → ✅ Implemented in Section 2
 - `getUserRole` - Get current user's role via `supabase.rpc('user_role')`
 
 #### Clients Module
+
 - ~~`getClient`~~ → ✅ Implemented in Section 2
 - ~~`getClients`~~ → ✅ Implemented in Section 2
 - `getClientWithLocations` - Client with nested work_locations
 
 #### WorkLocations Module ⏳
+
 - `getWorkLocation` - Single work location with client info
 - `getWorkLocations` - Paginated list with filtering
 - `getWorkLocationWithPositions` - Location with nested positions
 
 #### Positions Module ⏳
+
 - `getPosition` - Single position with location info
 - `getPositions` - Paginated list with filtering
 
 #### Workers Module ⏳
+
 - `getWorker` - Single worker by ID
 - `getWorkers` - Paginated list with stats (total hours, active assignments)
 - `getWorkerWithAssignments` - Worker with nested assignments
 - `checkWorkerAvailability` - RPC call to check availability
 
 #### Assignments Module ⏳
+
 - `getAssignment` - Single assignment with full details
 - `getAssignments` - Paginated list with filtering
 - `getAssignmentAuditLog` - Audit log entries for assignment
 
 #### Reports Module ⏳
+
 - `getHoursReport` - Hours report via RPC
 
 ---
@@ -553,11 +766,12 @@ The following query actions should be implemented in their respective module `ac
 
 | RPC Function | Description | Mapped To | Type |
 |--------------|-------------|-----------|------|
+| `user_organization_id()` | Get user's organization ID from JWT | Internal use (RLS policies) | Helper |
+| `user_role()` | Get current user's role from JWT | `getUserRole()` query | Query |
 | `is_worker_available(p_worker_id, p_check_datetime)` | Check if worker is available at datetime | `checkWorkerAvailability()` query | Query |
 | `get_hours_report(p_start_date, p_end_date, p_client_id)` | Generate hours report | `getHoursReport()` query, `generateHoursReport()` action | Both |
 | `end_assignment(p_assignment_id, p_end_at)` | End an assignment | `endAssignment()` action | Mutation |
 | `cancel_assignment(p_assignment_id)` | Cancel a scheduled assignment | `cancelAssignment()` action | Mutation |
-| `user_role()` | Get current user's role | `getUserRole()` query | Query |
 | `normalize_phone(phone)` | Normalize phone number | Used internally by DB trigger | N/A |
 
 ---
@@ -624,6 +838,7 @@ export const MAX_PAGE_SIZE = 100;
 import type { Tables, Enums } from './database';
 
 // Base entity types (from database.ts Tables)
+export type Organization = Tables<'organizations'>;
 export type Client = Tables<'clients'>;
 export type WorkLocation = Tables<'work_locations'>;
 export type Position = Tables<'positions'>;
@@ -631,6 +846,12 @@ export type Worker = Tables<'temporary_workers'>;
 export type Assignment = Tables<'assignments'>;
 export type Profile = Tables<'profiles'>;
 export type AuditLogEntry = Tables<'assignment_audit_log'>;
+
+// Extended organization types
+export interface OrganizationWithStats extends Organization {
+  userCount: number;
+  activeUserCount: number;
+}
 
 // Extended types with relations
 export interface ClientWithLocations extends Client {
@@ -959,6 +1180,61 @@ Authorization is primarily handled by **Supabase Row Level Security (RLS)** poli
 | **Workers** | Full CRUD | Full CRUD | Any authenticated user |
 | **Assignments** | Full CRUD + hard delete | Full CRUD (soft) | Cancellation via status change |
 | **Audit Log** | Full access | Read + Insert | Insert via triggers |
+
+### Multi-Tenancy Data Isolation
+
+All data is scoped to the user's organization via RLS policies:
+
+#### 1. JWT Claims
+
+Organization ID and user role are embedded in JWT via `custom_access_token_hook`:
+
+```typescript
+// JWT payload includes:
+{
+  user_role: 'admin' | 'coordinator',
+  organization_id: 'uuid-of-organization'
+}
+```
+
+#### 2. Helper Functions
+
+```sql
+-- Get current user's organization ID from JWT
+public.user_organization_id() → UUID
+
+-- Get current user's role from JWT
+public.user_role() → user_role
+```
+
+#### 3. Tables with Direct Organization Scope
+
+These tables have `organization_id` column and filter directly:
+
+| Table | RLS Policy Pattern |
+|-------|-------------------|
+| `profiles` | `organization_id = user_organization_id()` |
+| `clients` | `organization_id = user_organization_id()` |
+| `temporary_workers` | `organization_id = user_organization_id()` |
+
+#### 4. Tables with Indirect Organization Scope
+
+These tables inherit organization scope through relations:
+
+| Table | Relation Chain |
+|-------|---------------|
+| `work_locations` | → `clients.organization_id` |
+| `positions` | → `work_locations` → `clients.organization_id` |
+| `assignments` | → `worker.organization_id` AND `position` → ... → `organization_id` |
+| `assignment_audit_log` | → `assignments` → ... |
+
+#### 5. Security Best Practice
+
+All server actions rely on RLS for data isolation. The `createAction` wrapper automatically:
+
+1. Creates Supabase client with user's JWT
+2. All queries are filtered by organization through RLS
+3. No explicit organization filtering needed in application code
 
 ### Client-Side Role Check Hook ⏳ TODO
 

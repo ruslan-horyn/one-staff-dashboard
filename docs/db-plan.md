@@ -30,6 +30,7 @@ Rozszerzenie wbudowanej tabeli `auth.users` z Supabase Auth.
 | updated_at      | TIMESTAMPTZ                         | NOT NULL, DEFAULT NOW()                                |
 
 **Typ ENUM `user_role`:**
+
 ```sql
 CREATE TYPE user_role AS ENUM ('admin', 'coordinator');
 ```
@@ -38,18 +39,19 @@ CREATE TYPE user_role AS ENUM ('admin', 'coordinator');
 
 ### 1.3. Tabela `clients`
 
-Przechowuje dane klientów agencji.
+Przechowuje dane klientów agencji. Każdy klient należy do jednej organizacji (multi-tenancy).
 
-| Kolumna      | Typ danych                          | Ograniczenia                                           |
-|--------------|-------------------------------------|--------------------------------------------------------|
-| id           | UUID                                | PRIMARY KEY, DEFAULT gen_random_uuid()                 |
-| name         | VARCHAR(255)                        | NOT NULL                                               |
-| email        | VARCHAR(255)                        | NOT NULL                                               |
-| phone        | VARCHAR(20)                         | NOT NULL                                               |
-| address      | TEXT                                | NOT NULL                                               |
-| created_at   | TIMESTAMPTZ                         | NOT NULL, DEFAULT NOW()                                |
-| updated_at   | TIMESTAMPTZ                         | NOT NULL, DEFAULT NOW()                                |
-| deleted_at   | TIMESTAMPTZ                         | NULL (soft delete)                                     |
+| Kolumna         | Typ danych                          | Ograniczenia                                           |
+|-----------------|-------------------------------------|--------------------------------------------------------|
+| id              | UUID                                | PRIMARY KEY, DEFAULT gen_random_uuid()                 |
+| organization_id | UUID                                | NOT NULL, REFERENCES organizations(id) ON DELETE RESTRICT |
+| name            | VARCHAR(255)                        | NOT NULL                                               |
+| email           | VARCHAR(255)                        | NOT NULL                                               |
+| phone           | VARCHAR(20)                         | NOT NULL                                               |
+| address         | TEXT                                | NOT NULL                                               |
+| created_at      | TIMESTAMPTZ                         | NOT NULL, DEFAULT NOW()                                |
+| updated_at      | TIMESTAMPTZ                         | NOT NULL, DEFAULT NOW()                                |
+| deleted_at      | TIMESTAMPTZ                         | NULL (soft delete)                                     |
 
 ---
 
@@ -89,17 +91,20 @@ Stanowiska dostępne w miejscach pracy.
 
 ### 1.6. Tabela `temporary_workers`
 
-Pracownicy tymczasowi.
+Pracownicy tymczasowi. Każdy pracownik należy do jednej organizacji (multi-tenancy).
 
-| Kolumna      | Typ danych                          | Ograniczenia                                           |
-|--------------|-------------------------------------|--------------------------------------------------------|
-| id           | UUID                                | PRIMARY KEY, DEFAULT gen_random_uuid()                 |
-| first_name   | VARCHAR(100)                        | NOT NULL                                               |
-| last_name    | VARCHAR(100)                        | NOT NULL                                               |
-| phone        | VARCHAR(20)                         | NOT NULL, UNIQUE                                       |
-| created_at   | TIMESTAMPTZ                         | NOT NULL, DEFAULT NOW()                                |
-| updated_at   | TIMESTAMPTZ                         | NOT NULL, DEFAULT NOW()                                |
-| deleted_at   | TIMESTAMPTZ                         | NULL (soft delete)                                     |
+| Kolumna         | Typ danych                          | Ograniczenia                                           |
+|-----------------|-------------------------------------|--------------------------------------------------------|
+| id              | UUID                                | PRIMARY KEY, DEFAULT gen_random_uuid()                 |
+| organization_id | UUID                                | NOT NULL, REFERENCES organizations(id) ON DELETE RESTRICT |
+| first_name      | VARCHAR(100)                        | NOT NULL                                               |
+| last_name       | VARCHAR(100)                        | NOT NULL                                               |
+| phone           | VARCHAR(20)                         | NOT NULL, UNIQUE                                       |
+| created_at      | TIMESTAMPTZ                         | NOT NULL, DEFAULT NOW()                                |
+| updated_at      | TIMESTAMPTZ                         | NOT NULL, DEFAULT NOW()                                |
+| deleted_at      | TIMESTAMPTZ                         | NULL (soft delete)                                     |
+
+**Uwaga:** W przyszłości UNIQUE constraint na `phone` powinien być zmieniony na `UNIQUE(organization_id, phone)` dla pełnej izolacji per organizacja.
 
 ---
 
@@ -122,11 +127,13 @@ Przypisania pracowników do stanowisk.
 | updated_at    | TIMESTAMPTZ                         | NOT NULL, DEFAULT NOW()                                |
 
 **Typ ENUM `assignment_status`:**
+
 ```sql
 CREATE TYPE assignment_status AS ENUM ('scheduled', 'active', 'completed', 'cancelled');
 ```
 
 **CHECK constraint:**
+
 ```sql
 CHECK (end_at IS NULL OR end_at > start_at)
 ```
@@ -166,24 +173,28 @@ profiles ◄──────────────────────�
     │      cancelled_by)                 │
     ▼                                    │
 assignments ◄────────────────────┐   organizations
-    │                            │
-    │ 1:N (ON DELETE CASCADE)    │ N:1 (worker_id, ON DELETE RESTRICT)
-    ▼                            │
+    │                            │       │
+    │ 1:N (ON DELETE CASCADE)    │       ├── 1:N (organization_id)
+    ▼                            │       │
 assignment_audit_log      temporary_workers
+                                 │
+                                 │ N:1 (worker_id, ON DELETE RESTRICT)
+                                 ▼
+                            assignments
 
-clients
-    │
-    │ 1:N (ON DELETE RESTRICT)
-    ▼
-work_locations
-    │
-    │ 1:N (ON DELETE RESTRICT)
-    ▼
-positions
-    │
-    │ 1:N (ON DELETE RESTRICT)
-    ▼
-assignments
+clients ◄─────────────────── organizations
+    │                            │
+    │ 1:N (ON DELETE RESTRICT)   │ 1:N (organization_id)
+    ▼                            │
+work_locations                   │
+    │                            │
+    │ 1:N (ON DELETE RESTRICT)   │
+    ▼                            │
+positions                        │
+    │                            │
+    │ 1:N (ON DELETE RESTRICT)   │
+    ▼                            │
+assignments ◄────────────────────┘
 ```
 
 ### Szczegółowy opis relacji
@@ -191,6 +202,8 @@ assignments
 | Relacja | Typ | Opis |
 |---------|-----|------|
 | organizations → profiles | 1:N | Organizacja może mieć wielu użytkowników |
+| organizations → clients | 1:N | Organizacja może mieć wielu klientów |
+| organizations → temporary_workers | 1:N | Organizacja może mieć wielu pracowników tymczasowych |
 | auth.users → profiles | 1:1 | Każdy użytkownik ma dokładnie jeden profil |
 | profiles → assignments (created_by) | 1:N | Koordynator tworzący przypisanie |
 | profiles → assignments (ended_by) | 1:N | Koordynator kończący przypisanie |
@@ -216,11 +229,17 @@ Automatycznie tworzone przez PostgreSQL dla PRIMARY KEY każdej tabeli.
 -- profiles
 CREATE INDEX idx_profiles_organization_id ON profiles(organization_id);
 
+-- clients (multi-tenancy)
+CREATE INDEX idx_clients_organization_id ON clients(organization_id);
+
 -- work_locations
 CREATE INDEX idx_work_locations_client_id ON work_locations(client_id);
 
 -- positions
 CREATE INDEX idx_positions_work_location_id ON positions(work_location_id);
+
+-- temporary_workers (multi-tenancy)
+CREATE INDEX idx_workers_organization_id ON temporary_workers(organization_id);
 
 -- assignments
 CREATE INDEX idx_assignments_worker_id ON assignments(worker_id);
@@ -381,111 +400,320 @@ CREATE POLICY profiles_delete ON profiles
 ### 4.5. Polityki dla tabeli `clients`
 
 ```sql
--- Odczyt: wszyscy zalogowani użytkownicy
+-- Odczyt: użytkownicy widzą tylko klientów swojej organizacji
 CREATE POLICY clients_select ON clients
-  FOR SELECT USING (auth.uid() IS NOT NULL);
+  FOR SELECT
+  TO authenticated
+  USING (organization_id = public.user_organization_id());
 
--- Insert/Update/Delete: tylko admin
+-- Insert: admin może dodawać klientów do swojej organizacji
 CREATE POLICY clients_insert ON clients
-  FOR INSERT WITH CHECK (auth.user_role() = 'admin');
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    organization_id = public.user_organization_id()
+    AND public.user_role() = 'admin'
+  );
 
+-- Update: admin może aktualizować klientów swojej organizacji
 CREATE POLICY clients_update ON clients
-  FOR UPDATE USING (auth.user_role() = 'admin');
+  FOR UPDATE
+  TO authenticated
+  USING (
+    organization_id = public.user_organization_id()
+    AND public.user_role() = 'admin'
+  );
 
+-- Delete: admin może usuwać klientów swojej organizacji
 CREATE POLICY clients_delete ON clients
-  FOR DELETE USING (auth.user_role() = 'admin');
+  FOR DELETE
+  TO authenticated
+  USING (
+    organization_id = public.user_organization_id()
+    AND public.user_role() = 'admin'
+  );
+
+-- ANON: brak dostępu dla niezalogowanych
+CREATE POLICY clients_anon ON clients
+  FOR ALL
+  TO anon
+  USING (false)
+  WITH CHECK (false);
 ```
 
 ### 4.6. Polityki dla tabeli `work_locations`
 
 ```sql
--- Odczyt: wszyscy zalogowani użytkownicy
+-- Odczyt: użytkownicy widzą tylko lokalizacje klientów swojej organizacji
 CREATE POLICY work_locations_select ON work_locations
-  FOR SELECT USING (auth.uid() IS NOT NULL);
+  FOR SELECT
+  TO authenticated
+  USING (
+    client_id IN (
+      SELECT id FROM clients
+      WHERE organization_id = public.user_organization_id()
+    )
+  );
 
--- Insert/Update/Delete: tylko admin
+-- Insert: admin może dodawać lokalizacje do klientów swojej organizacji
 CREATE POLICY work_locations_insert ON work_locations
-  FOR INSERT WITH CHECK (auth.user_role() = 'admin');
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    client_id IN (
+      SELECT id FROM clients
+      WHERE organization_id = public.user_organization_id()
+    )
+    AND public.user_role() = 'admin'
+  );
 
+-- Update: admin może aktualizować lokalizacje klientów swojej organizacji
 CREATE POLICY work_locations_update ON work_locations
-  FOR UPDATE USING (auth.user_role() = 'admin');
+  FOR UPDATE
+  TO authenticated
+  USING (
+    client_id IN (
+      SELECT id FROM clients
+      WHERE organization_id = public.user_organization_id()
+    )
+    AND public.user_role() = 'admin'
+  );
 
+-- Delete: admin może usuwać lokalizacje klientów swojej organizacji
 CREATE POLICY work_locations_delete ON work_locations
-  FOR DELETE USING (auth.user_role() = 'admin');
+  FOR DELETE
+  TO authenticated
+  USING (
+    client_id IN (
+      SELECT id FROM clients
+      WHERE organization_id = public.user_organization_id()
+    )
+    AND public.user_role() = 'admin'
+  );
+
+-- ANON: brak dostępu dla niezalogowanych
+CREATE POLICY work_locations_anon ON work_locations
+  FOR ALL
+  TO anon
+  USING (false)
+  WITH CHECK (false);
 ```
 
 ### 4.7. Polityki dla tabeli `positions`
 
 ```sql
--- Odczyt: wszyscy zalogowani użytkownicy
+-- Odczyt: użytkownicy widzą tylko stanowiska w lokalizacjach klientów swojej organizacji
 CREATE POLICY positions_select ON positions
-  FOR SELECT USING (auth.uid() IS NOT NULL);
+  FOR SELECT
+  TO authenticated
+  USING (
+    work_location_id IN (
+      SELECT wl.id FROM work_locations wl
+      JOIN clients c ON wl.client_id = c.id
+      WHERE c.organization_id = public.user_organization_id()
+    )
+  );
 
--- Insert/Update/Delete: wszyscy zalogowani (koordynatorzy i admini)
+-- Insert: wszyscy zalogowani mogą dodawać stanowiska w swojej organizacji
 CREATE POLICY positions_insert ON positions
-  FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    work_location_id IN (
+      SELECT wl.id FROM work_locations wl
+      JOIN clients c ON wl.client_id = c.id
+      WHERE c.organization_id = public.user_organization_id()
+    )
+  );
 
+-- Update: wszyscy zalogowani mogą aktualizować stanowiska swojej organizacji
 CREATE POLICY positions_update ON positions
-  FOR UPDATE USING (auth.uid() IS NOT NULL);
+  FOR UPDATE
+  TO authenticated
+  USING (
+    work_location_id IN (
+      SELECT wl.id FROM work_locations wl
+      JOIN clients c ON wl.client_id = c.id
+      WHERE c.organization_id = public.user_organization_id()
+    )
+  );
 
+-- Delete: wszyscy zalogowani mogą usuwać stanowiska swojej organizacji
 CREATE POLICY positions_delete ON positions
-  FOR DELETE USING (auth.uid() IS NOT NULL);
+  FOR DELETE
+  TO authenticated
+  USING (
+    work_location_id IN (
+      SELECT wl.id FROM work_locations wl
+      JOIN clients c ON wl.client_id = c.id
+      WHERE c.organization_id = public.user_organization_id()
+    )
+  );
+
+-- ANON: brak dostępu dla niezalogowanych
+CREATE POLICY positions_anon ON positions
+  FOR ALL
+  TO anon
+  USING (false)
+  WITH CHECK (false);
 ```
 
 ### 4.8. Polityki dla tabeli `temporary_workers`
 
 ```sql
--- Odczyt: wszyscy zalogowani użytkownicy
+-- Odczyt: użytkownicy widzą tylko pracowników swojej organizacji
 CREATE POLICY workers_select ON temporary_workers
-  FOR SELECT USING (auth.uid() IS NOT NULL);
+  FOR SELECT
+  TO authenticated
+  USING (organization_id = public.user_organization_id());
 
--- Insert/Update/Delete: wszyscy zalogowani (koordynatorzy i admini)
+-- Insert: wszyscy zalogowani mogą dodawać pracowników do swojej organizacji
 CREATE POLICY workers_insert ON temporary_workers
-  FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (organization_id = public.user_organization_id());
 
+-- Update: wszyscy zalogowani mogą aktualizować pracowników swojej organizacji
 CREATE POLICY workers_update ON temporary_workers
-  FOR UPDATE USING (auth.uid() IS NOT NULL);
+  FOR UPDATE
+  TO authenticated
+  USING (organization_id = public.user_organization_id());
 
+-- Delete: wszyscy zalogowani mogą usuwać pracowników swojej organizacji
 CREATE POLICY workers_delete ON temporary_workers
-  FOR DELETE USING (auth.uid() IS NOT NULL);
+  FOR DELETE
+  TO authenticated
+  USING (organization_id = public.user_organization_id());
+
+-- ANON: brak dostępu dla niezalogowanych
+CREATE POLICY workers_anon ON temporary_workers
+  FOR ALL
+  TO anon
+  USING (false)
+  WITH CHECK (false);
 ```
 
 ### 4.9. Polityki dla tabeli `assignments`
 
 ```sql
--- Odczyt: wszyscy zalogowani użytkownicy
+-- Odczyt: użytkownicy widzą tylko przypisania pracowników swojej organizacji
 CREATE POLICY assignments_select ON assignments
-  FOR SELECT USING (auth.uid() IS NOT NULL);
+  FOR SELECT
+  TO authenticated
+  USING (
+    worker_id IN (
+      SELECT id FROM temporary_workers
+      WHERE organization_id = public.user_organization_id()
+    )
+  );
 
--- Insert/Update: wszyscy zalogowani (koordynatorzy i admini)
+-- Insert: wszyscy zalogowani mogą tworzyć przypisania dla pracowników i stanowisk swojej organizacji
 CREATE POLICY assignments_insert ON assignments
-  FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    worker_id IN (
+      SELECT id FROM temporary_workers
+      WHERE organization_id = public.user_organization_id()
+    )
+    AND position_id IN (
+      SELECT p.id FROM positions p
+      JOIN work_locations wl ON p.work_location_id = wl.id
+      JOIN clients c ON wl.client_id = c.id
+      WHERE c.organization_id = public.user_organization_id()
+    )
+  );
 
+-- Update: wszyscy zalogowani mogą aktualizować przypisania swojej organizacji
 CREATE POLICY assignments_update ON assignments
-  FOR UPDATE USING (auth.uid() IS NOT NULL);
+  FOR UPDATE
+  TO authenticated
+  USING (
+    worker_id IN (
+      SELECT id FROM temporary_workers
+      WHERE organization_id = public.user_organization_id()
+    )
+  );
 
--- Delete: tylko admin (anulowanie przez zmianę statusu, nie DELETE)
+-- Delete: tylko admin może usuwać przypisania swojej organizacji
 CREATE POLICY assignments_delete ON assignments
-  FOR DELETE USING (auth.user_role() = 'admin');
+  FOR DELETE
+  TO authenticated
+  USING (
+    worker_id IN (
+      SELECT id FROM temporary_workers
+      WHERE organization_id = public.user_organization_id()
+    )
+    AND public.user_role() = 'admin'
+  );
+
+-- ANON: brak dostępu dla niezalogowanych
+CREATE POLICY assignments_anon ON assignments
+  FOR ALL
+  TO anon
+  USING (false)
+  WITH CHECK (false);
 ```
 
 ### 4.10. Polityki dla tabeli `assignment_audit_log`
 
 ```sql
--- Odczyt: wszyscy zalogowani użytkownicy
+-- Odczyt: użytkownicy widzą tylko logi przypisań swojej organizacji
 CREATE POLICY audit_log_select ON assignment_audit_log
-  FOR SELECT USING (auth.uid() IS NOT NULL);
+  FOR SELECT
+  TO authenticated
+  USING (
+    assignment_id IN (
+      SELECT a.id FROM assignments a
+      JOIN temporary_workers tw ON a.worker_id = tw.id
+      WHERE tw.organization_id = public.user_organization_id()
+    )
+  );
 
 -- Insert: wszyscy zalogowani (automatycznie przez triggery)
 CREATE POLICY audit_log_insert ON assignment_audit_log
-  FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    assignment_id IN (
+      SELECT a.id FROM assignments a
+      JOIN temporary_workers tw ON a.worker_id = tw.id
+      WHERE tw.organization_id = public.user_organization_id()
+    )
+  );
 
--- Update/Delete: tylko admin (w sytuacjach awaryjnych)
+-- Update: tylko admin z izolacją per organizacja (w sytuacjach awaryjnych)
 CREATE POLICY audit_log_update ON assignment_audit_log
-  FOR UPDATE USING (auth.user_role() = 'admin');
+  FOR UPDATE
+  TO authenticated
+  USING (
+    assignment_id IN (
+      SELECT a.id FROM assignments a
+      JOIN temporary_workers tw ON a.worker_id = tw.id
+      WHERE tw.organization_id = public.user_organization_id()
+    )
+    AND public.user_role() = 'admin'
+  );
 
+-- Delete: tylko admin z izolacją per organizacja (w sytuacjach awaryjnych)
 CREATE POLICY audit_log_delete ON assignment_audit_log
-  FOR DELETE USING (auth.user_role() = 'admin');
+  FOR DELETE
+  TO authenticated
+  USING (
+    assignment_id IN (
+      SELECT a.id FROM assignments a
+      JOIN temporary_workers tw ON a.worker_id = tw.id
+      WHERE tw.organization_id = public.user_organization_id()
+    )
+    AND public.user_role() = 'admin'
+  );
+
+-- ANON: brak dostępu dla niezalogowanych
+CREATE POLICY audit_log_anon ON assignment_audit_log
+  FOR ALL
+  TO anon
+  USING (false)
+  WITH CHECK (false);
 ```
 
 ---
@@ -577,6 +805,7 @@ GRANT SELECT ON TABLE public.organizations TO supabase_auth_admin;
 ```
 
 **Konfiguracja w `supabase/config.toml`:**
+
 ```toml
 [auth.hook.custom_access_token]
 enabled = true
@@ -702,6 +931,15 @@ CREATE OR REPLACE FUNCTION is_worker_available(
 )
 RETURNS BOOLEAN AS $$
 BEGIN
+  -- Sprawdź czy pracownik należy do organizacji użytkownika
+  IF NOT EXISTS (
+    SELECT 1 FROM temporary_workers
+    WHERE id = p_worker_id
+    AND organization_id = public.user_organization_id()
+  ) THEN
+    RETURN FALSE;
+  END IF;
+
   RETURN NOT EXISTS (
     SELECT 1 FROM assignments
     WHERE worker_id = p_worker_id
@@ -710,7 +948,7 @@ BEGIN
       AND (end_at IS NULL OR end_at > p_check_datetime)
   );
 END;
-$$ LANGUAGE plpgsql STABLE;
+$$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 ```
 
 ### 5.7. Funkcja RPC dla raportu przepracowanych godzin
@@ -751,11 +989,12 @@ BEGIN
     AND a.start_at < p_end_date
     AND (a.end_at IS NULL OR a.end_at > p_start_date)
     AND tw.deleted_at IS NULL
+    AND tw.organization_id = public.user_organization_id()  -- Filtrowanie per organizacja
     AND (p_client_id IS NULL OR c.id = p_client_id)
   GROUP BY tw.id, tw.first_name, tw.last_name, wl.name, c.name
   ORDER BY worker_name, work_location_name;
 END;
-$$ LANGUAGE plpgsql STABLE;
+$$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 ```
 
 ### 5.8. Funkcja RPC do zakończenia przypisania
@@ -835,6 +1074,7 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 ### 7.1. Soft Delete
 
 Wszystkie główne encje biznesowe (`clients`, `work_locations`, `positions`, `temporary_workers`) implementują wzorzec soft delete z kolumną `deleted_at`. Pozwala to na:
+
 - Zachowanie integralności danych historycznych
 - Możliwość audytu i odzyskania rekordów
 - Poprawne generowanie raportów z przeszłości
@@ -846,6 +1086,7 @@ Zgodnie z PRD, system **nie blokuje** nakładających się czasowo przypisań dl
 ### 7.3. Status przypisania
 
 Enum `assignment_status` zawiera cztery wartości:
+
 - `scheduled` - przypisanie zaplanowane, jeszcze nie rozpoczęte
 - `active` - przypisanie w trakcie realizacji
 - `completed` - przypisanie zakończone
