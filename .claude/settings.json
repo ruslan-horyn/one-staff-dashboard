@@ -1,9 +1,26 @@
 {
 	"permissions": {
 		"allow": [
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(git log:*)",
+      "Bash(git status:*)",
+      "Bash(grep:*)",
+      "Bash(xargs:*)",
+      "Bash(tree:*)",
+      "Bash(pnpm tsc --noEmit)",
+      "Bash(pnpm exec tsc:*)",
+      "Bash(pnpm lint:*)",
+      "Skill(*)"
     ],
 		"deny": [],
-		"ask": ["Bash(git add:*)", "Bash(git commit:*)"]
+		"ask": [
+      "Bash(git add:*)", 
+      "Bash(git commit:*)", 
+      "Bash(mv:*)",
+      "Bash(rm -rf:*)",
+      "Bash(cp:*)"
+    ]
 	}
 }
