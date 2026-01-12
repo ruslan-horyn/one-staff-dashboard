@@ -32,6 +32,7 @@ pnpm test:run        # Run Vitest once
 pnpm test:ui         # Run Vitest with UI
 pnpm test:coverage   # Run Vitest with coverage
 pnpm test:watch      # Run Vitest in watch mode
+pnpm test:changed    # Run tests with coverage for staged files (used in pre-commit)
 ```
 
 **Note:** Uses pnpm as package manager. Node.js v24.11.1 (see .nvmrc).
@@ -127,6 +128,50 @@ export const Widget = ({ title, count = 0 }: WidgetProps) => {
 - Use the new Link component without requiring a child <a> tag
 - Leverage parallel routes for complex layouts and parallel data fetching
 - Implement intercepting routes for modal patterns and nested UIs
+
+#### NEXT_JS_PROXY
+
+Next.js 16 renamed `middleware.ts` to `proxy.ts` to clarify its purpose as a network boundary/routing layer.
+
+**Key Changes from Middleware:**
+
+- File renamed: `middleware.ts` → `proxy.ts`
+- Export renamed: `middleware()` → `proxy()`
+- Config flags renamed: `skipMiddlewareUrlNormalize` → `skipProxyUrlNormalize`
+
+**Usage:**
+
+- Located at project root (same level as `app/` or `pages/`)
+- Only one `proxy.ts` file per project
+- Can import helper modules for organization
+
+**Project Implementation (`proxy.ts`):**
+
+```typescript
+import type { NextRequest } from 'next/server';
+import { updateSession } from '@/lib/supabase/proxy';
+
+export async function proxy(request: NextRequest) {
+  return await updateSession(request);
+}
+
+export const config = {
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
+};
+```
+
+**Session Handling (`lib/supabase/proxy.ts`):**
+
+The `updateSession()` function:
+1. Creates Supabase client with cookie access from the request
+2. Calls `getUser()` to validate and refresh JWT token
+3. Redirects unauthenticated users to `/login` for protected routes
+4. Redirects authenticated users away from public auth pages to `/dashboard`
+5. Returns response with updated cookies
+
+**Reference:** [Next.js 16 Proxy Documentation](https://nextjs.org/docs/app/api-reference/file-conventions/proxy)
 
 ### Imports Order (enforced by Biome)
 
@@ -366,11 +411,13 @@ export async function getWorkers(params: WorkerFilter): Promise<PaginatedResult<
 
 #### VITEST
 
+- **No manual mock cleanup needed** - `restoreMocks: true` is configured in `vitest.config.mts`, so mocks are automatically reset after each test. Do NOT add `beforeEach(() => { vi.clearAllMocks(); })` to tests.
 - Leverage the `vi` object for test doubles - Use `vi.fn()` for function mocks, `vi.spyOn()` to monitor existing functions, and `vi.stubGlobal()` for global mocks. Prefer spies over mocks when you only need to verify interactions without changing behavior.
 - Master `vi.mock()` factory patterns - Place mock factory functions at the top level of your test file, return typed mock implementations, and use `mockImplementation()` or `mockReturnValue()` for dynamic control during tests. Remember the factory runs before imports are processed.
 - Create setup files for reusable configuration - Define global mocks, custom matchers, and environment setup in dedicated files referenced in your `vitest.config.ts`. This keeps your test files clean while ensuring consistent test environments.
 - Use inline snapshots for readable assertions - Replace complex equality checks with `expect(value).toMatchInlineSnapshot()` to capture expected output directly in your test file, making changes more visible in code reviews.
 - Monitor coverage with purpose and only when asked - Configure coverage thresholds in `vitest.config.ts` to ensure critical code paths are tested, but focus on meaningful tests rather than arbitrary coverage percentages.
+- **Pre-commit coverage** - The pre-commit hook runs coverage checks only for staged files with 90% threshold. New code must have tests before committing.
 - Make watch mode part of your workflow - Run `vitest --watch` during development for instant feedback as you modify code, filtering tests with `-t` to focus on specific areas under development.
 - Explore UI mode for complex test suites - Use `vitest --ui` to visually navigate large test suites, inspect test results, and debug failures more efficiently during development.
 - Handle optional dependencies with smart mocking - Use conditional mocking to test code with optional dependencies by implementing `vi.mock()` with the factory pattern for modules that might not be available in all environments.

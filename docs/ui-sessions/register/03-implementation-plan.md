@@ -340,7 +340,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { getSession } from '@/services';
+import { getSession } from '@/services/shared/auth;
 
 import { RegisterForm } from './_components/RegisterForm';
 
