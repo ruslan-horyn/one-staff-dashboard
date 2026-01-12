@@ -7,7 +7,5 @@ export * from './auth';
 export * from './clients';
 export * from './positions';
 export * from './reports';
-// Shared schemas and utilities
-export * from './shared';
 export * from './work-locations';
 export * from './workers';

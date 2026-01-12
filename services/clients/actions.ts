@@ -1,6 +1,5 @@
 'use server';
 
-import { createAction } from '@/services/shared';
 import {
 	applyPaginationToQuery,
 	DEFAULT_PAGE_SIZE,
@@ -14,6 +13,7 @@ import {
 	buildSearchFilter,
 } from '@/services/shared/query-helpers';
 import type { Client } from '@/types';
+import { createAction } from '../shared/action-wrapper';
 import {
 	CLIENT_SEARCHABLE_COLUMNS,
 	type ClientFilter,
@@ -43,10 +43,22 @@ import {
  * });
  */
 export const createClient = createAction<CreateClientInput, Client>(
-	async (input, { supabase }) => {
+	async (input, { supabase, user }) => {
+		// Get user's organization_id from their profile
+		const { data: profile, error: profileError } = await supabase
+			.from('profiles')
+			.select('organization_id')
+			.eq('id', user.id)
+			.single();
+
+		if (profileError) throw profileError;
+
 		const { data, error } = await supabase
 			.from('clients')
-			.insert(input)
+			.insert({
+				...input,
+				organization_id: profile.organization_id,
+			})
 			.select()
 			.single();
 
