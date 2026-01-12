@@ -5,7 +5,7 @@
 ## Summary
 
 - **Total Epics:** 6
-- **Total Stories:** 14 (Done: 3, In Progress: 0, Not Started: 11)
+- **Total Stories:** 14 (Done: 4, In Progress: 0, Not Started: 10)
 - **Estimated Tasks:** ~85 tasks
 
 ---
@@ -40,8 +40,8 @@
 | `/dashboard/users` | US-013 | - | Not Started |
 | `/dashboard/profile` | US-014 | - | Not Started |
 | `/register` | US-001 | `app/(auth)/register/page.tsx` | Complete |
-| `/forgot-password` | US-012 | - | Not Started |
-| `/reset-password` | US-012 | - | Not Started |
+| `/forgot-password` | US-012 | `app/(auth)/forgot-password/page.tsx` | Complete |
+| `/reset-password` | US-012 | `app/(auth)/reset-password/page.tsx` | Complete |
 
 ### Database Status
 
@@ -120,7 +120,7 @@ The minimum viable path to a working MVP (ordered by dependencies):
 ### US-012: Password Reset
 
 - **Priority:** P1
-- **Status:** Not Started
+- **Status:** Done
 - **Dependencies:** US-002
 - **Acceptance Criteria:**
   1. "Forgot password" link on login page
@@ -130,12 +130,15 @@ The minimum viable path to a working MVP (ordered by dependencies):
 
 **Tasks:**
 
-- [ ] **Frontend:** Create `/forgot-password` page
-- [ ] **Frontend:** Create `ForgotPasswordForm` component
-- [ ] **Frontend:** Create `/reset-password` page (handles token from email)
-- [ ] **Frontend:** Create `ResetPasswordForm` component
-- [ ] **Backend:** `resetPassword` action already implemented
-- [ ] **Backend:** `updatePassword` action already implemented
+- [x] **Frontend:** Create `/forgot-password` page
+- [x] **Frontend:** Create `ForgotPasswordForm` component
+- [x] **Frontend:** Create `/reset-password` page (handles token from email)
+- [x] **Frontend:** Create `ResetPasswordForm` component
+- [x] **Frontend:** Create `/auth/callback` route for PKCE code exchange
+- [x] **Backend:** `resetPassword` action with redirectTo configuration
+- [x] **Backend:** `updatePassword` action already implemented
+- [x] **Testing:** Unit tests for ForgotPasswordForm (14 tests)
+- [x] **Testing:** Unit tests for ResetPasswordForm (15 tests)
 - [ ] **Testing:** E2E test for password reset flow
 
 ---
