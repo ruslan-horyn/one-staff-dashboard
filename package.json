@@ -8,14 +8,15 @@
 		"start": "next start",
 		"lint": "biome check .",
 		"lint:fix": "biome check . --write",
-		"format": "biome format . --write --unsafe",
+		"format": "biome format . --write",
 		"prepare": "husky",
 		"test": "vitest",
 		"test:run": "vitest run",
 		"test:ui": "vitest --ui",
 		"test:coverage": "vitest run --coverage",
 		"test:watch": "vitest --watch",
-		"test:auth": "tsx scripts/test-auth.ts"
+		"test:auth": "tsx scripts/test-auth.ts",
+		"test:changed": "./scripts/test-changed-coverage.sh"
 	},
 	"dependencies": {
 		"@hookform/resolvers": "^5.2.2",

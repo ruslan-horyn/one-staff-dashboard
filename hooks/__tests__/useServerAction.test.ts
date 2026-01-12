@@ -14,7 +14,6 @@ const mockThrowingAction = vi.fn<TestAction>();
 
 describe('useServerAction', () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
 		mockSuccessAction.mockResolvedValue(success({ id: '123' }));
 		mockFailureAction.mockResolvedValue(failure('NOT_FOUND', 'Not found'));
 		mockThrowingAction.mockRejectedValue(new Error('Network error'));

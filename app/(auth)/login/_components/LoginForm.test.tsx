@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { signIn } from '@/services/auth/actions';
 import { LoginForm } from './LoginForm';
 
@@ -22,10 +22,6 @@ const getPasswordInput = () => screen.getByLabelText('Password');
 const getSubmitButton = () => screen.getByRole('button', { name: /sign in/i });
 
 describe('LoginForm', () => {
-	beforeEach(() => {
-		vi.clearAllMocks();
-	});
-
 	describe('Rendering', () => {
 		it('renders all form fields', () => {
 			render(<LoginForm />);

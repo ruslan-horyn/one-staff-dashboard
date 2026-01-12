@@ -1,1 +1,5 @@
 pnpm lint
+
+# Run tests with coverage for staged files only
+
+./scripts/test-changed-coverage.sh

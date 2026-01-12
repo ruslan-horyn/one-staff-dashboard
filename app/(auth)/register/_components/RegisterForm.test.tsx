@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { signUp } from '@/services/auth/actions';
 
@@ -38,10 +38,6 @@ const fillValidForm = async (user: ReturnType<typeof userEvent.setup>) => {
 };
 
 describe('RegisterForm', () => {
-	beforeEach(() => {
-		vi.clearAllMocks();
-	});
-
 	describe('Rendering', () => {
 		it('renders all form fields', () => {
 			render(<RegisterForm />);
