@@ -8,7 +8,8 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@/components/ui/card';
-import { getSession } from '@/services';
+
+import { getSession } from '@/services/shared/auth';
 import { LoginForm } from './_components/LoginForm';
 
 export const metadata: Metadata = {

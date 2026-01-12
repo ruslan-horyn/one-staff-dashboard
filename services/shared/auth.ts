@@ -69,9 +69,7 @@ export async function getSession(): Promise<SessionResult> {
 	} = await supabase.auth.getUser();
 
 	if (error || !user) {
-		if (error && process.env.NODE_ENV === 'development') {
-			console.error('[Auth Session Error]', error.message);
-		}
+		// No session is expected on public routes - return gracefully without logging
 		return { user: null, role: null, organizationName: null };
 	}
 
