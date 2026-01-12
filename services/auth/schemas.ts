@@ -82,6 +82,20 @@ export const updatePasswordSchema = z.object({
 	newPassword: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
+/**
+ * Schema for reset password form (with confirmation)
+ * Used by ResetPasswordForm component
+ */
+export const resetPasswordFormSchema = z
+	.object({
+		newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+		confirmPassword: z.string(),
+	})
+	.refine((data) => data.newPassword === data.confirmPassword, {
+		message: 'Passwords do not match',
+		path: ['confirmPassword'],
+	});
+
 // ============================================================================
 // Type Exports
 // ============================================================================
@@ -93,3 +107,4 @@ export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type GetCurrentUserInput = z.infer<typeof getCurrentUserSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type UpdatePasswordInput = z.infer<typeof updatePasswordSchema>;
+export type ResetPasswordFormInput = z.infer<typeof resetPasswordFormSchema>;

@@ -1,8 +1,8 @@
 'use server';
 
-import { createAction } from '@/services/shared';
+import { env } from '@/lib/env';
+import { createAction } from '@/services/shared/action-wrapper';
 import type { AuthResponse, Profile, UserWithProfile } from '@/types/auth';
-
 import {
 	getCurrentUserSchema,
 	type ResetPasswordInput,
@@ -165,7 +165,11 @@ export const resetPassword = createAction<
 	{ success: boolean }
 >(
 	async (input, { supabase }) => {
-		const { error } = await supabase.auth.resetPasswordForEmail(input.email);
+		const siteUrl = env.NEXT_PUBLIC_SITE_URL;
+
+		const { error } = await supabase.auth.resetPasswordForEmail(input.email, {
+			redirectTo: `${siteUrl}/auth/callback?type=recovery`,
+		});
 		if (error && process.env.NODE_ENV === 'development') {
 			console.error('[Reset Password Error]', error);
 		}
