@@ -7,12 +7,8 @@ import { signOut } from '@/services/auth/actions';
 export const SignOutButton = () => {
 	const { execute, isPending } = useServerAction(signOut);
 
-	const handleSignOut = () => {
-		execute();
-	};
-
 	return (
-		<Button onClick={handleSignOut} disabled={isPending}>
+		<Button onClick={execute} disabled={isPending}>
 			{isPending ? 'Logging out...' : 'Log out'}
 		</Button>
 	);

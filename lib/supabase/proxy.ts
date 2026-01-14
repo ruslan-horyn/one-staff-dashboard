@@ -51,6 +51,7 @@ export async function updateSession(request: NextRequest) {
 		'/auth',
 		'/signup',
 		'/forgot-password',
+		'/reset-password',
 	];
 	const isPublicRoute = publicRoutes.some((route) =>
 		request.nextUrl.pathname.startsWith(route)
@@ -66,7 +67,7 @@ export async function updateSession(request: NextRequest) {
 	// Redirect authenticated users away from auth pages
 	if (user && isPublicRoute) {
 		const url = request.nextUrl.clone();
-		url.pathname = '/dashboard';
+		url.pathname = '/';
 		return NextResponse.redirect(url);
 	}
 

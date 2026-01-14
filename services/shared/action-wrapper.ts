@@ -201,6 +201,18 @@ async function authenticateUser(
  * );
  */
 
+// Overload: void input, requireAuth: false - no input required, user is null
+export function createAction<TOutput>(
+	handler: ActionHandler<void, TOutput, false>,
+	options: Omit<ActionOptions<void, false>, 'schema'> & { requireAuth: false }
+): () => Promise<ActionResult<TOutput>>;
+
+// Overload: void input, requireAuth: true (default) - no input required, user is guaranteed
+export function createAction<TOutput>(
+	handler: ActionHandler<void, TOutput, true>,
+	options?: Omit<ActionOptions<void, true>, 'schema'>
+): () => Promise<ActionResult<TOutput>>;
+
 // Overload: requireAuth: false - user is null
 export function createAction<TInput, TOutput>(
 	handler: ActionHandler<TInput, TOutput, false>,
@@ -217,12 +229,12 @@ export function createAction<TInput, TOutput>(
 export function createAction<TInput, TOutput>(
 	handler: ActionHandler<TInput, TOutput, boolean>,
 	options: ActionOptions<TInput, boolean> = {}
-): (input: TInput) => Promise<ActionResult<TOutput>> {
+): (input?: TInput) => Promise<ActionResult<TOutput>> {
 	const { schema, requireAuth = true, revalidatePaths = [] } = options;
 
-	return async (input: TInput): Promise<ActionResult<TOutput>> => {
+	return async (input?: TInput): Promise<ActionResult<TOutput>> => {
 		const [result, error] = await tryCatch(async () => {
-			const validatedInput = validateInput(input, schema);
+			const validatedInput = validateInput(input as TInput, schema);
 
 			const supabase = await createClient();
 

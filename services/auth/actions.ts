@@ -8,10 +8,8 @@ import {
 	type ResetPasswordInput,
 	resetPasswordSchema,
 	type SignInInput,
-	type SignOutInput,
 	type SignUpInput,
 	signInSchema,
-	signOutSchema,
 	signUpSchema,
 	type UpdatePasswordInput,
 	type UpdateProfileInput,
@@ -82,15 +80,14 @@ export const signUp = createAction<SignUpInput, AuthResponse>(
  * @returns Success indicator
  *
  * @example
- * const result = await signOut({});
+ * const result = await signOut();
  */
-export const signOut = createAction<SignOutInput, { success: boolean }>(
-	async (_, { supabase }): Promise<{ success: boolean }> => {
+export const signOut = createAction<{ success: boolean }>(
+	async (_, { supabase }) => {
 		const { error } = await supabase.auth.signOut();
 		if (error) throw error;
 		return { success: true };
-	},
-	{ schema: signOutSchema, requireAuth: true }
+	}
 );
 
 /**
@@ -138,12 +135,21 @@ export const getCurrentUser = createAction<object, UserWithProfile>(
 	async (_, { supabase, user }) => {
 		const { data: profile, error } = await supabase
 			.from('profiles')
-			.select('*')
+			.select('*, organizations(name)')
 			.eq('id', user!.id)
 			.single();
 
 		if (error) throw error;
-		return { user: user!, profile };
+
+		// Extract organization name from joined data
+		const organization = profile.organizations as { name: string } | null;
+		const profileWithOrg = {
+			...profile,
+			organization_name: organization?.name ?? 'Organization',
+			organizations: undefined,
+		};
+
+		return { user: user!, profile: profileWithOrg };
 	},
 	{ schema: getCurrentUserSchema }
 );

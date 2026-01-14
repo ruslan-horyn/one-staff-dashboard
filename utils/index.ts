@@ -11,3 +11,6 @@ export {
 	unwrap,
 	unwrapOr,
 } from './try-catch';
+
+// User display utilities
+export { getFullName, getInitials } from './user';

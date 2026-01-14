@@ -25,7 +25,10 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="pl" suppressHydrationWarning>
-			<body className={`${figtree.variable} ${geistMono.variable} antialiased`}>
+			<body
+				className={`${figtree.variable} ${geistMono.variable} antialiased`}
+				suppressHydrationWarning
+			>
 				<ThemeProvider
 					attribute="class"
 					defaultTheme="light"

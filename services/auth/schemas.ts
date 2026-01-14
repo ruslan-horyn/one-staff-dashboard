@@ -38,12 +38,6 @@ export const signUpSchema = z.object({
 });
 
 /**
- * Schema for sign out (no input required)
- * Used by signOut server action
- */
-export const signOutSchema = z.void().optional();
-
-/**
  * Schema for updating user profile
  * Used by updateProfile server action
  */
@@ -102,7 +96,6 @@ export const resetPasswordFormSchema = z
 
 export type SignInInput = z.infer<typeof signInSchema>;
 export type SignUpInput = z.infer<typeof signUpSchema>;
-export type SignOutInput = z.infer<typeof signOutSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type GetCurrentUserInput = z.infer<typeof getCurrentUserSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
