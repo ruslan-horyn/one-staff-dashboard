@@ -9,6 +9,11 @@ import type { Tables } from './database';
 /** User profile entity from database */
 export type Profile = Tables<'profiles'>;
 
+/** Profile with organization name, for dashboard display */
+export type ProfileWithOrganization = Profile & {
+	organization_name: string;
+};
+
 // ============================================================================
 // Auth DTOs
 // ============================================================================
@@ -19,7 +24,7 @@ export type Profile = Tables<'profiles'>;
  */
 export interface UserWithProfile {
 	user: User;
-	profile: Profile;
+	profile: ProfileWithOrganization;
 }
 
 /**

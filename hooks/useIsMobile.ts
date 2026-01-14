@@ -1,19 +1,27 @@
 import { useEffect, useState } from 'react';
 
+import { getWindow } from '@/utils';
+
 const MOBILE_BREAKPOINT = 768;
 
 export function useIsMobile() {
+	const win = getWindow();
 	const [isMobile, setIsMobile] = useState<boolean>(
-		window.innerWidth < MOBILE_BREAKPOINT
+		win ? win.innerWidth < MOBILE_BREAKPOINT : false
 	);
 
 	useEffect(() => {
-		const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+		const currentWindow = getWindow();
+		if (!currentWindow) return;
+
+		const mql = currentWindow.matchMedia(
+			`(max-width: ${MOBILE_BREAKPOINT - 1}px)`
+		);
 		const onChange = () => {
-			setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+			setIsMobile(currentWindow.innerWidth < MOBILE_BREAKPOINT);
 		};
 		mql.addEventListener('change', onChange);
-		setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+		setIsMobile(currentWindow.innerWidth < MOBILE_BREAKPOINT);
 		return () => mql.removeEventListener('change', onChange);
 	}, []);
 

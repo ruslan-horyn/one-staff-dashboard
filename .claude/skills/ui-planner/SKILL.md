@@ -1,5 +1,5 @@
 ---
-name: UI Planner
+name: ui-planner
 description: This skill should be used when the user asks to "przygotuj ui widoku", "zaplanuj ui dla", "plan ui", "analyze view requirements", "ui planning session", or mentions planning UI views, analyzing view specifications, or preparing implementation plans for frontend components. Supports parallel planning for multiple views.
 version: 1.0.0
 ---
@@ -18,6 +18,7 @@ UI Planner is a planning agent that analyzes view requirements, consults on UX d
 ## When to Use
 
 Invoke this skill when:
+
 - Starting work on a new UI view
 - Planning multiple views at once (e.g., "przygotuj ui dla login i profile")
 - Need structured analysis before implementation
@@ -36,6 +37,7 @@ Extract and validate requirements from project documentation:
 5. Generate requirements checklist
 
 **Key questions to answer:**
+
 - What data does the view display/collect?
 - What user interactions are required?
 - What Server Actions are needed?
@@ -98,6 +100,7 @@ Analyze design patterns and propose solutions:
 4. Identify potential UX improvements
 
 **Consultation areas:**
+
 - Component selection (which shadcn/ui components to use)
 - Layout structure (responsive design approach)
 - Form handling (validation, error states, loading states)
@@ -131,6 +134,7 @@ docs/ui-sessions/
 ### File Formats
 
 **01-requirements.md:**
+
 ```markdown
 # <View Name> - Requirements Analysis
 
@@ -177,6 +181,7 @@ docs/ui-sessions/
 ```
 
 **02-design-decisions.md:**
+
 ```markdown
 # <View Name> - Design Decisions
 
@@ -214,11 +219,13 @@ docs/ui-sessions/
 ```
 
 **03-implementation-plan.md:**
+
 ```markdown
 # <View Name> - Implementation Plan
 
 ## File Structure
 ```
+
 app/
 └── (group)/
     └── view-name/
@@ -226,6 +233,7 @@ app/
         ├── loading.tsx
         └── _components/
             └── ComponentName.tsx
+
 ```
 
 ## Implementation Order
@@ -243,18 +251,22 @@ app/
     prop: type;
   }
   ```
+
 - **Dependencies:** list of imports
 - **Notes:** implementation notes
 
 ## Server Actions
+
 | Action | File | Input Schema | Return Type |
 |--------|------|--------------|-------------|
 | actionName | path | SchemaName | ResultType |
 
 ## Testing Checklist
+
 - [ ] Unit tests for: components
 - [ ] Integration tests for: flows
 - [ ] Accessibility tests for: WCAG items
+
 ```
 
 ## Parallel Execution
@@ -262,13 +274,16 @@ app/
 When planning multiple views, launch separate planning sessions:
 
 ```
+
 User: "przygotuj ui dla login i profile"
 
 Response:
+
 1. Launch Agent 1: ui-planner for "login"
 2. Launch Agent 2: ui-planner for "profile"
 3. Both agents work in parallel
 4. Each generates its own docs/ui-sessions/<view>/ folder
+
 ```
 
 Use the Task tool with multiple invocations to run agents in parallel.
@@ -332,15 +347,21 @@ Document discovered utilities in the implementation plan to ensure ui-builder us
 
 To plan a single view:
 ```
+
 "przygotuj ui widoku login"
+
 ```
 
 To plan multiple views in parallel:
 ```
+
 "przygotuj ui dla login, profile i forgot-password"
+
 ```
 
 After planning, implement in a separate session:
 ```
+
 "zaimplementuj widok login" (uses ui-builder skill)
+
 ```

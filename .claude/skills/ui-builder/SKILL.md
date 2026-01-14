@@ -1,5 +1,5 @@
 ---
-name: UI Builder
+name: ui-builder
 description: This skill should be used when the user asks to "zaimplementuj widok", "implement view", "build ui from plan", "zbuduj ui dla", "wykonaj plan implementacji", or mentions implementing UI views from existing plans in docs/ui-sessions/. Reads implementation plans and generates React components with tests.
 version: 1.0.0
 ---
@@ -19,6 +19,7 @@ UI Builder is an implementation skill that reads plans from `docs/ui-sessions/<v
 ## When to Use
 
 Invoke this skill when:
+
 - Implementation plan exists in `docs/ui-sessions/<view>/`
 - User requests implementation of a planned view
 - Need to generate components with full test coverage
@@ -40,6 +41,7 @@ docs/ui-sessions/<view>/
 ```
 
 Parse `03-implementation-plan.md` to extract:
+
 - File Structure section
 - Implementation Order section
 - Component Specifications section
@@ -50,24 +52,28 @@ Parse `03-implementation-plan.md` to extract:
 Check required dependencies before implementation:
 
 **Hooks:**
+
 ```bash
 # Check if useServerAction hook exists
 ls hooks/useServerAction.ts
 ```
 
 **shadcn/ui components:**
+
 ```bash
 # List installed components
 ls components/ui/
 ```
 
 **npm packages:**
+
 ```bash
 # Check package.json for required packages
 grep -E "lucide-react|react-hook-form|@hookform/resolvers" package.json
 ```
 
 **Test dependencies (CRITICAL):**
+
 ```bash
 # Check vitest-axe specifically - REQUIRED for accessibility tests
 grep "vitest-axe" package.json
@@ -77,11 +83,13 @@ grep -E "vitest|@testing-library" package.json
 ```
 
 **IMPORTANT:** If `vitest-axe` is missing:
+
 1. **STOP implementation**
 2. Report to user with install command
 3. Wait for confirmation before proceeding
 
 If dependencies are missing, report them to user:
+
 ```
 ⚠️ Missing dependencies detected:
 
@@ -108,17 +116,19 @@ Follow Implementation Order from the plan. For each component:
 4. **Write files** to specified locations
 
 **File creation order matters:**
+
 1. Shared components first (`components/ui/`)
 2. Hooks if needed (`hooks/`)
-3. View-specific components (`app/.../_ components/`)
+3. View-specific components (`app/.../_components/`)
 4. Page files (`page.tsx`, `loading.tsx`)
-5. Tests alongside components
+5. Tests in `__tests__/` subfolder within each module
 
 ### Step 4: Generate Tests
 
 For each Client Component, create a `.test.tsx` file:
 
 **Test categories:**
+
 | Category | Tests |
 |----------|-------|
 | Rendering | Component renders, initial state correct |
@@ -127,8 +137,11 @@ For each Client Component, create a `.test.tsx` file:
 | Accessibility | axe-core scan, keyboard nav, focus |
 
 **Test file location:**
-- Same directory as component
+
+- Place in `__tests__/` subfolder within the component's module
 - Named `ComponentName.test.tsx`
+- Example: `components/layout/header.tsx` → `components/layout/__tests__/header.test.tsx`
+- Example: `app/(auth)/login/_components/LoginForm.tsx` → `app/(auth)/login/_components/__tests__/LoginForm.test.tsx`
 
 ### Step 5: Verify Implementation
 
@@ -143,15 +156,17 @@ pnpm lint app/(auth)/login/          # specific view folder
 pnpm lint components/ui/password-input.tsx  # specific new files
 
 # Run tests - ONLY new test files, NO coverage by default
-pnpm test:run app/(auth)/login/_components/LoginForm.test.tsx
+pnpm test:run app/(auth)/login/_components/__tests__/LoginForm.test.tsx
 ```
 
 **Verification rules:**
+
 - **TypeScript:** Run on whole project (needed for imports)
 - **Lint:** Run ONLY on newly created files/folders
 - **Tests:** Run ONLY new test files, WITHOUT coverage
 
 **If tests fail:**
+
 1. Fix the failing tests
 2. Re-run only the fixed test file
 3. Do NOT run coverage unless explicitly requested
@@ -168,7 +183,7 @@ Output implementation summary:
 - [x] app/(auth)/login/page.tsx
 - [x] app/(auth)/login/loading.tsx
 - [x] app/(auth)/login/_components/LoginForm.tsx
-- [x] app/(auth)/login/_components/LoginForm.test.tsx
+- [x] app/(auth)/login/_components/__tests__/LoginForm.test.tsx
 - [x] components/ui/password-input.tsx
 - [x] components/ui/submit-button.tsx
 
@@ -189,18 +204,21 @@ Output implementation summary:
 Follow patterns from `CLAUDE.md`:
 
 **Client Components:**
+
 - Use `'use client'` directive
 - Functional components with hooks
 - Props interface above component
 - No `React.FC`
 
 **Forms:**
+
 - react-hook-form + zod
 - zodResolver for validation
 - useServerAction for submissions
 - **REQUIRED:** Extract form logic to custom hook (e.g., `useLoginForm`)
 
 **Server Actions:**
+
 - Import from `@/services/<module>/actions`
 - Use `isSuccess`/`isFailure` helpers
 
@@ -240,6 +258,7 @@ Follow patterns from `CLAUDE.md`:
 ### Prerequisites
 
 Before running ui-builder:
+
 1. Plan must exist in `docs/ui-sessions/<view>/`
 2. Required shadcn/ui components installed
 3. Test dependencies available
@@ -251,4 +270,4 @@ Before running ui-builder:
 | Pages | `app/(<group>)/<view>/page.tsx` |
 | Components | `app/(<group>)/<view>/_components/` |
 | Shared UI | `components/ui/` |
-| Tests | Same folder as component |
+| Tests | `<module>/__tests__/ComponentName.test.tsx` |
