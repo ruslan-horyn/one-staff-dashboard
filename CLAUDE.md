@@ -27,8 +27,7 @@ pnpm start           # Run production server
 pnpm lint            # Run Biome linter (check mode)
 pnpm lint:fix        # Run Biome linter with auto-fix
 pnpm format          # Run Biome formatter
-pnpm test            # Run Vitest in watch mode
-pnpm test:run        # Run Vitest once
+pnpm test            # Run Vitest once
 pnpm test:ui         # Run Vitest with UI
 pnpm test:coverage   # Run Vitest with coverage
 pnpm test:watch      # Run Vitest in watch mode
