@@ -5,7 +5,7 @@
 ## Summary
 
 - **Total Epics:** 6
-- **Total Stories:** 14 (Done: 6, In Progress: 0, Not Started: 8)
+- **Total Stories:** 14 (Done: 7, In Progress: 0, Not Started: 7)
 - **Estimated Tasks:** ~85 tasks
 
 ---
@@ -424,18 +424,20 @@ The minimum viable path to a working MVP (ordered by dependencies):
 ### TECH-002: Data Table Component
 
 - **Priority:** P0
-- **Status:** Not Started
+- **Status:** Done
 - **Dependencies:** None
 - **Description:** Reusable data table with sorting, filtering, pagination
 
 **Tasks:**
 
-- [ ] **Frontend:** Create `DataTable` component with column definitions
-- [ ] **Frontend:** Add sorting functionality
-- [ ] **Frontend:** Add pagination controls
-- [ ] **Frontend:** Add row selection (for bulk actions)
-- [ ] **Frontend:** Add empty state and loading skeleton
-- [ ] **Testing:** Unit tests for table interactions
+- [x] **Frontend:** Create `DataTable` component with column definitions (`components/ui/data-table/`)
+- [x] **Frontend:** Add sorting functionality (`DataTableColumnHeader`)
+- [x] **Frontend:** Add pagination controls (`DataTablePagination`)
+- [x] **Frontend:** Add row selection (`useRowSelection` hook)
+- [x] **Frontend:** Add expandable rows (`useExpandableRows` hook)
+- [x] **Frontend:** Add empty state and loading skeleton (`EmptyState`, `DataTableSkeleton`)
+- [x] **Frontend:** Create `useTableParams` hook for URL state sync
+- [x] **Testing:** Unit tests for table interactions (58 tests)
 
 ---
 
@@ -496,7 +498,7 @@ export const actionName = createAction<InputType, OutputType>(
 **Sprint 1: Foundation**
 
 1. ~~TECH-001 (Dashboard Layout)~~ ✅ Done
-2. TECH-002 (Data Table)
+2. ~~TECH-002 (Data Table)~~ ✅ Done
 3. ~~TECH-003 (Form Components)~~ ✅ Done
 
 **Sprint 2: Auth Completion**

@@ -33,7 +33,14 @@ one-staff-dashboard/
 │   └── loading.tsx
 ├── components/
 │   ├── ui/                       # Base UI components
-│   │   └── index.ts
+│   │   ├── data-table/           # Data table components (grouped)
+│   │   │   ├── __tests__/
+│   │   │   ├── data-table.tsx
+│   │   │   ├── data-table-column-header.tsx
+│   │   │   ├── data-table-pagination.tsx
+│   │   │   ├── data-table-skeleton.tsx
+│   │   │   └── index.ts
+│   │   └── ...
 │   ├── layout/                   # Layout components
 │   │   └── index.ts
 │   ├── features/                 # Domain-specific components
@@ -242,6 +249,7 @@ MSW handlers, Supabase service mocks.
 ```typescript
 // Components
 import { Button } from '@/components/ui';
+import { DataTable, DataTableColumnHeader } from '@/components/ui/data-table';
 import { WorkerCard } from '@/components/features/workers';
 
 // Hooks & Stores
