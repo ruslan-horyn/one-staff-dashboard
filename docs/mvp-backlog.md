@@ -1,11 +1,11 @@
 # MVP Backlog - One Staff Dashboard
 
-*Generated: 2026-01-11*
+*Updated: 2026-01-15*
 
 ## Summary
 
 - **Total Epics:** 6
-- **Total Stories:** 14 (Done: 4, In Progress: 0, Not Started: 10)
+- **Total Stories:** 14 (Done: 6, In Progress: 0, Not Started: 8)
 - **Estimated Tasks:** ~85 tasks
 
 ---
@@ -30,7 +30,7 @@
 | Route | PRD Story | Page | Status |
 |-------|-----------|------|--------|
 | `/login` | US-002 | `app/(auth)/login/page.tsx` | Complete |
-| `/dashboard` | - | `app/dashboard/page.tsx` | Placeholder |
+| `/dashboard` | TECH-001 | `app/(dashboard)/page.tsx` | Complete |
 | `/dashboard/clients` | US-003 | - | Not Started |
 | `/dashboard/locations` | US-004 | - | Not Started |
 | `/dashboard/workers` | US-005, US-006 | - | Not Started |
@@ -404,18 +404,20 @@ The minimum viable path to a working MVP (ordered by dependencies):
 ### TECH-001: Dashboard Layout & Navigation
 
 - **Priority:** P0
-- **Status:** Not Started
+- **Status:** Done
 - **Dependencies:** US-002
 - **Description:** Create the main dashboard shell with sidebar navigation
 
 **Tasks:**
 
-- [ ] **Frontend:** Create `DashboardLayout` component with sidebar
-- [ ] **Frontend:** Create `Sidebar` with navigation links
-- [ ] **Frontend:** Create `Header` with user menu and org name
-- [ ] **Frontend:** Implement responsive design (mobile sidebar)
-- [ ] **Frontend:** Add breadcrumb navigation
-- [ ] **Testing:** Visual regression tests
+- [x] **Frontend:** Create `DashboardLayout` component with sidebar (`app/(dashboard)/layout.tsx`)
+- [x] **Frontend:** Create `AppSidebar` with navigation links (`components/layout/appSidebar.tsx`)
+- [x] **Frontend:** Create `Header` with user menu and org name (`components/layout/header.tsx`)
+- [x] **Frontend:** Implement responsive design (mobile sidebar via Sheet overlay)
+- [x] **Frontend:** Create `UserMenu` component with sign out (`components/layout/userMenu.tsx`)
+- [x] **Frontend:** Create `PageHeader` and `PageContainer` components
+- [x] **Testing:** Unit tests for layout components (753 lines of tests)
+- [ ] **Frontend:** Add breadcrumb navigation (component exists, not integrated)
 
 ---
 
@@ -440,17 +442,18 @@ The minimum viable path to a working MVP (ordered by dependencies):
 ### TECH-003: Form Components
 
 - **Priority:** P0
-- **Status:** Not Started
+- **Status:** Done
 - **Dependencies:** None
 - **Description:** Reusable form components for all CRUD operations
 
 **Tasks:**
 
-- [ ] **Frontend:** Create `DateTimePicker` component
-- [ ] **Frontend:** Create `PhoneInput` component with formatting
-- [ ] **Frontend:** Create `SearchInput` with debounce
-- [ ] **Frontend:** Create `ComboboxSelect` for entity selection
-- [ ] **Testing:** Unit tests for input components
+- [x] **Frontend:** Create `DateTimePicker` component (`components/ui/datetime-picker.tsx`)
+- [x] **Frontend:** Create `PhoneInput` component with formatting (`components/ui/phone-input.tsx`)
+- [x] **Frontend:** Create `SearchInput` with debounce (`components/ui/search-input.tsx`)
+- [x] **Frontend:** Create `ComboboxSelect` for entity selection (`components/ui/combobox-select.tsx`)
+- [x] **Frontend:** Create `useSearchInput` hook with URL sync (`hooks/useSearchInput.ts`)
+- [x] **Testing:** Unit tests for input components (73 tests total)
 
 ---
 
@@ -460,7 +463,7 @@ The minimum viable path to a working MVP (ordered by dependencies):
 |-------|--------|------------|
 | 5 backend modules need actions.ts implementation | High | Follow established pattern from Auth/Clients modules |
 | No E2E tests configured | Medium | Set up Playwright before major UI work |
-| Dashboard layout not built | High | Prioritize TECH-001 before feature pages |
+| ~~Dashboard layout not built~~ | ~~High~~ | ✅ TECH-001 completed |
 | Email sending not configured | Medium | Verify Supabase Auth email settings for registration/reset |
 
 ---
@@ -492,14 +495,14 @@ export const actionName = createAction<InputType, OutputType>(
 
 **Sprint 1: Foundation**
 
-1. TECH-001 (Dashboard Layout)
+1. ~~TECH-001 (Dashboard Layout)~~ ✅ Done
 2. TECH-002 (Data Table)
-3. TECH-003 (Form Components)
+3. ~~TECH-003 (Form Components)~~ ✅ Done
 
 **Sprint 2: Auth Completion**
 
-1. US-001 (Registration)
-2. US-012 (Password Reset)
+1. ~~US-001 (Registration)~~ ✅ Done
+2. ~~US-012 (Password Reset)~~ ✅ Done
 
 **Sprint 3: Master Data**
 

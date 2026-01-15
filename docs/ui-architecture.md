@@ -844,17 +844,24 @@ Client Components ('use client')
 
 ### 5.3. Komponenty formularzy
 
-| Komponent | Opis |
-|-----------|------|
-| `FormField` | Wrapper dla pola z label + error |
-| `FormActions` | Sekcja przycisków (Zapisz/Anuluj) |
-| `SearchInput` | Input z debounce + ikona search |
-| `DateTimePicker` | Calendar + time input |
-| `DateRangePicker` | Wybór zakresu dat |
-| `PhoneInput` | Input z formatowaniem telefonu |
-| `ClientSelect` | Dropdown wyboru klienta |
-| `LocationSelect` | Dropdown wyboru lokalizacji |
-| `PositionSelect` | Dropdown wyboru stanowiska |
+| Komponent | Opis | Status |
+|-----------|------|--------|
+| `FormField` | Wrapper dla pola z label + error | Planned |
+| `FormActions` | Sekcja przycisków (Zapisz/Anuluj) | Planned |
+| `SearchInput` | Input z debounce + ikona search, URL sync | ✅ Done |
+| `DateTimePicker` | Calendar + time select (hour/minute) z Apply/Clear | ✅ Done |
+| `DateRangePicker` | Wybór zakresu dat | Planned |
+| `PhoneInput` | Input z formatowaniem telefonu (PL: 123 456 789) | ✅ Done |
+| `ComboboxSelect` | Generyczny dropdown z wyszukiwaniem (shadcn Command) | ✅ Done |
+| `ClientSelect` | Dropdown wyboru klienta | Planned |
+| `LocationSelect` | Dropdown wyboru lokalizacji | Planned |
+| `PositionSelect` | Dropdown wyboru stanowiska | Planned |
+
+**Implementacja TECH-003:**
+
+- `useSearchInput` hook - debouncing (lodash-es) + opcjonalna synchronizacja z URL
+- Wszystkie komponenty wspierają: `error`, `disabled`, `className`, ARIA attributes
+- Integracja z react-hook-form przez `Controller` pattern
 
 ### 5.4. Komponenty tabel
 
@@ -988,12 +995,12 @@ Client Components ('use client')
 
 ### 8.2. Hooki integracyjne
 
-| Hook | Opis |
-|------|------|
-| `useServerAction` | Wrapper dla Server Actions z callbacks |
-| `useDebounce` | Debouncing dla wyszukiwania |
-| `useUserRole` | Pobieranie roli użytkownika |
-| `useSearchParams` | URL state dla filtrów |
+| Hook | Opis | Status |
+|------|------|--------|
+| `useServerAction` | Wrapper dla Server Actions z callbacks | ✅ Done |
+| `useSearchInput` | Debouncing (lodash-es) + URL sync dla wyszukiwania | ✅ Done |
+| `useUserRole` | Pobieranie roli użytkownika | Planned |
+| `useSearchParams` | URL state dla filtrów (Next.js built-in) | Built-in |
 
 ### 8.3. Pattern użycia useServerAction
 
