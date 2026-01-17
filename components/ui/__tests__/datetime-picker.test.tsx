@@ -172,6 +172,34 @@ describe('DateTimePicker', () => {
 
 			expect(onChange).toHaveBeenCalledWith(undefined);
 		});
+
+		it('clears date when Enter key is pressed on clear button', async () => {
+			const user = userEvent.setup();
+			const onChange = vi.fn();
+			const date = new Date(2026, 0, 15, 14, 30);
+
+			render(<DateTimePicker value={date} onChange={onChange} clearable />);
+
+			const clearButton = screen.getByRole('button', { name: 'Clear date' });
+			clearButton.focus();
+			await user.keyboard('{Enter}');
+
+			expect(onChange).toHaveBeenCalledWith(undefined);
+		});
+
+		it('clears date when Space key is pressed on clear button', async () => {
+			const user = userEvent.setup();
+			const onChange = vi.fn();
+			const date = new Date(2026, 0, 15, 14, 30);
+
+			render(<DateTimePicker value={date} onChange={onChange} clearable />);
+
+			const clearButton = screen.getByRole('button', { name: 'Clear date' });
+			clearButton.focus();
+			await user.keyboard(' ');
+
+			expect(onChange).toHaveBeenCalledWith(undefined);
+		});
 	});
 
 	describe('Error state', () => {
@@ -247,6 +275,118 @@ describe('DateTimePicker', () => {
 			);
 
 			expect(container.firstChild).toHaveClass('custom-class');
+		});
+	});
+
+	describe('Date constraints (minDate/maxDate)', () => {
+		it('does not mutate minDate when checking disabled dates', async () => {
+			const user = userEvent.setup();
+			const onChange = vi.fn();
+			// Create minDate with specific time (14:30:45.123)
+			const minDate = new Date(2026, 0, 10, 14, 30, 45, 123);
+			const originalTime = minDate.getTime();
+
+			render(<DateTimePicker onChange={onChange} minDate={minDate} />);
+
+			// Open popover - this triggers isDateDisabled checks
+			await user.click(screen.getByRole('button'));
+
+			// Wait for calendar to render
+			expect(screen.getByRole('grid')).toBeInTheDocument();
+
+			// minDate should NOT be mutated
+			expect(minDate.getTime()).toBe(originalTime);
+			expect(minDate.getHours()).toBe(14);
+			expect(minDate.getMinutes()).toBe(30);
+			expect(minDate.getSeconds()).toBe(45);
+			expect(minDate.getMilliseconds()).toBe(123);
+		});
+
+		it('does not mutate maxDate when checking disabled dates', async () => {
+			const user = userEvent.setup();
+			const onChange = vi.fn();
+			// Create maxDate with specific time (10:15:30.500)
+			const maxDate = new Date(2026, 0, 20, 10, 15, 30, 500);
+			const originalTime = maxDate.getTime();
+
+			render(<DateTimePicker onChange={onChange} maxDate={maxDate} />);
+
+			// Open popover - this triggers isDateDisabled checks
+			await user.click(screen.getByRole('button'));
+
+			// Wait for calendar to render
+			expect(screen.getByRole('grid')).toBeInTheDocument();
+
+			// maxDate should NOT be mutated
+			expect(maxDate.getTime()).toBe(originalTime);
+			expect(maxDate.getHours()).toBe(10);
+			expect(maxDate.getMinutes()).toBe(15);
+			expect(maxDate.getSeconds()).toBe(30);
+			expect(maxDate.getMilliseconds()).toBe(500);
+		});
+
+		it('correctly disables dates before minDate', async () => {
+			const user = userEvent.setup();
+			const onChange = vi.fn();
+			// Set minDate to Jan 15, 2026
+			const minDate = new Date(2026, 0, 15);
+
+			render(<DateTimePicker onChange={onChange} minDate={minDate} />);
+
+			await user.click(screen.getByRole('button'));
+
+			const calendar = screen.getByRole('grid');
+			const dayButtons = within(calendar).getAllByRole('button');
+
+			// Day 10 should be disabled (before minDate)
+			const day10 = dayButtons.find((btn) => btn.textContent === '10');
+			if (day10) {
+				expect(day10).toBeDisabled();
+			}
+
+			// Day 15 should NOT be disabled (equals minDate)
+			const day15 = dayButtons.find((btn) => btn.textContent === '15');
+			if (day15) {
+				expect(day15).not.toBeDisabled();
+			}
+
+			// Day 20 should NOT be disabled (after minDate)
+			const day20 = dayButtons.find((btn) => btn.textContent === '20');
+			if (day20) {
+				expect(day20).not.toBeDisabled();
+			}
+		});
+
+		it('correctly disables dates after maxDate', async () => {
+			const user = userEvent.setup();
+			const onChange = vi.fn();
+			// Set maxDate to Jan 15, 2026
+			const maxDate = new Date(2026, 0, 15);
+
+			render(<DateTimePicker onChange={onChange} maxDate={maxDate} />);
+
+			await user.click(screen.getByRole('button'));
+
+			const calendar = screen.getByRole('grid');
+			const dayButtons = within(calendar).getAllByRole('button');
+
+			// Day 10 should NOT be disabled (before maxDate)
+			const day10 = dayButtons.find((btn) => btn.textContent === '10');
+			if (day10) {
+				expect(day10).not.toBeDisabled();
+			}
+
+			// Day 15 should NOT be disabled (equals maxDate)
+			const day15 = dayButtons.find((btn) => btn.textContent === '15');
+			if (day15) {
+				expect(day15).not.toBeDisabled();
+			}
+
+			// Day 20 should be disabled (after maxDate)
+			const day20 = dayButtons.find((btn) => btn.textContent === '20');
+			if (day20) {
+				expect(day20).toBeDisabled();
+			}
 		});
 	});
 });

@@ -133,11 +133,33 @@ export function DateTimePicker({
 	// Determine if a date should be disabled
 	const isDateDisabled = useCallback(
 		(date: Date) => {
-			if (minDate && date < new Date(minDate.setHours(0, 0, 0, 0))) {
-				return true;
+			if (minDate) {
+				const minStart = new Date(
+					minDate.getFullYear(),
+					minDate.getMonth(),
+					minDate.getDate(),
+					0,
+					0,
+					0,
+					0
+				);
+				if (date < minStart) {
+					return true;
+				}
 			}
-			if (maxDate && date > new Date(maxDate.setHours(23, 59, 59, 999))) {
-				return true;
+			if (maxDate) {
+				const maxEnd = new Date(
+					maxDate.getFullYear(),
+					maxDate.getMonth(),
+					maxDate.getDate(),
+					23,
+					59,
+					59,
+					999
+				);
+				if (date > maxEnd) {
+					return true;
+				}
 			}
 			return false;
 		},
