@@ -30,7 +30,7 @@ export default async function LoginPage() {
 
   return (
     <Card>
-      <CardHeader className="space-y-1 sm:text-center">
+      <CardHeader className="space-y-1 text-center">
         {/* Logo inside card */}
         <div className="flex justify-center mb-4">
           <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">

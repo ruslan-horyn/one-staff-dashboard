@@ -4,7 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 export default function RegisterLoading() {
 	return (
 		<Card className="w-full max-w-md">
-			<CardHeader className="space-y-1 sm:text-center">
+			<CardHeader className="space-y-1 text-center">
 				{/* Logo skeleton */}
 				<div className="mb-4 flex justify-center">
 					<Skeleton className="h-12 w-12 rounded-lg" />

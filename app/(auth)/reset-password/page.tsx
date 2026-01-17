@@ -26,7 +26,7 @@ export default async function ResetPasswordPage() {
 
 	return (
 		<Card>
-			<CardHeader className="space-y-1 sm:text-center">
+			<CardHeader className="space-y-1 text-center">
 				<div className="mb-4 flex justify-center">
 					<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
 						<span className="font-bold text-primary text-xl">OS</span>

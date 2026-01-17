@@ -32,7 +32,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
 	return (
 		<Card>
-			<CardHeader className="space-y-1 sm:text-center">
+			<CardHeader className="space-y-1 text-center">
 				{/* Logo inside card */}
 				<div className="mb-4 flex justify-center">
 					<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">

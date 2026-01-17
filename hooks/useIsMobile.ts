@@ -5,10 +5,10 @@ import { getWindow } from '@/utils';
 const MOBILE_BREAKPOINT = 768;
 
 export function useIsMobile() {
-	const win = getWindow();
-	const [isMobile, setIsMobile] = useState<boolean>(
-		win ? win.innerWidth < MOBILE_BREAKPOINT : false
-	);
+	const [isMobile, setIsMobile] = useState<boolean>(() => {
+		const win = getWindow();
+		return win ? win.innerWidth < MOBILE_BREAKPOINT : false;
+	});
 
 	useEffect(() => {
 		const currentWindow = getWindow();

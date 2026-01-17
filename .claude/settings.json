@@ -16,9 +16,12 @@
       "Bash(find:*)",
       "Bash(ls:*)",
       "Bash(mkdir -p:*)",
+      "Bash(find:*)",
       "Skill(*)"
     ],
-		"deny": [],
+		"deny": [
+      "Reed(.env*)"
+    ],
 		"ask": [
       "Bash(git add:*)", 
       "Bash(git commit:*)", 

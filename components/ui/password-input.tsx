@@ -12,6 +12,7 @@ interface PasswordInputProps
 export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
 	({ className, ...props }, ref) => {
 		const [showPassword, setShowPassword] = useState(false);
+		const Icon = showPassword ? EyeOff : Eye;
 
 		return (
 			<div className="relative">
@@ -29,14 +30,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
 					onClick={() => setShowPassword((prev) => !prev)}
 					aria-label={showPassword ? 'Hide password' : 'Show password'}
 				>
-					{showPassword ? (
-						<EyeOff
-							className="h-4 w-4 text-muted-foreground"
-							aria-hidden="true"
-						/>
-					) : (
-						<Eye className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-					)}
+					<Icon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
 				</Button>
 			</div>
 		);

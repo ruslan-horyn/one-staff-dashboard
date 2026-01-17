@@ -1,3 +1,4 @@
+import type { Column } from '@tanstack/react-table';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
@@ -5,12 +6,13 @@ import { describe, expect, it, vi } from 'vitest';
 import { DataTableColumnHeader } from '../data-table-column-header';
 
 // Mock column object that matches @tanstack/react-table Column interface
-const createMockColumn = (overrides = {}) => ({
-	getCanSort: vi.fn(() => true),
-	getIsSorted: vi.fn(() => false),
-	toggleSorting: vi.fn(),
-	...overrides,
-});
+const createMockColumn = (overrides = {}) =>
+	({
+		getCanSort: vi.fn(() => true),
+		getIsSorted: vi.fn(() => false),
+		toggleSorting: vi.fn(),
+		...overrides,
+	}) as unknown as Column<unknown, unknown>;
 
 describe('DataTableColumnHeader', () => {
 	describe('Rendering', () => {
