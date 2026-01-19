@@ -59,8 +59,10 @@ describe('validateAppEnv', () => {
 		it('returns errors when throwOnError is false', async () => {
 			const { validateAppEnv } = await import('../app');
 
-			// Now modify env to invalid state and re-test
-			process.env = { ...originalEnv };
+			// Clear all app env vars to create invalid state
+			delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+			delete process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+			delete process.env.NEXT_PUBLIC_SITE_URL;
 
 			const result = validateAppEnv({ throwOnError: false });
 
@@ -73,8 +75,10 @@ describe('validateAppEnv', () => {
 		it('throws error when throwOnError is true', async () => {
 			const { validateAppEnv } = await import('../app');
 
-			// Modify env to invalid state
-			process.env = { ...originalEnv };
+			// Clear all app env vars to create invalid state
+			delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+			delete process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+			delete process.env.NEXT_PUBLIC_SITE_URL;
 
 			expect(() => validateAppEnv({ throwOnError: true })).toThrow(
 				'Invalid environment variables'
@@ -139,7 +143,10 @@ describe('validateAppEnv', () => {
 		it('uses custom error prefix when provided', async () => {
 			const { validateAppEnv } = await import('../app');
 
-			process.env = { ...originalEnv };
+			// Clear all app env vars to create invalid state
+			delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+			delete process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+			delete process.env.NEXT_PUBLIC_SITE_URL;
 
 			expect(() =>
 				validateAppEnv({ errorPrefix: 'Custom error', throwOnError: true })
@@ -150,8 +157,10 @@ describe('validateAppEnv', () => {
 	describe('module initialization', () => {
 		it('throws when env validation fails at import time', async () => {
 			vi.resetModules();
-			// Set invalid env before import
-			process.env = { ...originalEnv };
+			// Clear all app env vars before import to create invalid state
+			delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+			delete process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+			delete process.env.NEXT_PUBLIC_SITE_URL;
 
 			// validateAppEnv uses throwOnError: true by default, so validateEnv throws first
 			await expect(import('../app')).rejects.toThrow(
