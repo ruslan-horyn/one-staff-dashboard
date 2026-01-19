@@ -194,10 +194,11 @@ describe('createAction', () => {
 
 			const action = createAction(async () => {
 				const error: PostgrestError = {
+					name: 'PostgrestError',
 					code: '23505',
 					message: 'duplicate key value violates unique constraint',
 					details: 'Key (email)=(test@example.com) already exists',
-					hint: null,
+					hint: '',
 				};
 				throw error;
 			});

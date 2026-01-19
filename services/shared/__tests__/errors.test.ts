@@ -39,9 +39,10 @@ describe('mapSupabaseError', () => {
 	const createPostgrestError = (
 		code: string,
 		message: string,
-		details: string | null = null,
-		hint: string | null = null
+		details = '',
+		hint = ''
 	): PostgrestError => ({
+		name: 'PostgrestError',
 		code,
 		message,
 		details,
@@ -457,7 +458,7 @@ describe('mapZodError', () => {
 			{
 				code: 'too_small',
 				minimum: 1,
-				type: 'string',
+				origin: 'string',
 				inclusive: true,
 				exact: false,
 				message: 'String must contain at least 1 character(s)',
@@ -479,7 +480,7 @@ describe('mapZodError', () => {
 			{
 				code: 'too_small',
 				minimum: 1,
-				type: 'string',
+				origin: 'string',
 				inclusive: true,
 				exact: false,
 				message: 'Required',
@@ -488,7 +489,7 @@ describe('mapZodError', () => {
 			{
 				code: 'too_small',
 				minimum: 1,
-				type: 'string',
+				origin: 'string',
 				inclusive: true,
 				exact: false,
 				message: 'Required',
@@ -508,7 +509,6 @@ describe('mapZodError', () => {
 			{
 				code: 'invalid_type',
 				expected: 'string',
-				received: 'undefined',
 				message: 'Required',
 				path: ['address', 'street'],
 			},
@@ -525,7 +525,6 @@ describe('mapZodError', () => {
 			{
 				code: 'invalid_type',
 				expected: 'object',
-				received: 'undefined',
 				message: 'Expected object, received undefined',
 				path: [],
 			},
@@ -542,7 +541,7 @@ describe('mapZodError', () => {
 			{
 				code: 'too_small',
 				minimum: 3,
-				type: 'string',
+				origin: 'string',
 				inclusive: true,
 				exact: false,
 				message: 'Too short',
@@ -568,7 +567,6 @@ describe('mapZodError', () => {
 			{
 				code: 'invalid_type',
 				expected: 'string',
-				received: 'number',
 				message: 'Expected string',
 				path: ['field'],
 			},
