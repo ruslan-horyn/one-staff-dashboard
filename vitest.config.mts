@@ -27,13 +27,8 @@ export default defineConfig({
 			reporter: ['text', 'text-summary', 'html', 'lcov'],
 			reportsDirectory: './coverage',
 
-			// Coverage thresholds - 90% for new code
-			thresholds: {
-				statements: 90,
-				branches: 90,
-				functions: 90,
-				lines: 90,
-			},
+			// Note: Global thresholds removed - pre-commit hook enforces 90% for staged files only
+			// See scripts/test-changed-coverage.sh
 
 			// Files to analyze for coverage - all source files except excluded
 			include: ['**/*.{ts,tsx}'],
