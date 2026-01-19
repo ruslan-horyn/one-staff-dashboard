@@ -207,16 +207,6 @@ export function mapSupabaseError(error: PostgrestError): ActionError {
  * @see https://supabase.com/docs/guides/auth/debugging/error-codes
  */
 export function mapAuthError(error: AuthError): ActionError {
-	// Log in development
-	if (process.env.NODE_ENV === 'development') {
-		console.error('[Auth Error]', {
-			name: error.name,
-			message: error.message,
-			status: error.status,
-			code: error.code,
-		});
-	}
-
 	// Use error.code for reliable error identification (not message matching)
 	switch (error.code) {
 		// Credential errors

@@ -247,7 +247,6 @@ export function createAction<TInput, TOutput>(
 		});
 
 		if (error) {
-			console.log('🚀 ~ createAction ~ error:', error);
 			return handleActionError(error);
 		}
 

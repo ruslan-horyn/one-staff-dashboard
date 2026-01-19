@@ -1,10 +1,12 @@
+import { LOCAL_DEFAULTS } from '@/lib/env';
+
 /**
  * Test user credentials for E2E tests
  * Uses seeded user from supabase/seed.sql (created by `supabase db reset`)
  */
 export const testUser = {
-	email: process.env.E2E_TEST_USER_EMAIL || 'admin@test.com',
-	password: process.env.E2E_TEST_USER_PASSWORD || 'password123',
+	email: process.env.TEST_USER_EMAIL || LOCAL_DEFAULTS.TEST_USER_EMAIL,
+	password: process.env.TEST_USER_PASSWORD || LOCAL_DEFAULTS.TEST_USER_PASSWORD,
 } as const;
 
 /**

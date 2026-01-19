@@ -35,23 +35,19 @@ export default defineConfig({
 				lines: 90,
 			},
 
-			// Files to analyze for coverage
-			include: [
-				'components/**/*.{ts,tsx}',
-				'hooks/**/*.{ts,tsx}',
-				'services/**/*.{ts,tsx}',
-				'stores/**/*.{ts,tsx}',
-				'utils/**/*.{ts,tsx}',
-			],
+			// Files to analyze for coverage - all source files except excluded
+			include: ['**/*.{ts,tsx}'],
 			exclude: [
 				'**/*.test.{ts,tsx}',
 				'**/*.spec.{ts,tsx}',
 				'**/__tests__/**',
-				'**/index.ts',
+				'**/__mocks__/**',
+				'**/index.{ts,tsx}',
 				'**/*.d.ts',
 				'types/**',
-				'lib/**',
-				'__mocks__/**',
+				'node_modules/**',
+				'.next/**',
+				'e2e/**',
 			],
 		},
 

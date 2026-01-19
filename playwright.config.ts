@@ -1,11 +1,15 @@
 import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 import dotenv from 'dotenv';
+import { getE2ESupabaseConfig } from './lib/env/e2e';
 
 // Detect CI environment and load appropriate env file
 const isCI = !!process.env.CI;
-const envFile = isCI ? '.env.test.ci' : '.env.local';
+const envFile = isCI ? '.env.ci' : '.env.local';
 dotenv.config({ path: path.resolve(__dirname, envFile), quiet: true });
+
+// Get Supabase configuration using centralized helper
+const { supabaseUrl, supabaseKey, siteUrl } = getE2ESupabaseConfig();
 
 console.log(`E2E Environment: ${isCI ? 'CI/CD' : 'Local'}`);
 console.log(`Using: ${envFile}`);
@@ -28,7 +32,7 @@ export default defineConfig({
 	/* Shared settings for all the projects below */
 	use: {
 		/* Base URL to use in actions like `await page.goto('/')` */
-		baseURL: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+		baseURL: siteUrl,
 		/* Collect trace when retrying the failed test */
 		trace: 'on-first-retry',
 		/* Take screenshot on failure */
@@ -64,15 +68,15 @@ export default defineConfig({
 
 	/* Run local dev server before starting the tests */
 	webServer: {
-		command: 'pnpm dev',
+		command: process.env.CI ? 'pnpm start' : 'pnpm dev',
 		url: 'http://localhost:3000',
 		reuseExistingServer: !process.env.CI,
 		timeout: 120000,
 		env: {
-			NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-			NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY:
-				process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!,
-			NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL!,
+			// Pass resolved _DEV vars to Next.js with standard names
+			NEXT_PUBLIC_SUPABASE_URL: supabaseUrl!,
+			NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY: supabaseKey!,
+			NEXT_PUBLIC_SITE_URL: siteUrl,
 		},
 	},
 
