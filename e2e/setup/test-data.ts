@@ -1,4 +1,4 @@
-import { LOCAL_DEFAULTS } from '@/lib/env';
+import { LOCAL_DEFAULTS } from '@/lib/env/e2e';
 
 /**
  * Test user credentials for E2E tests

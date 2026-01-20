@@ -17,6 +17,7 @@
 		"test:changed": "./scripts/test-changed-coverage.sh",
 		"verify:auth": "tsx scripts/verify-auth.ts",
 		"test:e2e": "pnpm verify:auth && playwright test",
+		"test:e2e:ci": "CI=true sh -c 'pnpm verify:auth && playwright test'",
 		"test:e2e:ui": "playwright test --ui",
 		"test:e2e:headed": "playwright test --headed",
 		"test:e2e:debug": "playwright test --debug"

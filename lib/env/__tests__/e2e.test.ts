@@ -41,42 +41,6 @@ describe('validateE2EEnv', () => {
 		});
 	});
 
-	describe('_DEV suffix resolution', () => {
-		it('prefers _DEV variants over standard names', () => {
-			vi.stubGlobal('process', {
-				env: {
-					NEXT_PUBLIC_SUPABASE_URL: 'https://prod.supabase.co',
-					NEXT_PUBLIC_SUPABASE_URL_DEV: 'https://dev.supabase.co',
-					NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY: 'prod-key',
-					NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY_DEV: 'dev-key',
-					TEST_USER_EMAIL: 'test@example.com',
-					TEST_USER_PASSWORD: 'password',
-				},
-			});
-
-			const result = validateE2EEnv({ throwOnError: false });
-
-			expect(result.success).toBe(true);
-			if (result.success) {
-				expect(result.data.SUPABASE_URL).toBe('https://dev.supabase.co');
-				expect(result.data.SUPABASE_KEY).toBe('dev-key');
-			}
-		});
-
-		it('falls back to standard names when _DEV variants are missing', () => {
-			vi.stubGlobal('process', { env: VALID_ENV });
-
-			const result = validateE2EEnv({ throwOnError: false });
-
-			expect(result.success).toBe(true);
-			if (result.success) {
-				expect(result.data.SUPABASE_URL).toBe(
-					VALID_ENV.NEXT_PUBLIC_SUPABASE_URL
-				);
-			}
-		});
-	});
-
 	describe('allowDefaults option', () => {
 		it('uses LOCAL_DEFAULTS when allowDefaults is true', () => {
 			vi.stubGlobal('process', {
@@ -168,22 +132,6 @@ describe('getE2ESupabaseConfig', () => {
 		expect(config.supabaseUrl).toBe('https://test.supabase.co');
 		expect(config.supabaseKey).toBe('test-key');
 		expect(config.siteUrl).toBe('https://myapp.com');
-	});
-
-	it('prefers _DEV variants for Supabase config', () => {
-		vi.stubGlobal('process', {
-			env: {
-				NEXT_PUBLIC_SUPABASE_URL: 'https://prod.supabase.co',
-				NEXT_PUBLIC_SUPABASE_URL_DEV: 'https://dev.supabase.co',
-				NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY: 'prod-key',
-				NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY_DEV: 'dev-key',
-			},
-		});
-
-		const config = getE2ESupabaseConfig();
-
-		expect(config.supabaseUrl).toBe('https://dev.supabase.co');
-		expect(config.supabaseKey).toBe('dev-key');
 	});
 
 	it('uses default siteUrl when not specified', () => {

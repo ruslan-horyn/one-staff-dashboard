@@ -10,21 +10,14 @@ export interface ValidateE2EEnvOptions extends ValidateEnvOptions {
 }
 
 /**
- * Resolves Supabase env vars: prefer _DEV variants (local .env.ci),
- * fall back to standard (CI with mapped vars)
+ * Resolves Supabase env vars using standard names
  */
 function resolveSupabaseUrl(): string | undefined {
-	return (
-		process.env.NEXT_PUBLIC_SUPABASE_URL_DEV ||
-		process.env.NEXT_PUBLIC_SUPABASE_URL
-	);
+	return process.env.NEXT_PUBLIC_SUPABASE_URL;
 }
 
 function resolveSupabaseKey(): string | undefined {
-	return (
-		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY_DEV ||
-		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
-	);
+	return process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 }
 
 function resolveSiteUrl(): string {
