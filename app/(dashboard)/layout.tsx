@@ -1,11 +1,13 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
 
 import { AppSidebar } from '@/components/layout/appSidebar';
 import { Header } from '@/components/layout/header';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { getCurrentUser } from '@/services/auth';
 import { isSuccess } from '@/services/shared/result';
+import { AuthToastHandler } from './_components/AuthToastHandler';
 
 interface DashboardLayoutProps {
 	children: React.ReactNode;
@@ -32,6 +34,9 @@ const DashboardLayout = async ({ children }: DashboardLayoutProps) => {
 
 	return (
 		<SidebarProvider defaultOpen={defaultOpen}>
+			<Suspense fallback={null}>
+				<AuthToastHandler />
+			</Suspense>
 			<AppSidebar user={userData} />
 			<SidebarInset>
 				<Header user={userData} />

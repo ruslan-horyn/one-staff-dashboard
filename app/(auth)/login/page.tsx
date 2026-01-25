@@ -18,7 +18,14 @@ export const metadata: Metadata = {
 };
 
 interface LoginPageProps {
-	searchParams: Promise<{ redirect?: string }>;
+	searchParams: Promise<{
+		redirect?: string;
+		message?: string;
+		error?: string;
+		// Supabase native error params (when verification fails, Supabase redirects directly)
+		error_code?: string;
+		error_description?: string;
+	}>;
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
@@ -33,7 +40,6 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 	return (
 		<Card>
 			<CardHeader className="space-y-1 text-center">
-				{/* Logo inside card */}
 				<div className="mb-4 flex justify-center">
 					<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
 						<span className="font-bold text-primary text-xl">OS</span>
@@ -45,7 +51,13 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
-				<LoginForm redirectTo={params.redirect} />
+				<LoginForm
+					redirectTo={params.redirect}
+					message={params.message}
+					initialError={params.error}
+					supabaseErrorCode={params.error_code}
+					supabaseErrorDescription={params.error_description}
+				/>
 			</CardContent>
 		</Card>
 	);

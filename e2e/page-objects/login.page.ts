@@ -16,8 +16,9 @@ export class LoginPage extends BasePage {
 	readonly forgotPasswordLink: Locator;
 	readonly registerLink: Locator;
 
-	// Error display
+	// Alerts
 	readonly errorAlert: Locator;
+	readonly successAlert: Locator;
 
 	// Password toggle
 	readonly passwordToggle: Locator;
@@ -40,8 +41,9 @@ export class LoginPage extends BasePage {
 			name: /create organization/i,
 		});
 
-		// Error alert
-		this.errorAlert = page.getByRole('alert');
+		// Alerts - error uses text-destructive class, success uses border-green-500 class
+		this.errorAlert = page.locator('[role="alert"].text-destructive');
+		this.successAlert = page.locator('[role="alert"].border-green-500');
 
 		// Password visibility toggle
 		this.passwordToggle = page.getByRole('button', {
@@ -160,5 +162,58 @@ export class LoginPage extends BasePage {
 			return (await errorElement.textContent()) ?? '';
 		}
 		return '';
+	}
+
+	/**
+	 * Navigate to login page with success message param
+	 */
+	async gotoWithMessage(message: string): Promise<void> {
+		await this.page.goto(`/login?message=${encodeURIComponent(message)}`);
+	}
+
+	/**
+	 * Navigate to login page with app error param
+	 */
+	async gotoWithError(errorCode: string): Promise<void> {
+		await this.page.goto(`/login?error=${encodeURIComponent(errorCode)}`);
+	}
+
+	/**
+	 * Navigate to login page with Supabase error params
+	 */
+	async gotoWithSupabaseError(
+		errorCode: string,
+		errorDescription?: string
+	): Promise<void> {
+		const params = new URLSearchParams({
+			error: 'access_denied',
+			error_code: errorCode,
+		});
+		if (errorDescription) {
+			params.set('error_description', errorDescription);
+		}
+		await this.page.goto(`/login?${params.toString()}`);
+	}
+
+	/**
+	 * Get success alert message text
+	 */
+	async getSuccessMessage(): Promise<string> {
+		await this.successAlert.waitFor({ state: 'visible' });
+		return (await this.successAlert.textContent()) ?? '';
+	}
+
+	/**
+	 * Check if success alert is visible
+	 */
+	async isSuccessAlertVisible(): Promise<boolean> {
+		return this.successAlert.isVisible();
+	}
+
+	/**
+	 * Check if error alert is visible
+	 */
+	async isErrorAlertVisible(): Promise<boolean> {
+		return this.errorAlert.isVisible();
 	}
 }

@@ -230,3 +230,163 @@ test.describe('Login Redirect Behavior', () => {
 		await expect(page).toHaveURL(/^http:\/\/localhost:3000\/?$/);
 	});
 });
+
+test.describe('Auth Flow Messages', () => {
+	let loginPage: LoginPage;
+
+	test.beforeEach(async ({ page }) => {
+		loginPage = new LoginPage(page);
+	});
+
+	test.describe('Success Messages', () => {
+		test('should display confirm_email message', async () => {
+			await loginPage.gotoWithMessage('confirm_email');
+
+			await expect(loginPage.successAlert).toBeVisible();
+			const message = await loginPage.getSuccessMessage();
+			expect(message).toContain('Check your email');
+			expect(message).toContain('confirmation link');
+		});
+
+		test('should display email_verified message', async () => {
+			await loginPage.gotoWithMessage('email_verified');
+
+			await expect(loginPage.successAlert).toBeVisible();
+			const message = await loginPage.getSuccessMessage();
+			expect(message).toContain('Email verified successfully');
+		});
+
+		test('should not display success alert for unknown message key', async () => {
+			await loginPage.gotoWithMessage('unknown_message');
+
+			await expect(loginPage.successAlert).toBeHidden();
+		});
+	});
+
+	test.describe('App Error Messages', () => {
+		test('should display SESSION_EXPIRED error', async () => {
+			await loginPage.gotoWithError('SESSION_EXPIRED');
+
+			await expect(loginPage.errorAlert).toBeVisible();
+			const message = await loginPage.getErrorMessage();
+			expect(message).toContain('verification link has expired');
+		});
+
+		test('should display VALIDATION_ERROR error', async () => {
+			await loginPage.gotoWithError('VALIDATION_ERROR');
+
+			await expect(loginPage.errorAlert).toBeVisible();
+			const message = await loginPage.getErrorMessage();
+			expect(message).toContain('Invalid verification link');
+		});
+
+		test('should display NOT_AUTHENTICATED error', async () => {
+			await loginPage.gotoWithError('NOT_AUTHENTICATED');
+
+			await expect(loginPage.errorAlert).toBeVisible();
+			const message = await loginPage.getErrorMessage();
+			expect(message).toContain('Authentication failed');
+		});
+
+		test('should display generic error for unknown error code', async () => {
+			await loginPage.gotoWithError('UNKNOWN_ERROR');
+
+			await expect(loginPage.errorAlert).toBeVisible();
+			const message = await loginPage.getErrorMessage();
+			expect(message).toContain('error occurred');
+		});
+	});
+
+	test.describe('Supabase Error Messages', () => {
+		test('should display otp_expired error', async () => {
+			await loginPage.gotoWithSupabaseError('otp_expired');
+
+			await expect(loginPage.errorAlert).toBeVisible();
+			const message = await loginPage.getErrorMessage();
+			expect(message).toContain('verification link has expired');
+		});
+
+		test('should display otp_disabled error', async () => {
+			await loginPage.gotoWithSupabaseError('otp_disabled');
+
+			await expect(loginPage.errorAlert).toBeVisible();
+			const message = await loginPage.getErrorMessage();
+			expect(message).toContain('verification method is not available');
+		});
+
+		test('should display access_denied error', async () => {
+			await loginPage.gotoWithSupabaseError('access_denied');
+
+			await expect(loginPage.errorAlert).toBeVisible();
+			const message = await loginPage.getErrorMessage();
+			expect(message).toContain('Access denied');
+		});
+
+		test('should fallback to error_description for unknown Supabase error', async () => {
+			await loginPage.gotoWithSupabaseError(
+				'unknown_code',
+				'Custom error message from Supabase'
+			);
+
+			await expect(loginPage.errorAlert).toBeVisible();
+			const message = await loginPage.getErrorMessage();
+			expect(message).toContain('Custom error message from Supabase');
+		});
+
+		test('should display generic error for unknown Supabase error without description', async () => {
+			await loginPage.gotoWithSupabaseError('unknown_code');
+
+			await expect(loginPage.errorAlert).toBeVisible();
+			const message = await loginPage.getErrorMessage();
+			expect(message).toContain('error occurred');
+		});
+	});
+
+	test.describe('Message Priority', () => {
+		test('should prioritize Supabase error over app error', async ({
+			page,
+		}) => {
+			// Both error types in URL - Supabase should take priority
+			await page.goto('/login?error=NOT_AUTHENTICATED&error_code=otp_expired');
+
+			await expect(loginPage.errorAlert).toBeVisible();
+			const message = await loginPage.getErrorMessage();
+			// Should show otp_expired message, not NOT_AUTHENTICATED
+			expect(message).toContain('verification link has expired');
+		});
+	});
+
+	test.describe('Form Still Works With Messages', () => {
+		test('should allow login after seeing success message', async ({
+			page,
+		}) => {
+			await loginPage.gotoWithMessage('email_verified');
+
+			// Success message is visible
+			await expect(loginPage.successAlert).toBeVisible();
+
+			// Form should still be functional
+			await loginPage.fillCredentials(testUser.email, testUser.password);
+			await loginPage.submit();
+
+			// Should redirect to dashboard (URL should not contain /login)
+			await page.waitForURL((url) => !url.pathname.includes('/login'));
+			await expect(page).toHaveURL(/^http:\/\/localhost:3000\/?$/);
+		});
+
+		test('should allow login after seeing error message', async ({ page }) => {
+			await loginPage.gotoWithError('SESSION_EXPIRED');
+
+			// Error message is visible
+			await expect(loginPage.errorAlert).toBeVisible();
+
+			// Form should still be functional
+			await loginPage.fillCredentials(testUser.email, testUser.password);
+			await loginPage.submit();
+
+			// Should redirect to dashboard (URL should not contain /login)
+			await page.waitForURL((url) => !url.pathname.includes('/login'));
+			await expect(page).toHaveURL(/^http:\/\/localhost:3000\/?$/);
+		});
+	});
+});

@@ -69,20 +69,35 @@ function sanitizeNextParam(next: string | null): string {
  */
 function getSuccessRedirectUrl(
 	origin: string,
-	type: string | null,
+	type: OtpType | null,
 	next: string
 ): string {
 	if (type === 'recovery') {
 		return `${origin}/reset-password`;
 	}
+	if (type === 'signup') {
+		return `${origin}/login?message=email_verified`;
+	}
 	return `${origin}${next}`;
 }
 
+const destinationMap: Record<OtpType, string> = {
+	recovery: '/forgot-password',
+	signup: '/login',
+	email: '/login',
+	invite: '/login',
+};
+
 /**
- * Create error redirect URL with error code
+ * Create error redirect URL with error code based on auth type
  */
-function getErrorRedirectUrl(origin: string, errorCode: string): string {
-	return `${origin}/forgot-password?error=${encodeURIComponent(errorCode)}`;
+function getErrorRedirectUrl(
+	origin: string,
+	type: OtpType | null,
+	errorCode: string
+): string {
+	const destination = destinationMap[type ?? 'signup'];
+	return `${origin}${destination}?error=${encodeURIComponent(errorCode)}`;
 }
 
 // =============================================================================
@@ -106,7 +121,7 @@ export async function GET(request: NextRequest) {
 		}
 
 		return NextResponse.redirect(
-			getErrorRedirectUrl(origin, result.error.code)
+			getErrorRedirectUrl(origin, type, result.error.code)
 		);
 	}
 
@@ -119,12 +134,12 @@ export async function GET(request: NextRequest) {
 		}
 
 		return NextResponse.redirect(
-			getErrorRedirectUrl(origin, result.error.code)
+			getErrorRedirectUrl(origin, type, result.error.code)
 		);
 	}
 
 	// No valid auth parameters provided
 	return NextResponse.redirect(
-		getErrorRedirectUrl(origin, ErrorCodes.VALIDATION_ERROR)
+		getErrorRedirectUrl(origin, null, ErrorCodes.VALIDATION_ERROR)
 	);
 }

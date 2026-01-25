@@ -46,6 +46,80 @@ describe('LoginForm', () => {
 				'Login form'
 			);
 		});
+
+		it('displays success message for email confirmation', () => {
+			render(<LoginForm message="confirm_email" />);
+
+			expect(
+				screen.getByText(
+					/check your email and click the confirmation link to complete registration/i
+				)
+			).toBeInTheDocument();
+		});
+
+		it('displays success message for verified email', () => {
+			render(<LoginForm message="email_verified" />);
+
+			expect(
+				screen.getByText(/email verified successfully/i)
+			).toBeInTheDocument();
+		});
+
+		it('displays error message for expired verification link', () => {
+			render(<LoginForm initialError="SESSION_EXPIRED" />);
+
+			expect(
+				screen.getByText(/the verification link has expired/i)
+			).toBeInTheDocument();
+		});
+
+		it('displays generic error for unknown error codes', () => {
+			render(<LoginForm initialError="UNKNOWN_ERROR" />);
+
+			expect(
+				screen.getByText(/an error occurred. please try again/i)
+			).toBeInTheDocument();
+		});
+
+		it('displays error message for Supabase otp_expired error', () => {
+			render(<LoginForm supabaseErrorCode="otp_expired" />);
+
+			expect(
+				screen.getByText(/the verification link has expired/i)
+			).toBeInTheDocument();
+		});
+
+		it('displays Supabase error description for unknown error codes', () => {
+			render(
+				<LoginForm
+					supabaseErrorCode="unknown_code"
+					supabaseErrorDescription="Custom+error+message"
+				/>
+			);
+
+			expect(screen.getByText(/custom error message/i)).toBeInTheDocument();
+		});
+
+		it('prioritizes Supabase error over app error when both present', () => {
+			render(
+				<LoginForm
+					initialError="NOT_AUTHENTICATED"
+					supabaseErrorCode="otp_expired"
+				/>
+			);
+
+			// Should show Supabase error message, not app error
+			expect(
+				screen.getByText(/the verification link has expired/i)
+			).toBeInTheDocument();
+		});
+
+		it('does not display message alerts when no message prop', () => {
+			render(<LoginForm />);
+
+			expect(screen.queryByText(/check your email/i)).not.toBeInTheDocument();
+			expect(screen.queryByText(/email verified/i)).not.toBeInTheDocument();
+		});
 	});
 
 	describe('Validation', () => {

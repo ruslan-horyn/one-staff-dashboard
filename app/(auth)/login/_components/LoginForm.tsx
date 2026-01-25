@@ -1,9 +1,7 @@
 'use client';
 
-import { AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
 	Form,
@@ -18,22 +16,47 @@ import { PasswordInput } from '@/components/ui/password-input';
 
 import { useSignInForm } from '../_hooks/useSignInForm';
 import { useSignInServerAction } from '../_hooks/useSignInServerAction';
+import {
+	getSuccessMessage,
+	getUrlErrorMessage,
+} from '../_utils/getUrlMessages';
+import { ErrorAlert } from './ErrorAlert';
+import { SuccessAlert } from './SuccessAlert';
 
 interface LoginFormProps {
 	redirectTo?: string;
+	message?: string;
+	initialError?: string;
+	// Supabase native error params (when verification fails, Supabase redirects directly)
+	supabaseErrorCode?: string;
+	supabaseErrorDescription?: string;
 }
 
-export const LoginForm = ({ redirectTo }: LoginFormProps) => {
+export const LoginForm = ({
+	redirectTo,
+	message,
+	initialError,
+	supabaseErrorCode,
+	supabaseErrorDescription,
+}: LoginFormProps) => {
 	const form = useSignInForm();
 	const { execute, isPending, error } = useSignInServerAction({ redirectTo });
 
 	const onSubmit = form.handleSubmit(execute);
 
+	const successMessage = getSuccessMessage(message);
+	const urlErrorMessage = getUrlErrorMessage(
+		supabaseErrorCode,
+		supabaseErrorDescription,
+		initialError
+	);
+
 	return (
 		<Form {...form}>
 			<form onSubmit={onSubmit} className="space-y-4" aria-label="Login form">
+				{successMessage ? <SuccessAlert message={successMessage} /> : null}
+				{urlErrorMessage ? <ErrorAlert message={urlErrorMessage} /> : null}
 				<fieldset disabled={isPending} className="space-y-4">
-					{/* Email field */}
 					<FormField
 						control={form.control}
 						name="email"
@@ -54,7 +77,6 @@ export const LoginForm = ({ redirectTo }: LoginFormProps) => {
 						)}
 					/>
 
-					{/* Password field with Forgot password link */}
 					<FormField
 						control={form.control}
 						name="password"
@@ -82,22 +104,14 @@ export const LoginForm = ({ redirectTo }: LoginFormProps) => {
 					/>
 				</fieldset>
 
-				{/* Server error alert */}
-				{error && (
-					<Alert variant="destructive">
-						<AlertCircle className="h-4 w-4" />
-						<AlertDescription>
-							{error.message || 'Invalid email or password'}
-						</AlertDescription>
-					</Alert>
-				)}
+				{error ? (
+					<ErrorAlert message={error.message || 'Invalid email or password'} />
+				) : null}
 
-				{/* Submit button */}
 				<Button type="submit" className="w-full" disabled={isPending}>
 					{isPending ? 'Signing in...' : 'Sign in'}
 				</Button>
 
-				{/* Link to register */}
 				<p className="text-center text-muted-foreground text-sm">
 					Don&apos;t have an account?{' '}
 					<Link

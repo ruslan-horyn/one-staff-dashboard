@@ -14,9 +14,15 @@ export const useSignUpServerAction = ({
 	const router = useRouter();
 
 	return useServerAction(signUp, {
-		onSuccess: () => {
+		onSuccess: (data) => {
 			onSuccess?.();
 			router.refresh();
+
+			if (!data.session) {
+				router.push('/login?message=confirm_email');
+				return;
+			}
+
 			router.push('/');
 		},
 	});

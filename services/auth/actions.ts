@@ -57,10 +57,13 @@ export const signIn = createAction<SignInInput, AuthResponse>(
  */
 export const signUp = createAction<SignUpInput, AuthResponse>(
 	async (input, { supabase }) => {
+		const siteUrl = env.NEXT_PUBLIC_SITE_URL;
+
 		const { data, error } = await supabase.auth.signUp({
 			email: input.email,
 			password: input.password,
 			options: {
+				emailRedirectTo: `${siteUrl}/auth/callback?type=signup`,
 				data: {
 					first_name: input.firstName,
 					last_name: input.lastName,

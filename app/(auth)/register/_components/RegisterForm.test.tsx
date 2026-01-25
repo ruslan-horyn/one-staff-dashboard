@@ -377,12 +377,33 @@ describe('RegisterForm', () => {
 			).toBeInTheDocument();
 		});
 
-		it('redirects after successful submission', async () => {
+		it('redirects to login with message when email confirmation required', async () => {
 			const user = userEvent.setup();
 			const mockSignUp = vi.mocked(signUp);
 			mockSignUp.mockResolvedValue({
 				success: true,
-				data: { user: null, session: null },
+				data: { user: null, session: null }, // session null = email confirmation required
+			});
+
+			render(<RegisterForm />);
+
+			await fillValidForm(user);
+			await user.click(getSubmitButton());
+
+			await waitFor(() => {
+				expect(mockPush).toHaveBeenCalledWith('/login?message=confirm_email');
+			});
+		});
+
+		it('redirects to home when session exists (autoconfirm enabled)', async () => {
+			const user = userEvent.setup();
+			const mockSignUp = vi.mocked(signUp);
+			mockSignUp.mockResolvedValue({
+				success: true,
+				data: {
+					user: { id: '123', email: 'john@example.com' } as never,
+					session: { access_token: 'token' } as never,
+				},
 			});
 
 			render(<RegisterForm />);
