@@ -1,11 +1,11 @@
 # MVP Backlog - One Staff Dashboard
 
-*Updated: 2026-01-15*
+*Updated: 2026-01-25*
 
 ## Summary
 
 - **Total Epics:** 6
-- **Total Stories:** 14 (Done: 7, In Progress: 0, Not Started: 7)
+- **Total Stories:** 14 (Done: 8, In Progress: 0, Not Started: 6)
 - **Estimated Tasks:** ~85 tasks
 
 ---
@@ -31,7 +31,7 @@
 |-------|-----------|------|--------|
 | `/login` | US-002 | `app/(auth)/login/page.tsx` | Complete |
 | `/dashboard` | TECH-001 | `app/(dashboard)/page.tsx` | Complete |
-| `/dashboard/clients` | US-003 | - | Not Started |
+| `/dashboard/clients` | US-003 | `app/(dashboard)/clients/page.tsx` | Complete |
 | `/dashboard/locations` | US-004 | - | Not Started |
 | `/dashboard/workers` | US-005, US-006 | - | Not Started |
 | `/dashboard/positions` | US-007, US-008 | - | Not Started |
@@ -188,7 +188,7 @@ The minimum viable path to a working MVP (ordered by dependencies):
 ### US-003: Client Management
 
 - **Priority:** P0
-- **Status:** Not Started
+- **Status:** Done
 - **Dependencies:** US-002
 - **Acceptance Criteria:**
   1. View paginated list of clients
@@ -199,14 +199,14 @@ The minimum viable path to a working MVP (ordered by dependencies):
 
 **Tasks:**
 
-- [ ] **Frontend:** Create `/dashboard/clients` page
-- [ ] **Frontend:** Create `ClientList` component with DataTable
-- [ ] **Frontend:** Create `ClientFormDialog` component (add/edit)
-- [ ] **Frontend:** Create `DeleteClientDialog` with dependency check
-- [ ] **Frontend:** Implement search and pagination
-- [ ] **Backend:** All 5 client actions already implemented
-- [ ] **Testing:** Unit tests for client components
-- [ ] **Testing:** E2E test for client CRUD flow
+- [x] **Frontend:** Create `/dashboard/clients` page
+- [x] **Frontend:** Create `ClientDataTable` component with DataTable
+- [x] **Frontend:** Create `ClientFormDialog` component (add/edit)
+- [x] **Frontend:** Create `ClientDeleteDialog` with dependency check
+- [x] **Frontend:** Implement search and pagination
+- [x] **Backend:** All 5 client actions already implemented
+- [x] **Testing:** Unit tests for client components
+- [x] **Testing:** E2E test for client CRUD flow
 
 ---
 
@@ -508,7 +508,7 @@ export const actionName = createAction<InputType, OutputType>(
 
 **Sprint 3: Master Data**
 
-1. US-003 (Clients - frontend only, backend done)
+1. ~~US-003 (Clients)~~ ✅ Done
 2. US-004 (Work Locations)
 
 **Sprint 4: Workers & Positions**

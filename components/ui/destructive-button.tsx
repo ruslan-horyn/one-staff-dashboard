@@ -12,26 +12,26 @@ type ButtonProps = ComponentProps<'button'> &
 		asChild?: boolean;
 	};
 
-interface SubmitButtonProps extends Omit<ButtonProps, 'type'> {
+interface DestructiveButtonProps extends Omit<ButtonProps, 'variant'> {
 	children: React.ReactNode;
 	loadingText?: string;
 	isPending?: boolean;
 }
 
-export const SubmitButton = ({
+export const DestructiveButton = ({
 	children,
 	loadingText = 'Loading...',
 	isPending = false,
 	className,
 	disabled,
-	variant,
 	size,
+	type = 'button',
 	...props
-}: SubmitButtonProps) => {
+}: DestructiveButtonProps) => {
 	return (
 		<Button
-			type="submit"
-			variant={variant}
+			type={type}
+			variant="destructive"
 			size={size}
 			className={cn(className)}
 			disabled={isPending || disabled}

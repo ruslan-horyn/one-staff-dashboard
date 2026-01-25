@@ -15,7 +15,7 @@ dotenv.config({ path: path.resolve(__dirname, '..', envFile), quiet: true });
 async function verifyAuth() {
 	// Validate E2E environment with defaults allowed for local development
 	const result = validateE2EEnv({
-		allowDefaults: false,
+		allowDefaults: !isCI,
 		throwOnError: false,
 	});
 

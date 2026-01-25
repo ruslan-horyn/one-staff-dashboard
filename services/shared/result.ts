@@ -82,9 +82,9 @@ export function failure(
  * }
  */
 export function isSuccess<T>(
-	result: ActionResult<T>
+	result: ActionResult<T> | undefined | null
 ): result is SuccessActionResult<T> {
-	return result.success === true;
+	return result?.success === true;
 }
 
 /**
@@ -99,7 +99,7 @@ export function isSuccess<T>(
  * }
  */
 export function isFailure<T>(
-	result: ActionResult<T>
+	result: ActionResult<T> | undefined | null
 ): result is FailedActionResult {
-	return result.success === false;
+	return result?.success === false;
 }

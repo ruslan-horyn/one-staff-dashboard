@@ -1,5 +1,5 @@
 ---
-name: Supabase Integration
+name: supabase-integration
 description: This skill should be used when the user asks to "query supabase", "fetch data from database", "insert record", "create a migration", "add table", "supabase migrate", "write RLS policy", "supabase auth", "login user", "protect route", "create supabase client", or mentions Supabase, database queries, authentication, or Row Level Security in the context of the One Staff Dashboard project.
 version: 0.1.0
 ---
@@ -358,6 +358,7 @@ pnpm supabase db push   # Push to remote (use with caution)
 ### Migration File Order
 
 Follow the established pattern:
+
 1. `extensions.sql` - PostgreSQL extensions
 2. `enum_types.sql` - Custom ENUM types
 3. `tables.sql` - Table definitions

@@ -48,7 +48,7 @@ One Staff Dashboard centralizes management of temporary workers, clients, work l
 **CI/CD & Hosting:**
 
 - GitHub Actions
-- Cloudflare Pages
+- Vercel
 
 ## Getting Started Locally
 
