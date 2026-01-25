@@ -70,7 +70,7 @@ export function useUrlSearchParam(
 				router.push(newUrl);
 			}
 		},
-		[param, pathname, searchParams, replace]
+		[param, pathname, searchParams, replace, router]
 	);
 
 	// Public setValue that updates both state and URL

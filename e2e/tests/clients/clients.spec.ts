@@ -131,7 +131,7 @@ test.describe('Client Management', () => {
 	});
 
 	test.describe('Edit Client', () => {
-		test('should open edit dialog with pre-filled data', async ({ page }) => {
+		test('should open edit dialog with pre-filled data', async () => {
 			// Get first client name from the table
 			const firstRow = clientsPage.table.locator('tbody tr').first();
 			const clientName = await firstRow.locator('td').first().textContent();
@@ -149,7 +149,7 @@ test.describe('Client Management', () => {
 			await expect(clientsPage.nameInput).toHaveValue(clientName!);
 		});
 
-		test('should update client successfully', async ({ page }) => {
+		test('should update client successfully', async () => {
 			// Get first client name from the table
 			const firstRow = clientsPage.table.locator('tbody tr').first();
 			const clientName = await firstRow.locator('td').first().textContent();
@@ -173,7 +173,7 @@ test.describe('Client Management', () => {
 	});
 
 	test.describe('Delete Client', () => {
-		test('should open delete confirmation dialog', async ({ page }) => {
+		test('should open delete confirmation dialog', async () => {
 			// Get first client name from the table
 			const firstRow = clientsPage.table.locator('tbody tr').first();
 			const clientName = await firstRow.locator('td').first().textContent();
@@ -190,7 +190,7 @@ test.describe('Client Management', () => {
 			).toBeVisible();
 		});
 
-		test('should delete client on confirm', async ({ page }) => {
+		test('should delete client on confirm', async () => {
 			// Get last client name from the table (to avoid deleting important data)
 			const lastRow = clientsPage.table.locator('tbody tr').last();
 			const clientName = await lastRow.locator('td').first().textContent();
@@ -209,7 +209,7 @@ test.describe('Client Management', () => {
 			await expect(clientsPage.getClientRow(clientName!)).toBeHidden();
 		});
 
-		test('should cancel deletion on cancel', async ({ page }) => {
+		test('should cancel deletion on cancel', async () => {
 			// Get first client name from the table
 			const firstRow = clientsPage.table.locator('tbody tr').first();
 			const clientName = await firstRow.locator('td').first().textContent();
@@ -229,7 +229,7 @@ test.describe('Client Management', () => {
 	});
 
 	test.describe('Search', () => {
-		test('should filter clients by search query', async ({ page }) => {
+		test('should filter clients by search query', async () => {
 			// Create a client first to ensure we have something to search for
 			const newClient = createClientTestData();
 			await clientsPage.openCreateDialog();
@@ -554,9 +554,7 @@ test.describe('Client Management', () => {
 			await expect(clientsPage.deleteDialog).toBeHidden();
 		});
 
-		test('should not submit form on rapid multiple clicks', async ({
-			page,
-		}) => {
+		test('should not submit form on rapid multiple clicks', async () => {
 			const newClient = createClientTestData();
 
 			await clientsPage.openCreateDialog();
@@ -665,7 +663,7 @@ test.describe('Client Management', () => {
 			expect(isWithinDialog).toBeGreaterThan(0);
 		});
 
-		test('should announce form errors to screen reader', async ({ page }) => {
+		test('should announce form errors to screen reader', async () => {
 			await clientsPage.openCreateDialog();
 			await clientsPage.submitForm();
 
