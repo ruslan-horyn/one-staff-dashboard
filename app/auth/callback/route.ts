@@ -23,7 +23,6 @@ async function handleCodeExchange(code: string): Promise<ActionResult<void>> {
 	const { error } = await supabase.auth.exchangeCodeForSession(code);
 
 	if (error) {
-		console.log('🚀 ~ handleCodeExchange ~ error:', error);
 		const mappedError = mapAuthError(error);
 		return failure(mappedError.code, mappedError.message, mappedError.details);
 	}
@@ -101,7 +100,6 @@ export async function GET(request: NextRequest) {
 	// Strategy 1: PKCE code exchange (higher priority)
 	if (code) {
 		const result = await handleCodeExchange(code);
-		console.log('🚀 ~ GET ~ result:', result);
 
 		if (result.success) {
 			return NextResponse.redirect(getSuccessRedirectUrl(origin, type, next));

@@ -31,12 +31,12 @@
 			},
 			"recommended": true,
 			"a11y": {
-				"noAriaUnsupportedElements": "warn",
-				"useAltText": "warn",
-				"useAriaPropsForRole": "warn",
-				"useAriaPropsSupportedByRole": "warn",
-				"useValidAriaProps": "warn",
-				"useValidAriaValues": "warn"
+				"noAriaUnsupportedElements": "error",
+				"useAltText": "error",
+				"useAriaPropsForRole": "error",
+				"useAriaPropsSupportedByRole": "error",
+				"useValidAriaProps": "error",
+				"useValidAriaValues": "error"
 			},
 			"complexity": {
 				"noUselessThisAlias": "error",
@@ -45,22 +45,23 @@
 			"correctness": {
 				"noChildrenProp": "error",
 				"noUnusedImports": "error",
-				"noUnusedVariables": "warn",
-				"useExhaustiveDependencies": "warn",
+				"noUnusedVariables": "error",
+				"noUnusedFunctionParameters": "error",
+				"useExhaustiveDependencies": "error",
 				"useHookAtTopLevel": "error",
 				"useJsxKeyInIterable": "error"
 			},
 			"performance": {
-				"noImgElement": "warn",
-				"noUnwantedPolyfillio": "warn",
-				"useGoogleFontPreconnect": "warn"
+				"noImgElement": "error",
+				"noUnwantedPolyfillio": "error",
+				"useGoogleFontPreconnect": "error"
 			},
 			"security": {
 				"noDangerouslySetInnerHtmlWithChildren": "error"
 			},
 			"style": {
 				"noCommonJs": "error",
-				"noHeadElement": "warn",
+				"noHeadElement": "error",
 				"noNamespace": "error",
 				"noNonNullAssertion": "off",
 				"useArrayLiterals": "error",
@@ -68,10 +69,16 @@
 				"useConst": "error"
 			},
 			"suspicious": {
+				"noConsole": {
+					"level": "error",
+					"options": {
+						"allow": ["error"]
+					}
+				},
 				"noCommentText": "error",
 				"noDocumentImportInPage": "error",
 				"noDuplicateJsxProps": "error",
-				"noExplicitAny": "warn",
+				"noExplicitAny": "error",
 				"noExtraNonNullAssertion": "error",
 				"noHeadImportInDocument": "error",
 				"noMisleadingInstantiator": "error",
@@ -79,7 +86,7 @@
 				"noTsIgnore": "error",
 				"noUnsafeDeclarationMerging": "error",
 				"noVar": "error",
-				"useGoogleFontDisplay": "warn",
+				"useGoogleFontDisplay": "error",
 				"useIterableCallbackReturn": "off",
 				"useNamespaceKeyword": "error"
 			}
@@ -103,6 +110,18 @@
 			"enabled": false
 		}
 	},
+	"overrides": [
+		{
+			"includes": ["scripts/**", "e2e/global-setup.ts", "playwright.config.ts"],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noConsole": "off"
+					}
+				}
+			}
+		}
+	],
 	"assist": {
 		"enabled": true,
 		"actions": {

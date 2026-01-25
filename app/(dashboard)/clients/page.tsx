@@ -32,7 +32,6 @@ const EMPTY_DATA = {
 export default async function ClientsPage({ searchParams }: ClientsPageProps) {
 	const params = await searchParams;
 	const filter = parseClientParams(params);
-	console.log('filter:', filter);
 	const result = await getClients(filter);
 	const initialData = isSuccess(result) ? result.data : EMPTY_DATA;
 
