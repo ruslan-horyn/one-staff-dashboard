@@ -192,23 +192,32 @@ test.describe('Client Management', () => {
 			).toBeVisible();
 		});
 
-		test('should delete client on confirm', async () => {
+		test('should delete client on confirm', async ({ page }) => {
 			// Get last client name from the table (to avoid deleting important data)
 			const lastRow = clientsPage.table.locator('tbody tr').last();
 			const clientName = await lastRow.locator('td').first().textContent();
 
 			test.skip(!clientName, 'No clients exist to delete');
 
-			// Delete the client
+			// Delete the client and wait for data refresh
 			await clientsPage.deleteClient(clientName!);
-			await clientsPage.confirmDelete();
 
-			// Wait for success
+			// Wait for delete action to complete by monitoring the response
+			const responsePromise = page.waitForResponse(
+				(resp) => resp.url().includes('/clients') && resp.status() === 200
+			);
+			await clientsPage.confirmDelete();
+			await responsePromise;
+
+			// Wait for success indicators
 			await expect(clientsPage.deleteDialog).toBeHidden();
 			await clientsPage.waitForToast(/client deleted/i);
 
 			// Verify client is removed from table
-			await expect(clientsPage.getClientRow(clientName!)).toBeHidden();
+			const matchingRows = clientsPage.table
+				.getByRole('row')
+				.filter({ hasText: clientName! });
+			await expect(matchingRows).toHaveCount(0);
 		});
 
 		test('should cancel deletion on cancel', async () => {
