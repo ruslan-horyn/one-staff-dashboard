@@ -1,0 +1,45 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs
+.next
+out
+build
+dist
+
+# Git
+.git
+.gitignore
+
+# Environment (use docker-compose env)
+.env
+.env.local
+.env.*.local
+
+# Testing
+coverage
+test-results
+playwright-report
+.playwright
+e2e/.auth
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Documentation
+docs
+*.md
+!README.md
+
+# Supabase local
+supabase/.temp
+
+# Misc
+.DS_Store
+*.log
+.vercel
+.claude

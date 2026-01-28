@@ -20,7 +20,14 @@
 		"test:e2e:ci": "CI=true sh -c 'pnpm verify:auth && playwright test'",
 		"test:e2e:ui": "playwright test --ui",
 		"test:e2e:headed": "playwright test --headed",
-		"test:e2e:debug": "playwright test --debug"
+		"test:e2e:debug": "playwright test --debug",
+		"docker:dev": "docker compose up -d",
+		"docker:dev:build": "docker compose up -d --build",
+		"docker:down": "docker compose down",
+		"docker:prod": "docker compose --env-file .env.local -f docker-compose.prod.yml up -d --build",
+		"docker:e2e": "docker compose -f docker-compose.e2e.yml up --build --abort-on-container-exit playwright",
+		"docker:logs": "docker compose logs -f app",
+		"docker:shell": "docker compose exec app sh"
 	},
 	"dependencies": {
 		"@hookform/resolvers": "^5.2.2",

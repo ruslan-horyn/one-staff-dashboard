@@ -1,0 +1,21 @@
+name: one-staff-dev
+
+services:
+  app:
+    build:
+      context: .
+      target: dev
+    ports:
+      - "3100:3000"
+    env_file:
+      - .env.local
+    environment:
+      # Override URL for Docker networking (container can't reach 127.0.0.1)
+      - NEXT_PUBLIC_SUPABASE_URL=http://host.docker.internal:54321
+      - NEXT_PUBLIC_SITE_URL=http://localhost:3100
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

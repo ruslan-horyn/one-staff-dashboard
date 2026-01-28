@@ -1,0 +1,41 @@
+name: one-staff-e2e
+
+services:
+  app:
+    build:
+      context: .
+      target: dev
+    ports:
+      - "3102:3000"
+    env_file:
+      - .env.ci
+    environment:
+      - NEXT_PUBLIC_SITE_URL=http://localhost:3102
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.57.0-noble
+    working_dir: /app
+    env_file:
+      - .env.ci
+    environment:
+      - CI=true
+      - BASE_URL=http://app:3000
+    volumes:
+      - .:/app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      app:
+        condition: service_healthy
+    command: ["sh", "-c", "corepack enable && corepack prepare pnpm@10.23.0 --activate && pnpm install --frozen-lockfile && pnpm test:e2e:ci"]

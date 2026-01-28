@@ -76,14 +76,36 @@ pnpm dev
 
 The application will be available at `http://localhost:3000`.
 
+### Docker Setup
+
+For containerized development with Supabase CLI:
+
+```bash
+# Start Supabase
+supabase start
+
+# Configure environment (copy keys from supabase status)
+cp .env.example .env.local
+
+# Run production build
+pnpm docker:prod
+```
+
+Application runs at `http://localhost:3100`. See [docs/docker.md](docs/docker.md) for details.
+
 ## Available Scripts
 
-| Script        | Description                              |
-| ------------- | ---------------------------------------- |
-| `pnpm dev`    | Start development server                 |
-| `pnpm build`  | Create production build                  |
-| `pnpm start`  | Run production server                    |
-| `pnpm lint`   | Run ESLint                               |
+| Script | Description |
+|--------|-------------|
+| `pnpm dev` | Start development server |
+| `pnpm build` | Create production build |
+| `pnpm start` | Run production server |
+| `pnpm lint` | Run Biome linter |
+| `pnpm test` | Run unit tests |
+| `pnpm test:e2e` | Run E2E tests |
+| `pnpm docker:dev` | Start dev container |
+| `pnpm docker:prod` | Build and run production container |
+| `pnpm docker:e2e` | Run E2E tests in containers |
 
 ## Project Scope
 
