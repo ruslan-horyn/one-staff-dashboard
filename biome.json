@@ -14,7 +14,9 @@
 			"!build",
 			"!node_modules",
 			"!next-env.d.ts",
-			"!.claude"
+			"!.claude",
+			"!.gemini",
+			"!_bmad"
 		]
 	},
 	"formatter": {
