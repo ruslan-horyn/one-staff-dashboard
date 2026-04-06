@@ -10,6 +10,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `docs/tech-stack.md` - Technology stack and tools used in the project
 - `docs/directory-architecture.md` - Project structure and file organization guidelines
 - `docs/commit-conventions.md` - Commit message format and conventions (MUST follow when committing)
+- `docs/decomposition-patterns.md` - Decomposition patterns catalog with decision tree (MUST consult when creating hooks, components, or services)
+- `docs/frontend-anti-patterns.md` - Frontend anti-patterns (AP-01 through AP-13) — code review blockers
 
 These files contain essential context about the project's requirements, architecture, and conventions.
 
