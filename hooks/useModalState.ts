@@ -1,6 +1,12 @@
+// hooks/useModalState.ts
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
+
+export interface UseModalStateOptions<T> {
+	onOpen?: (data?: T) => void;
+	onClose?: () => void;
+}
 
 export interface UseModalStateReturn<T> {
 	isOpen: boolean;
@@ -10,44 +16,25 @@ export interface UseModalStateReturn<T> {
 	close: () => void;
 }
 
-/**
- * Generic hook for managing modal open/close state with optional associated data.
- * Tracks the triggering element for focus management.
- *
- * @example
- * // Simple modal without data
- * const confirmModal = useModalState();
- * confirmModal.open();
- * confirmModal.close();
- *
- * @example
- * // Modal with data (e.g., edit form)
- * const editModal = useModalState<User>();
- * editModal.open(user); // Opens with user data
- * editModal.data; // Access the user
- * editModal.close();
- *
- * @example
- * // Focus management with dialog
- * <DialogContent onCloseAutoFocus={(e) => {
- *   e.preventDefault();
- *   modal.triggerRef.current?.focus();
- * }}>
- */
-export const useModalState = <T = undefined>(): UseModalStateReturn<T> => {
+export const useModalState = <T = undefined>(
+	options: UseModalStateOptions<T> = {}
+): UseModalStateReturn<T> => {
 	const [isOpen, setIsOpen] = useState(false);
 	const [data, setData] = useState<T | null>(null);
 	const triggerRef = useRef<HTMLElement | null>(null);
+	const optionsRef = useRef(options);
+	optionsRef.current = options;
 
 	const open = useCallback((item?: T) => {
-		// Capture the currently focused element as the trigger
 		triggerRef.current = document.activeElement as HTMLElement | null;
 		setData(item ?? null);
 		setIsOpen(true);
+		optionsRef.current.onOpen?.(item);
 	}, []);
 
 	const close = useCallback(() => {
 		setIsOpen(false);
+		optionsRef.current.onClose?.();
 	}, []);
 
 	return { isOpen, data, triggerRef, open, close };
