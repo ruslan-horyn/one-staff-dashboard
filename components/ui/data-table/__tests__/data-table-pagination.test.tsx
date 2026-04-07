@@ -77,8 +77,8 @@ describe('DataTablePagination', () => {
 			expect(screen.getByText(/showing 81-95 of 95/i)).toBeInTheDocument();
 		});
 
-		it('shows 0-0 when no items', () => {
-			render(
+		it('returns null when no items (auto-hide)', () => {
+			const { container } = render(
 				<DataTablePagination
 					{...defaultProps}
 					page={1}
@@ -87,7 +87,7 @@ describe('DataTablePagination', () => {
 				/>
 			);
 
-			expect(screen.getByText(/showing 0-0 of 0/i)).toBeInTheDocument();
+			expect(container.innerHTML).toBe('');
 		});
 	});
 
@@ -234,8 +234,8 @@ describe('DataTablePagination', () => {
 	});
 
 	describe('Edge cases', () => {
-		it('shows page 1 of 1 when totalPages is 0', () => {
-			render(
+		it('returns null when totalItems below pageSize (auto-hide)', () => {
+			const { container } = render(
 				<DataTablePagination
 					{...defaultProps}
 					page={1}
@@ -244,7 +244,7 @@ describe('DataTablePagination', () => {
 				/>
 			);
 
-			expect(screen.getByText(/page 1 of 1/i)).toBeInTheDocument();
+			expect(container.innerHTML).toBe('');
 		});
 
 		it('applies custom className', () => {

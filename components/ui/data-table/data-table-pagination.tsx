@@ -39,6 +39,8 @@ function DataTablePagination({
 	pageSizeOptions = [10, 20, 50],
 	className,
 }: DataTablePaginationProps) {
+	if (totalItems < pageSize) return null;
+
 	const startItem = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
 	const endItem = Math.min(page * pageSize, totalItems);
 
