@@ -1,5 +1,7 @@
 // Barrel exports for custom React hooks
 
+export type { UseDataTableStateReturn } from './useDataTableState';
+export { useDataTableState } from './useDataTableState';
 export type {
 	UseDebounceOptions,
 	UseDebounceReturn,
@@ -15,7 +17,10 @@ export type {
 	UseExpandableRowsReturn,
 } from './useExpandableRows';
 export { useExpandableRows } from './useExpandableRows';
-export type { UseModalStateReturn } from './useModalState';
+export type {
+	UseModalStateOptions,
+	UseModalStateReturn,
+} from './useModalState';
 export { useModalState } from './useModalState';
 export type {
 	UseRowSelectionOptions,

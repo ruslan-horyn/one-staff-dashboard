@@ -148,6 +148,26 @@ describe('useServerAction', () => {
 			expect(result.current.error?.code).toBe('INTERNAL_ERROR');
 			expect(result.current.error?.message).toBe('Network error');
 		});
+
+		it('resets state to idle after error', async () => {
+			const { result } = renderHook(() => useServerAction(mockFailureAction));
+
+			await act(async () => {
+				await result.current.execute({ name: 'test' });
+			});
+
+			expect(result.current.isError).toBe(true);
+
+			act(() => {
+				result.current.reset();
+			});
+
+			expect(result.current.isPending).toBe(false);
+			expect(result.current.isSuccess).toBe(false);
+			expect(result.current.isError).toBe(false);
+			expect(result.current.data).toBeUndefined();
+			expect(result.current.error).toBeUndefined();
+		});
 	});
 
 	describe('onSettled callback', () => {

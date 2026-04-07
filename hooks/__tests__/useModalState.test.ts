@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { useModalState } from '../useModalState';
 
@@ -80,6 +80,48 @@ describe('useModalState', () => {
 
 			expect(result.current.isOpen).toBe(false);
 			expect(result.current.data).toEqual({ id: '123' });
+		});
+	});
+
+	describe('callbacks', () => {
+		it('calls onOpen when open is invoked', () => {
+			const onOpen = vi.fn();
+			const { result } = renderHook(() => useModalState({ onOpen }));
+
+			act(() => {
+				result.current.open();
+			});
+
+			expect(onOpen).toHaveBeenCalledTimes(1);
+		});
+
+		it('calls onOpen with data when open is invoked with data', () => {
+			const onOpen = vi.fn();
+			const { result } = renderHook(() =>
+				useModalState<{ id: string }>({ onOpen })
+			);
+			const testData = { id: '42' };
+
+			act(() => {
+				result.current.open(testData);
+			});
+
+			expect(onOpen).toHaveBeenCalledWith(testData);
+		});
+
+		it('calls onClose when close is invoked', () => {
+			const onClose = vi.fn();
+			const { result } = renderHook(() => useModalState({ onClose }));
+
+			act(() => {
+				result.current.open();
+			});
+
+			act(() => {
+				result.current.close();
+			});
+
+			expect(onClose).toHaveBeenCalledTimes(1);
 		});
 	});
 

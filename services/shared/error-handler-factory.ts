@@ -8,11 +8,12 @@ const DEFAULT_MESSAGES: Record<string, string> = {
 	INTERNAL_ERROR: 'An unexpected error occurred. Please try again.',
 };
 
-/** Type-safe extraction of field name from error details (no `as` cast) */
-function getErrorDetailField(details: unknown): string | undefined {
-	if (details && typeof details === 'object' && 'field' in details) {
-		const field = (details as Record<string, unknown>).field;
-		return typeof field === 'string' ? field : undefined;
+/** Type-safe extraction of field name from error details */
+function getErrorDetailField(
+	details: Record<string, unknown> | undefined
+): string | undefined {
+	if (details && 'field' in details && typeof details.field === 'string') {
+		return details.field;
 	}
 	return undefined;
 }
