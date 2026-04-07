@@ -18,7 +18,7 @@ export default defineConfig({
 			'**/*.spec.{ts,tsx}',
 			'**/__tests__/**/*.test.{ts,tsx}',
 		],
-		exclude: ['node_modules', '.next', 'e2e/**', '.claude/**'],
+		exclude: ['node_modules', '.next', 'e2e/**', '.claude/**', '.worktrees/**'],
 
 		// Coverage
 		coverage: {

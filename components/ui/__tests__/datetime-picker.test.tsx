@@ -326,9 +326,12 @@ describe('DateTimePicker', () => {
 		});
 
 		it('correctly disables dates before minDate', async () => {
+			// Freeze time to Jan 5, 2026 so calendar opens on January
+			vi.useFakeTimers({ shouldAdvanceTime: true });
+			vi.setSystemTime(new Date(2026, 0, 5));
+
 			const user = userEvent.setup();
 			const onChange = vi.fn();
-			// Set minDate to Jan 15, 2026
 			const minDate = new Date(2026, 0, 15);
 
 			render(<DateTimePicker onChange={onChange} minDate={minDate} />);
@@ -355,12 +358,17 @@ describe('DateTimePicker', () => {
 			if (day20) {
 				expect(day20).not.toBeDisabled();
 			}
+
+			vi.useRealTimers();
 		});
 
 		it('correctly disables dates after maxDate', async () => {
+			// Freeze time to Jan 5, 2026 so calendar opens on January
+			vi.useFakeTimers({ shouldAdvanceTime: true });
+			vi.setSystemTime(new Date(2026, 0, 5));
+
 			const user = userEvent.setup();
 			const onChange = vi.fn();
-			// Set maxDate to Jan 15, 2026
 			const maxDate = new Date(2026, 0, 15);
 
 			render(<DateTimePicker onChange={onChange} maxDate={maxDate} />);
@@ -387,6 +395,8 @@ describe('DateTimePicker', () => {
 			if (day20) {
 				expect(day20).toBeDisabled();
 			}
+
+			vi.useRealTimers();
 		});
 	});
 });
