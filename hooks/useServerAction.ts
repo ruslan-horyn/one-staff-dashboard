@@ -22,6 +22,7 @@ export interface UseServerActionReturn<TInput, TData> {
 	isError: boolean;
 	data: TData | undefined;
 	error: ActionError | undefined;
+	reset: () => void;
 }
 
 type ActionState<TData> =
@@ -33,7 +34,8 @@ type ActionState<TData> =
 type ActionEvent<TData> =
 	| { type: 'EXECUTE' }
 	| { type: 'SUCCESS'; data: TData }
-	| { type: 'ERROR'; error: ActionError };
+	| { type: 'ERROR'; error: ActionError }
+	| { type: 'RESET' };
 
 function reducer<TData>(
 	_state: ActionState<TData>,
@@ -46,6 +48,8 @@ function reducer<TData>(
 			return { status: 'success', data: event.data, error: undefined };
 		case 'ERROR':
 			return { status: 'error', data: undefined, error: event.error };
+		case 'RESET':
+			return initialState as ActionState<TData>;
 	}
 }
 
@@ -131,6 +135,8 @@ export function useServerAction<TInput, TData>(
 		[action]
 	);
 
+	const reset = useCallback(() => dispatch({ type: 'RESET' }), []);
+
 	return {
 		execute,
 		isPending: state.status === 'pending',
@@ -138,5 +144,6 @@ export function useServerAction<TInput, TData>(
 		isError: state.status === 'error',
 		data: state.data,
 		error: state.error,
+		reset,
 	};
 }
