@@ -28,45 +28,9 @@ import {
 	updateClientSchema,
 } from './schemas';
 
-/**
- * Creates a new client.
- *
- * @param input - Client data (name, email, phone, address)
- * @returns Created client record
- *
- * @example
- * const result = await createClient({
- *   name: 'Acme Corp',
- *   email: 'contact@acme.com',
- *   phone: '+48 123 456 789',
- *   address: 'ul. Główna 1, 00-001 Warszawa',
- * });
- */
-export const createClient = createAction<CreateClientInput, Client>(
-	async (input, { supabase, user }) => {
-		// Get user's organization_id from their profile
-		const { data: profile, error: profileError } = await supabase
-			.from('profiles')
-			.select('organization_id')
-			.eq('id', user.id)
-			.single();
-
-		if (profileError) throw profileError;
-
-		const { data, error } = await supabase
-			.from('clients')
-			.insert({
-				...input,
-				organization_id: profile.organization_id,
-			})
-			.select()
-			.single();
-
-		if (error) throw error;
-		return data;
-	},
-	{ schema: createClientSchema }
-);
+// ============================================================================
+// Queries
+// ============================================================================
 
 /**
  * Retrieves a single client by ID.
@@ -155,6 +119,65 @@ export const getClients = createAction<ClientFilter, PaginatedResult<Client>>(
 		);
 	},
 	{ schema: clientFilterSchema }
+);
+
+/** Lightweight client list for ComboBox selectors (no pagination) */
+export const getClientsForSelect = createAction<
+	void,
+	{ id: string; name: string }[]
+>(async (_input, { supabase }) => {
+	const { data, error } = await supabase
+		.from('clients')
+		.select('id, name')
+		.is('deleted_at', null)
+		.order('name');
+
+	if (error) throw error;
+	return data ?? [];
+});
+
+// ============================================================================
+// Mutations
+// ============================================================================
+
+/**
+ * Creates a new client.
+ *
+ * @param input - Client data (name, email, phone, address)
+ * @returns Created client record
+ *
+ * @example
+ * const result = await createClient({
+ *   name: 'Acme Corp',
+ *   email: 'contact@acme.com',
+ *   phone: '+48 123 456 789',
+ *   address: 'ul. Główna 1, 00-001 Warszawa',
+ * });
+ */
+export const createClient = createAction<CreateClientInput, Client>(
+	async (input, { supabase, user }) => {
+		// Get user's organization_id from their profile
+		const { data: profile, error: profileError } = await supabase
+			.from('profiles')
+			.select('organization_id')
+			.eq('id', user.id)
+			.single();
+
+		if (profileError) throw profileError;
+
+		const { data, error } = await supabase
+			.from('clients')
+			.insert({
+				...input,
+				organization_id: profile.organization_id,
+			})
+			.select()
+			.single();
+
+		if (error) throw error;
+		return data;
+	},
+	{ schema: createClientSchema }
 );
 
 /**
