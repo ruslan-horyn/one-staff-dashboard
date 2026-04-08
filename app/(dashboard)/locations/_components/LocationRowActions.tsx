@@ -84,6 +84,7 @@ export const LocationRowActions = ({ location }: LocationRowActionsProps) => {
 					<Button
 						variant="ghost"
 						size="icon-sm"
+						data-testid="row-actions"
 						aria-label={`Actions for ${location.name}`}
 					>
 						<MoreHorizontalIcon className="size-4" aria-hidden="true" />
