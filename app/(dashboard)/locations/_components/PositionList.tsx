@@ -11,9 +11,9 @@ import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { Position } from '@/types/position';
+import { usePositionActions } from '../_hooks/usePositionActions';
 import { PositionDeleteDialog } from './PositionDeleteDialog';
 import { PositionFormInline } from './PositionFormInline';
-import { usePositionActions } from '../_hooks/usePositionActions';
 
 interface PositionListProps {
 	workLocationId: string;
@@ -76,7 +76,7 @@ export const PositionList = ({ workLocationId }: PositionListProps) => {
 	return (
 		<div className="space-y-4">
 			{positions.length === 0 ? (
-				<p className="text-sm text-muted-foreground">
+				<p className="text-muted-foreground text-sm">
 					No positions yet. Add one to get started.
 				</p>
 			) : (
@@ -95,7 +95,7 @@ export const PositionList = ({ workLocationId }: PositionListProps) => {
 								/>
 							) : (
 								<>
-									<span className="flex-1 text-sm font-medium">
+									<span className="flex-1 font-medium text-sm">
 										{position.name}
 									</span>
 

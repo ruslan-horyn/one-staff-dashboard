@@ -39,22 +39,20 @@ export const PositionDeleteDialog = ({
 				<AlertDialogHeader>
 					<AlertDialogTitle>Delete Position</AlertDialogTitle>
 					<AlertDialogDescription>
-						Are you sure you want to delete{' '}
-						<strong>{position?.name}</strong>? This action cannot be undone.
+						Are you sure you want to delete <strong>{position?.name}</strong>?
+						This action cannot be undone.
 					</AlertDialogDescription>
 				</AlertDialogHeader>
 				{blockingError && (
 					<div
-						className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive"
+						className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-destructive text-sm"
 						role="alert"
 					>
 						{blockingError}
 					</div>
 				)}
 				<AlertDialogFooter>
-					<AlertDialogCancel disabled={isPending}>
-						Cancel
-					</AlertDialogCancel>
+					<AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
 					<DestructiveButton
 						onClick={handleConfirm}
 						disabled={!!blockingError}

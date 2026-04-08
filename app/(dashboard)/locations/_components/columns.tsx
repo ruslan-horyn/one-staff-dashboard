@@ -25,7 +25,9 @@ export const columns: ColumnDef<WorkLocation>[] = [
 		accessorKey: 'client_id',
 		header: 'Client',
 		cell: ({ row }) => {
-			const location = row.original as any;
+			const location = row.original as WorkLocation & {
+				clients?: { id: string; name: string };
+			};
 			return (
 				<span
 					className="block max-w-[150px] truncate"
