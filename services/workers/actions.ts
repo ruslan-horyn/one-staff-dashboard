@@ -99,7 +99,9 @@ export const getWorkers = createAction<WorkerFilter, PaginatedResult<Worker>>(
 		let dataQuery = supabase.from('temporary_workers').select('*');
 		dataQuery = applySoftDeleteFilter(dataQuery, includeDeleted);
 		dataQuery = applySearchFilter(dataQuery, searchFilter);
-		dataQuery = applySortFilter(dataQuery, sortBy, sortOrder);
+		// Map 'name' to 'first_name' since workers table has no 'name' column
+		const dbSortBy = sortBy === 'name' ? 'first_name' : sortBy;
+		dataQuery = applySortFilter(dataQuery, dbSortBy, sortOrder);
 		dataQuery = applyPaginationToQuery(dataQuery, page, pageSize);
 
 		// Execute both queries in parallel
