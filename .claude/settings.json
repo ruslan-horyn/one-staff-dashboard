@@ -1,33 +1,20 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
 	"permissions": {
 		"allow": [
-      "Bash(mkdir:*)",
-      "Bash(ls:*)",
-      "Bash(cat:*)",
-      "Bash(git log:*)",
-      "Bash(git status:*)",
-      "Bash(grep:*)",
-      "Bash(xargs:*)",
-      "Bash(tree:*)",
-      "Bash(pnpm tsc --noEmit)",
-      "Bash(pnpm exec tsc:*)",
-      "Bash(pnpm lint:*)",
-      "Bash(pnpm test:*)",
-      "Bash(find:*)",
-      "Bash(ls:*)",
-      "Bash(mkdir -p:*)",
-      "Bash(find:*)",
-      "Skill(*)"
-    ],
+			"Bash(pnpm:*)",
+			"Bash(git:*)",
+			"Bash(ls:*)",
+			"Bash(mkdir:*)",
+			"Bash(tree:*)",
+			"Bash(echo:*)",
+		],
 		"deny": [
-      "Reed(.env*)"
-    ],
+			"Read(.env*)"
+		],
 		"ask": [
-      "Bash(git add:*)", 
-      "Bash(git commit:*)", 
-      "Bash(mv:*)",
-      "Bash(rm -rf:*)",
-      "Bash(cp:*)"
-    ]
+			"Bash(rm -rf:*)",
+			"Bash(mv:*)"
+		]
 	}
 }
