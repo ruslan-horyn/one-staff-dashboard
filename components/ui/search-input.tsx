@@ -47,6 +47,7 @@ const SearchInputUI = ({
 			name="search"
 			autoComplete="off"
 			data-slot="input"
+			data-testid="search-input"
 			value={value}
 			onChange={(e) => onChange(e.target.value)}
 			placeholder={placeholder}

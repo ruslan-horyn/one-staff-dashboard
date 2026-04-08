@@ -31,6 +31,7 @@ export const DestructiveButton = ({
 	return (
 		<Button
 			type={type}
+			data-testid="confirm-delete"
 			variant="destructive"
 			size={size}
 			className={cn(className)}

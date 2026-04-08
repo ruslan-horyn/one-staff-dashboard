@@ -31,6 +31,7 @@ export const SubmitButton = ({
 	return (
 		<Button
 			type="submit"
+			data-testid="submit-button"
 			variant={variant}
 			size={size}
 			className={cn(className)}
