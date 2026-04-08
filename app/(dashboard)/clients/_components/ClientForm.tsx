@@ -19,9 +19,9 @@ import type { CreateClientInput } from '@/services/clients/schemas';
 
 interface ClientFormProps {
 	form: UseFormReturn<CreateClientInput>;
-	onSubmit: (data: CreateClientInput) => Promise<void>;
+	onSubmit: (data: CreateClientInput) => Promise<unknown>;
 	isPending: boolean;
-	isEdit: boolean;
+	submitLabel: string;
 	onCancel: () => void;
 }
 
@@ -29,7 +29,7 @@ export const ClientForm = ({
 	form,
 	onSubmit,
 	isPending,
-	isEdit,
+	submitLabel,
 	onCancel,
 }: ClientFormProps) => {
 	return (
@@ -119,7 +119,7 @@ export const ClientForm = ({
 						Cancel
 					</Button>
 					<SubmitButton isPending={isPending} loadingText="Saving...">
-						{isEdit ? 'Save Changes' : 'Add Client'}
+						{submitLabel}
 					</SubmitButton>
 				</DialogFooter>
 			</form>
