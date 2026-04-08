@@ -4,6 +4,26 @@ import type { PositionWithLocation } from './position';
 import type { Worker } from './worker';
 
 // ============================================================================
+// Lightweight Extended Types (for board view)
+// ============================================================================
+
+/** Minimal position info for assignment display */
+export interface AssignmentPositionInfo {
+	id: string;
+	name: string;
+	work_location_id: string;
+	work_location: {
+		id: string;
+		name: string;
+	};
+}
+
+/** Assignment with position and location info (for expanded row display) */
+export interface AssignmentWithPosition extends Assignment {
+	position: AssignmentPositionInfo | null;
+}
+
+// ============================================================================
 // Base Entity Types
 // ============================================================================
 

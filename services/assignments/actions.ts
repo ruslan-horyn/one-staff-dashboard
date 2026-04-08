@@ -1,6 +1,6 @@
 'use server';
 
-import type { Assignment } from '@/types/assignment';
+import type { Assignment, AssignmentWithPosition } from '@/types/assignment';
 import { createAction } from '../shared/action-wrapper';
 import {
 	type CancelAssignmentInput,
@@ -26,16 +26,34 @@ import {
  */
 export const getWorkerAssignments = createAction<
 	{ workerId: string },
-	Assignment[]
+	AssignmentWithPosition[]
 >(async (input, { supabase }) => {
 	const { data, error } = await supabase
 		.from('assignments')
-		.select('*')
+		.select(
+			'*, positions(id, name, work_location_id, work_locations(id, name))'
+		)
 		.eq('worker_id', input.workerId)
 		.order('start_at', { ascending: false });
 
 	if (error) throw error;
-	return data ?? [];
+
+	return (data ?? []).map((row) => ({
+		...row,
+		position: row.positions
+			? {
+					id: row.positions.id,
+					name: row.positions.name,
+					work_location_id: row.positions.work_location_id,
+					work_location: row.positions.work_locations
+						? {
+								id: row.positions.work_locations.id,
+								name: row.positions.work_locations.name,
+							}
+						: { id: '', name: 'Unknown' },
+				}
+			: null,
+	})) as AssignmentWithPosition[];
 });
 
 // ============================================================================
