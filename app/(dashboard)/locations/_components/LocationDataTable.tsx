@@ -9,8 +9,9 @@ import type { PaginatedResult } from '@/services/shared/pagination';
 import type { WorkLocation } from '@/types/work-location';
 
 import { AddLocationButton } from './AddLocationButton';
-import { LocationsProvider } from './LocationsProvider';
+import { PositionList } from './PositionList';
 import { columns } from './columns';
+import { LocationsProvider } from './LocationsProvider';
 
 export const LocationDataTable = ({
 	initialData,
@@ -26,7 +27,10 @@ export const LocationDataTable = ({
 	});
 
 	return (
-		<LocationsProvider onMutationSuccess={() => router.refresh()} clientsList={clientsList}>
+		<LocationsProvider
+			onMutationSuccess={() => router.refresh()}
+			clientsList={clientsList}
+		>
 			<div className="space-y-4">
 				<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 					<SearchInput
@@ -45,6 +49,9 @@ export const LocationDataTable = ({
 					onPaginationChange={tableState.onPaginationChange}
 					sorting={tableState.sorting}
 					onSortingChange={tableState.onSortingChange}
+					renderExpandedRow={(row) => (
+						<PositionList workLocationId={row.original.id} />
+					)}
 					emptyState={{
 						title: 'No work locations found',
 						description: 'Get started by adding your first work location.',
