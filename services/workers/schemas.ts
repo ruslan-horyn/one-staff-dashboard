@@ -94,6 +94,17 @@ export const workerFilterSchema = baseFilterSchema.extend({
 });
 
 // ============================================================================
+// Searchable and Sortable Columns
+// ============================================================================
+
+export const WORKER_SEARCHABLE_COLUMNS = [
+	'first_name',
+	'last_name',
+	'phone',
+] as const;
+export const WORKER_SORTABLE_COLUMNS = ['name', 'created_at'] as const;
+
+// ============================================================================
 // Type Exports
 // ============================================================================
 
