@@ -9,6 +9,14 @@ vi.mock('@/services/auth/actions', () => ({
 	signOut: vi.fn(),
 }));
 
+vi.mock('@/services/users/actions', () => ({
+	updateProfile: vi.fn(),
+}));
+
+vi.mock('@/app/(dashboard)/_components/ProfileDialog', () => ({
+	ProfileDialog: () => null,
+}));
+
 const mockPush = vi.fn();
 vi.mock('next/navigation', () => ({
 	useRouter: () => ({

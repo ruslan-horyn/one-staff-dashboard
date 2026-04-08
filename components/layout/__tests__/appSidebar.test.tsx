@@ -23,6 +23,10 @@ vi.mock('@/hooks/useIsMobile', () => ({
 	useIsMobile: () => false,
 }));
 
+vi.mock('@/services/users/actions', () => ({
+	updateProfile: vi.fn(),
+}));
+
 const defaultUser = {
 	firstName: 'John',
 	lastName: 'Doe',
@@ -141,8 +145,8 @@ describe('AppSidebar', () => {
 			const footerUserButton = userButtons[0].closest('button');
 			await user.click(footerUserButton!);
 
-			// Should show Profile and Sign out options
-			expect(screen.getByText('Profile')).toBeInTheDocument();
+			// Should show Edit Profile and Sign out options
+			expect(screen.getByText('Edit Profile')).toBeInTheDocument();
 			expect(screen.getByText('Sign out')).toBeInTheDocument();
 		});
 

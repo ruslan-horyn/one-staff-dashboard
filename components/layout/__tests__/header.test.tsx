@@ -19,6 +19,14 @@ vi.mock('@/services/auth/actions', () => ({
 	signOut: vi.fn(),
 }));
 
+vi.mock('@/services/users/actions', () => ({
+	updateProfile: vi.fn(),
+}));
+
+vi.mock('@/app/(dashboard)/_components/ProfileDialog', () => ({
+	ProfileDialog: () => null,
+}));
+
 const defaultUser = {
 	firstName: 'John',
 	lastName: 'Doe',

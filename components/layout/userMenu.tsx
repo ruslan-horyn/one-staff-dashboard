@@ -1,9 +1,9 @@
 'use client';
 
 import { ChevronUp, LogOut, User } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-
+import { useState } from 'react';
+import { ProfileDialog } from '@/app/(dashboard)/_components/ProfileDialog';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -31,6 +31,7 @@ interface UserMenuProps {
 
 export const UserMenu = ({ user }: UserMenuProps) => {
 	const router = useRouter();
+	const [profileOpen, setProfileOpen] = useState(false);
 	const { execute: executeSignOut, isPending: isSigningOut } = useServerAction(
 		signOut,
 		{
@@ -43,47 +44,53 @@ export const UserMenu = ({ user }: UserMenuProps) => {
 	const roleLabel = user.role === 'admin' ? 'Administrator' : 'Coordinator';
 
 	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger
-				className="flex items-center gap-2 rounded-md p-2 hover:bg-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-				aria-label="User menu"
-			>
-				<Avatar className="size-8">
-					<AvatarFallback className="text-xs">{initials}</AvatarFallback>
-				</Avatar>
-				<ChevronUp className="size-4 text-muted-foreground" />
-			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end" className="w-56">
-				<DropdownMenuLabel className="font-normal">
-					<div className="flex flex-col space-y-1">
-						<p className="font-medium text-sm leading-none">{fullName}</p>
-						<p className="text-muted-foreground text-xs leading-none">
-							{user.email}
-						</p>
-						<Badge variant="secondary" className="mt-1 w-fit text-xs">
-							{roleLabel}
-						</Badge>
-					</div>
-				</DropdownMenuLabel>
-				<DropdownMenuSeparator />
-				<DropdownMenuGroup>
-					<DropdownMenuItem asChild>
-						<Link href="/profile" className="flex cursor-pointer items-center">
-							<User className="mr-2 size-4" />
-							<span>Profile</span>
-						</Link>
-					</DropdownMenuItem>
-				</DropdownMenuGroup>
-				<DropdownMenuSeparator />
-				<DropdownMenuItem
-					variant="destructive"
-					onClick={executeSignOut}
-					disabled={isSigningOut}
+		<>
+			<DropdownMenu>
+				<DropdownMenuTrigger
+					className="flex items-center gap-2 rounded-md p-2 hover:bg-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+					aria-label="User menu"
 				>
-					<LogOut className="mr-2 size-4" />
-					<span>{isSigningOut ? 'Signing out...' : 'Sign out'}</span>
-				</DropdownMenuItem>
-			</DropdownMenuContent>
-		</DropdownMenu>
+					<Avatar className="size-8">
+						<AvatarFallback className="text-xs">{initials}</AvatarFallback>
+					</Avatar>
+					<ChevronUp className="size-4 text-muted-foreground" />
+				</DropdownMenuTrigger>
+				<DropdownMenuContent align="end" className="w-56">
+					<DropdownMenuLabel className="font-normal">
+						<div className="flex flex-col space-y-1">
+							<p className="font-medium text-sm leading-none">{fullName}</p>
+							<p className="text-muted-foreground text-xs leading-none">
+								{user.email}
+							</p>
+							<Badge variant="secondary" className="mt-1 w-fit text-xs">
+								{roleLabel}
+							</Badge>
+						</div>
+					</DropdownMenuLabel>
+					<DropdownMenuSeparator />
+					<DropdownMenuGroup>
+						<DropdownMenuItem onClick={() => setProfileOpen(true)}>
+							<User className="mr-2 size-4" />
+							<span>Edit Profile</span>
+						</DropdownMenuItem>
+					</DropdownMenuGroup>
+					<DropdownMenuSeparator />
+					<DropdownMenuItem
+						variant="destructive"
+						onClick={executeSignOut}
+						disabled={isSigningOut}
+					>
+						<LogOut className="mr-2 size-4" />
+						<span>{isSigningOut ? 'Signing out...' : 'Sign out'}</span>
+					</DropdownMenuItem>
+				</DropdownMenuContent>
+			</DropdownMenu>
+
+			<ProfileDialog
+				open={profileOpen}
+				onClose={() => setProfileOpen(false)}
+				user={user}
+			/>
+		</>
 	);
 };
