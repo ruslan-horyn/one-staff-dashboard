@@ -2,9 +2,9 @@
 
 import { toast } from 'sonner';
 import { useServerAction } from '@/hooks/useServerAction';
+import type { ActionError } from '@/services/shared/result';
 import { createWorkLocation } from '@/services/work-locations/actions';
 import { workLocationErrors } from '@/services/work-locations/error-handlers';
-import type { ActionError } from '@/services/shared/result';
 
 interface UseCreateLocationOptions {
 	onSuccess?: () => void;

@@ -141,6 +141,7 @@ export const LocationForm = ({
 					<Button
 						type="button"
 						variant="outline"
+						data-testid="cancel-button"
 						onClick={onCancel}
 						disabled={isPending}
 					>

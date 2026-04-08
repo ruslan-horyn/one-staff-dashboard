@@ -1,4 +1,7 @@
-import type { WorkLocationFilter, WorkLocationSortBy } from '@/services/work-locations/schemas';
+import type {
+	WorkLocationFilter,
+	WorkLocationSortBy,
+} from '@/services/work-locations/schemas';
 import { DEFAULT_PAGE_SIZE } from '@/types/common';
 
 interface RawSearchParams {
@@ -14,7 +17,9 @@ interface RawSearchParams {
  * Parses URL search params into a validated WorkLocationFilter object.
  * Provides safe defaults for invalid or missing values.
  */
-export const parseLocationParams = (params: RawSearchParams): WorkLocationFilter => {
+export const parseLocationParams = (
+	params: RawSearchParams
+): WorkLocationFilter => {
 	const page = params.page ? Number.parseInt(params.page, 10) : 1;
 	const pageSize = params.pageSize
 		? Number.parseInt(params.pageSize, 10)

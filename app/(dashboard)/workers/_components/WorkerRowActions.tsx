@@ -81,6 +81,7 @@ export const WorkerRowActions = ({ worker }: { worker: Worker }) => {
 					<Button
 						variant="ghost"
 						size="icon-sm"
+						data-testid="row-actions"
 						aria-label={`Actions for ${workerName}`}
 					>
 						<MoreHorizontalIcon className="size-4" aria-hidden="true" />

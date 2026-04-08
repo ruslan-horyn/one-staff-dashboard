@@ -1,8 +1,8 @@
 import { PageContainer } from '@/components/layout/pageContainer';
 import { PageHeader } from '@/components/layout/pageHeader';
 import { getClientsForSelect } from '@/services/clients/actions';
-import { getWorkLocations } from '@/services/work-locations/actions';
 import { isSuccess } from '@/services/shared/result';
+import { getWorkLocations } from '@/services/work-locations/actions';
 import { DEFAULT_PAGE_SIZE } from '@/types/common';
 
 import { LocationDataTable } from './_components/LocationDataTable';
@@ -31,7 +31,9 @@ const EMPTY_DATA = {
 	},
 };
 
-export default async function LocationsPage({ searchParams }: LocationsPageProps) {
+export default async function LocationsPage({
+	searchParams,
+}: LocationsPageProps) {
 	const params = await searchParams;
 	const filter = parseLocationParams(params);
 
@@ -41,7 +43,9 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
 		getClientsForSelect(),
 	]);
 
-	const initialData = isSuccess(locationsResult) ? locationsResult.data : EMPTY_DATA;
+	const initialData = isSuccess(locationsResult)
+		? locationsResult.data
+		: EMPTY_DATA;
 	const clientsList = isSuccess(clientsResult) ? clientsResult.data : [];
 
 	return (

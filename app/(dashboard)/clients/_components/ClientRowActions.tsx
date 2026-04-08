@@ -80,6 +80,7 @@ export const ClientRowActions = ({ client }: { client: Client }) => {
 					<Button
 						variant="ghost"
 						size="icon-sm"
+						data-testid="row-actions"
 						aria-label={`Actions for ${client.name}`}
 					>
 						<MoreHorizontalIcon className="size-4" aria-hidden="true" />

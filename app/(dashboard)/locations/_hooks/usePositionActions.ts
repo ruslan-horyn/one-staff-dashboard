@@ -15,9 +15,8 @@ import type { Position } from '@/types/position';
 export function usePositionActions(workLocationId: string) {
 	const [positions, setPositions] = useState<Position[]>([]);
 
-	const { execute: fetchPositions, isPending: isLoading } = useServerAction(
-		getPositions
-	);
+	const { execute: fetchPositions, isPending: isLoading } =
+		useServerAction(getPositions);
 	const { execute: executeCreate, isPending: isCreating } = useServerAction(
 		createPosition,
 		{

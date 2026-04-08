@@ -18,6 +18,7 @@ export const BoardRowActions = ({ worker }: BoardRowActionsProps) => {
 			<Button
 				variant="outline"
 				size="sm"
+				data-testid="assign-worker"
 				onClick={() => modal.open(worker)}
 				aria-label={`Assign ${worker.first_name} ${worker.last_name}`}
 			>

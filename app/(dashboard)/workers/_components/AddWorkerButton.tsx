@@ -40,7 +40,7 @@ export const AddWorkerButton = () => {
 
 	return (
 		<>
-			<Button onClick={openDialog}>
+			<Button data-testid="add-worker" onClick={openDialog}>
 				<PlusIcon className="mr-2 size-4" aria-hidden="true" />
 				Add Worker
 			</Button>

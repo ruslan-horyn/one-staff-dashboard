@@ -9,9 +9,9 @@ import type { PaginatedResult } from '@/services/shared/pagination';
 import type { WorkLocation } from '@/types/work-location';
 
 import { AddLocationButton } from './AddLocationButton';
-import { PositionList } from './PositionList';
 import { columns } from './columns';
 import { LocationsProvider } from './LocationsProvider';
+import { PositionList } from './PositionList';
 
 export const LocationDataTable = ({
 	initialData,

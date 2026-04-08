@@ -40,7 +40,7 @@ export const AddClientButton = () => {
 
 	return (
 		<>
-			<Button onClick={openDialog}>
+			<Button data-testid="add-client" onClick={openDialog}>
 				<PlusIcon className="mr-2 size-4" aria-hidden="true" />
 				Add Client
 			</Button>

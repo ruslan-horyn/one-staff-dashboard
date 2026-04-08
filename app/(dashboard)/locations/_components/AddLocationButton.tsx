@@ -11,8 +11,8 @@ import {
 } from '@/components/ui/dialog';
 import { useDialogFocusRestore } from '@/hooks/useDialogFocusRestore';
 import { useModalState } from '@/hooks/useModalState';
-import { useLocationForm } from '../_hooks/useLocationForm';
 import { useCreateLocation } from '../_hooks/useCreateLocation';
+import { useLocationForm } from '../_hooks/useLocationForm';
 import { LocationForm } from './LocationForm';
 import { useLocationsContext } from './LocationsProvider';
 
@@ -44,7 +44,7 @@ export const AddLocationButton = ({
 
 	return (
 		<>
-			<Button onClick={openDialog}>
+			<Button data-testid="add-location" onClick={openDialog}>
 				<PlusIcon className="mr-2 size-4" aria-hidden="true" />
 				Add Location
 			</Button>

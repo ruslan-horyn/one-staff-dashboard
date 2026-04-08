@@ -94,6 +94,7 @@ export const WorkerForm = ({
 					<Button
 						type="button"
 						variant="outline"
+						data-testid="cancel-button"
 						onClick={onCancel}
 						disabled={isPending}
 					>
