@@ -87,6 +87,21 @@ export const workLocationFilterSchema = baseFilterSchema.extend({
 });
 
 // ============================================================================
+// Query Configuration
+// ============================================================================
+
+/** Searchable columns for work locations list (OCP - extend here to add new searchable fields) */
+export const WORK_LOCATION_SEARCHABLE_COLUMNS = [
+	'name',
+	'address',
+	'email',
+	'phone',
+] as const;
+
+/** Sortable columns for work locations list */
+export const WORK_LOCATION_SORTABLE_COLUMNS = ['name', 'created_at'] as const;
+
+// ============================================================================
 // Type Exports
 // ============================================================================
 
