@@ -18,7 +18,7 @@ setup('authenticate', async ({ page }) => {
 	// Submit form
 	await page.getByRole('button', { name: /sign in/i }).click();
 
-	// Wait for redirect to home (successful login)
+	// Wait for redirect to home (successful login) — allow extra time for auth flow
 	await expect(page).toHaveURL(/^http:\/\/localhost:3000\/?$/);
 
 	// Save signed-in state to file
