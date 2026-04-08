@@ -33,8 +33,26 @@ export class ClientsPage extends CrudPage {
 	}
 
 	/**
-	 * Fill the client form fields
+	 * Override submitForm to wait for the table to stabilize when the dialog
+	 * closes successfully (validation passed). When validation fails the dialog
+	 * stays open and we skip the extra wait so tests can assert on error state.
 	 */
+	override async submitForm(): Promise<void> {
+		await super.submitForm();
+		// Only wait for table reload when the dialog actually closed (success path)
+		const dialogVisible = await this.formDialog.isVisible();
+		if (!dialogVisible) {
+			await this.waitForTableLoad();
+		}
+	}
+
+	/** Override confirmDelete to wait for table to stabilize after deletion */
+	override async confirmDelete(): Promise<void> {
+		await super.confirmDelete();
+		await this.deleteDialog.waitFor({ state: 'hidden' });
+		await this.waitForTableLoad();
+	}
+
 	async fillClientForm(data: ClientFormData): Promise<void> {
 		if (data.name !== undefined) await this.nameInput.fill(data.name);
 		if (data.email !== undefined) await this.emailInput.fill(data.email);
