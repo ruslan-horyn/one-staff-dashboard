@@ -171,7 +171,7 @@ describe('ResetPasswordForm', () => {
 			await user.click(getSubmitButton());
 
 			expect(
-				screen.getByRole('button', { name: /updating/i })
+				await screen.findByRole('button', { name: /updating/i })
 			).toBeInTheDocument();
 		});
 

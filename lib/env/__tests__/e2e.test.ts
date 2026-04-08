@@ -139,7 +139,7 @@ describe('getE2ESupabaseConfig', () => {
 
 		const config = getE2ESupabaseConfig();
 
-		expect(config.siteUrl).toBe('http://localhost:3000');
+		expect(config.siteUrl).toBe('http://localhost:5100');
 	});
 
 	it('returns undefined for missing Supabase config', () => {

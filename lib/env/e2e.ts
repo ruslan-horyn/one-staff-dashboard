@@ -21,7 +21,7 @@ function resolveSupabaseKey(): string | undefined {
 }
 
 function resolveSiteUrl(): string {
-	return process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+	return process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:5100';
 }
 
 /**
