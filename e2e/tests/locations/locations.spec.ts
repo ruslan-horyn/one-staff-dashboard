@@ -103,6 +103,8 @@ test.describe('Work Locations Management', () => {
 			await expect(locationsPage.formDialog).toBeHidden();
 			await locationsPage.waitForToast(/location created/i);
 
+			// Search to ensure the row is visible (table may be paginated)
+			await locationsPage.searchItems(locationData.name);
 			await expect(locationsPage.getRow(locationData.name)).toBeVisible({
 				timeout: 10000,
 			});
@@ -121,6 +123,9 @@ test.describe('Work Locations Management', () => {
 
 			await expect(locationsPage.formDialog).toBeHidden();
 			await locationsPage.waitForToast(/location created/i);
+
+			// Search to ensure the row is visible (table may be paginated)
+			await locationsPage.searchItems(minData.name);
 			await expect(locationsPage.getRow(minData.name)).toBeVisible({
 				timeout: 10000,
 			});
@@ -163,6 +168,9 @@ test.describe('Work Locations Management', () => {
 			await expect(locationsPage.formDialog).toBeHidden();
 			await locationsPage.waitForToast(/location created/i);
 
+			// Search to ensure the row is on the current page (table may be paginated)
+			await locationsPage.searchItems(locationData.name);
+
 			// Edit the location
 			await locationsPage.editItem(locationData.name);
 
@@ -186,6 +194,9 @@ test.describe('Work Locations Management', () => {
 			await expect(locationsPage.formDialog).toBeHidden();
 			await locationsPage.waitForToast(/location created/i);
 
+			// Search to ensure the row is on the current page (table may be paginated)
+			await locationsPage.searchItems(locationData.name);
+
 			const updatedName = `Updated Loc ${Date.now()}`;
 
 			await locationsPage.editItem(locationData.name);
@@ -196,6 +207,8 @@ test.describe('Work Locations Management', () => {
 			await expect(locationsPage.formDialog).toBeHidden();
 			await locationsPage.waitForToast(/location updated/i);
 
+			// Search for the updated name to ensure it's visible after pagination
+			await locationsPage.searchItems(updatedName);
 			await expect(locationsPage.getRow(updatedName)).toBeVisible({
 				timeout: 10000,
 			});
@@ -215,6 +228,9 @@ test.describe('Work Locations Management', () => {
 			await locationsPage.submitForm();
 			await expect(locationsPage.formDialog).toBeHidden();
 			await locationsPage.waitForToast(/location created/i);
+
+			// Search to ensure the row is on the current page (table may be paginated)
+			await locationsPage.searchItems(locationData.name);
 
 			await locationsPage.deleteItem(locationData.name);
 
@@ -237,6 +253,9 @@ test.describe('Work Locations Management', () => {
 			await expect(locationsPage.formDialog).toBeHidden();
 			await locationsPage.waitForToast(/location created/i);
 
+			// Search to ensure the row is on the current page (table may be paginated)
+			await locationsPage.searchItems(locationData.name);
+
 			await locationsPage.deleteItem(locationData.name);
 
 			const responsePromise = page.waitForResponse(
@@ -248,10 +267,13 @@ test.describe('Work Locations Management', () => {
 			await expect(locationsPage.deleteDialog).toBeHidden();
 			await locationsPage.waitForToast(/location deleted/i);
 
+			// Wait for table to refresh after deletion
+			await locationsPage.waitForTableLoad();
+
 			const matchingRows = locationsPage.table
 				.getByRole('row')
 				.filter({ hasText: locationData.name });
-			await expect(matchingRows).toHaveCount(0);
+			await expect(matchingRows).toHaveCount(0, { timeout: 10000 });
 		});
 
 		test('should cancel deletion on cancel', async () => {
@@ -266,6 +288,9 @@ test.describe('Work Locations Management', () => {
 			await locationsPage.submitForm();
 			await expect(locationsPage.formDialog).toBeHidden();
 			await locationsPage.waitForToast(/location created/i);
+
+			// Search to ensure the row is on the current page (table may be paginated)
+			await locationsPage.searchItems(locationData.name);
 
 			await locationsPage.deleteItem(locationData.name);
 			await locationsPage.cancelDelete();
@@ -314,6 +339,9 @@ test.describe('Work Locations Management', () => {
 			await expect(locationsPage.formDialog).toBeHidden();
 			await locationsPage.waitForToast(/location created/i);
 
+			// Search to ensure the row is on the current page (table may be paginated)
+			await locationsPage.searchItems(locationData.name);
+
 			// Expand the row
 			await locationsPage.expandRow(locationData.name);
 
@@ -336,14 +364,18 @@ test.describe('Work Locations Management', () => {
 			await expect(locationsPage.formDialog).toBeHidden();
 			await locationsPage.waitForToast(/location created/i);
 
+			// Search to ensure the row is on the current page (table may be paginated)
+			await locationsPage.searchItems(locationData.name);
+
 			// Expand row and add a position
 			await locationsPage.expandRow(locationData.name);
 			const positionName = `Pos-${Date.now()}`;
 			await locationsPage.addPosition(positionName);
 
 			// Position should appear in the list
+			await locationsPage.waitForToast(/position created/i);
 			await expect(locationsPage.page.getByText(positionName)).toBeVisible({
-				timeout: 5000,
+				timeout: 10000,
 			});
 		});
 	});
