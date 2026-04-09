@@ -140,22 +140,12 @@ test.describe('Board', () => {
 			await boardPage.expandWorkerRow(testWorkerName);
 
 			// Assignment panel should be visible — either assignments or "No assignments" text
-			const assignmentPanel = boardPage.page.locator(
-				'[class*="rounded-md border border-border"]'
-			);
+			const assignmentPanel = await boardPage.waitForAssignmentPanel();
 			const noAssignments = boardPage.page.getByText(
 				/no assignments for this worker/i
 			);
 
-			await Promise.race([
-				assignmentPanel
-					.first()
-					.waitFor({ state: 'visible' })
-					.catch(() => {}),
-				noAssignments.waitFor({ state: 'visible' }).catch(() => {}),
-			]);
-
-			const panelVisible = await assignmentPanel.first().isVisible();
+			const panelVisible = await assignmentPanel.isVisible();
 			const noAssignmentsVisible = await noAssignments.isVisible();
 			expect(panelVisible || noAssignmentsVisible).toBeTruthy();
 		});

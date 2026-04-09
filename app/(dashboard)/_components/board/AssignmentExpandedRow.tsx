@@ -130,7 +130,7 @@ export const AssignmentExpandedRow = ({
 
 	return (
 		<>
-			<div className="space-y-2">
+			<div className="space-y-2" data-testid="assignment-panel">
 				{assignments.map((assignment) => (
 					<div
 						key={assignment.id}

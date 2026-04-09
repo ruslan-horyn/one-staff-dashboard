@@ -17,7 +17,7 @@ export class BoardPage extends BasePage {
 		this.emptyState = page.getByText(/no .+ found/i);
 		// Use data-slot="dialog-content" to target the main Assign Worker dialog
 		// and avoid strict-mode conflict with Radix popover (role="dialog") from DateTimePicker
-		this.assignDialog = page.locator('[data-slot="dialog-content"]');
+		this.assignDialog = page.locator('[data-slot="dialog-content"]').first();
 		this.assignDialogTitle = this.assignDialog.getByRole('heading');
 	}
 
@@ -88,6 +88,7 @@ export class BoardPage extends BasePage {
 		const dayLabel = tomorrow.getDate().toString();
 		await this.page
 			.locator('[role="gridcell"]')
+			.filter({ hasNot: this.page.locator('[aria-disabled="true"]') })
 			.getByText(dayLabel, { exact: true })
 			.first()
 			.click();
@@ -106,6 +107,20 @@ export class BoardPage extends BasePage {
 			.filter({ hasText: workerName })
 			.first();
 		await row.getByRole('button', { name: /expand row/i }).click();
+	}
+
+	async waitForAssignmentPanel(): Promise<Locator> {
+		const panel = this.page.getByTestId('assignment-panel');
+		const noAssignments = this.page.getByText(
+			/no assignments for this worker/i
+		);
+
+		await Promise.race([
+			panel.waitFor({ state: 'visible' }).catch(() => {}),
+			noAssignments.waitFor({ state: 'visible' }).catch(() => {}),
+		]);
+
+		return panel;
 	}
 
 	async waitForToast(message: string | RegExp): Promise<void> {
