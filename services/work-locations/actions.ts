@@ -184,16 +184,7 @@ export const createWorkLocation = createAction<
 	CreateWorkLocationInput,
 	WorkLocation
 >(
-	async (input, { supabase, user }) => {
-		// Get user's organization_id from their profile
-		const { data: profile, error: profileError } = await supabase
-			.from('profiles')
-			.select('organization_id')
-			.eq('id', user.id)
-			.single();
-
-		if (profileError) throw profileError;
-
+	async (input, { supabase }) => {
 		const { data, error } = await supabase
 			.from('work_locations')
 			.insert({
@@ -202,7 +193,6 @@ export const createWorkLocation = createAction<
 				address: input.address,
 				email: input.email || null,
 				phone: input.phone || null,
-				organization_id: profile.organization_id,
 			})
 			.select()
 			.single();

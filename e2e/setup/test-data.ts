@@ -97,3 +97,38 @@ export const specialSearchChars = [
 	'Test "Quote" Client',
 	'Client <special>',
 ] as const;
+
+// ============================================================================
+// Work Location Test Data
+// ============================================================================
+
+export const createLocationTestData = () => {
+	const timestamp = Date.now();
+	return {
+		name: `E2E Location ${timestamp}`,
+		address: `${timestamp} Test Street, Warsaw`,
+		email: `loc-${timestamp}@test.com`,
+		phone: '+48222333444',
+	};
+};
+
+export const createMinimalLocationTestData = () => {
+	const timestamp = Date.now();
+	return {
+		name: `Min Loc ${timestamp}`,
+		address: 'Test Address 1',
+	};
+};
+
+// ============================================================================
+// Worker Test Data
+// ============================================================================
+
+export const createWorkerTestData = () => {
+	const timestamp = Date.now();
+	return {
+		firstName: `E2E-${timestamp}`,
+		lastName: `Worker-${timestamp}`,
+		phone: `+48${String(timestamp).slice(-9)}`,
+	};
+};
