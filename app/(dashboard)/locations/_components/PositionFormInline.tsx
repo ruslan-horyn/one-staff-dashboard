@@ -57,8 +57,14 @@ export const PositionFormInline = ({
 				onKeyDown={handleKeyDown}
 				className="flex-1"
 				autoComplete="off"
+				data-testid="position-name-input"
 			/>
-			<Button type="submit" disabled={isPending} size="sm">
+			<Button
+				type="submit"
+				disabled={isPending}
+				size="sm"
+				data-testid="save-position"
+			>
 				{isPending ? 'Saving...' : 'Save'}
 			</Button>
 			<Button

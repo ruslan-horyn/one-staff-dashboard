@@ -27,8 +27,8 @@ export class LocationsPage extends CrudPage {
 		this.clientSelect = this.formDialog.getByLabel('Client');
 		this.nameInput = this.formDialog.getByLabel('Name');
 		this.addressInput = this.formDialog.getByLabel('Address');
-		this.emailInput = this.formDialog.getByLabel(/email/i);
-		this.phoneInput = this.formDialog.getByLabel(/phone/i);
+		this.emailInput = this.formDialog.getByLabel('Email (Optional)');
+		this.phoneInput = this.formDialog.getByLabel('Phone (Optional)');
 	}
 
 	async fillLocationForm(data: LocationFormData): Promise<void> {
@@ -52,7 +52,7 @@ export class LocationsPage extends CrudPage {
 	async addPosition(positionName: string): Promise<void> {
 		const addBtn = this.page.getByRole('button', { name: /add position/i });
 		await addBtn.click();
-		await this.page.getByPlaceholder(/position name/i).fill(positionName);
-		await this.page.getByRole('button', { name: /^save$/i }).click();
+		await this.page.getByTestId('position-name-input').fill(positionName);
+		await this.page.getByTestId('save-position').click();
 	}
 }
