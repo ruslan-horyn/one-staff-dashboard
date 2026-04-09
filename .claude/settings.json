@@ -7,7 +7,7 @@
 			"Bash(ls:*)",
 			"Bash(mkdir:*)",
 			"Bash(tree:*)",
-			"Bash(echo:*)",
+			"Bash(echo:*)"
 		],
 		"deny": [
 			"Read(.env*)"
