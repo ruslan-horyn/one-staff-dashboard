@@ -74,6 +74,8 @@ test.describe('Workers Management', () => {
 			await workersPage.waitForToast(/worker created/i);
 
 			const fullName = workersPage.getFullName(workerData);
+			// Search to ensure the row is visible (table may be paginated)
+			await workersPage.searchItems(workerData.firstName);
 			await expect(workersPage.getRow(fullName)).toBeVisible({
 				timeout: 10000,
 			});
@@ -114,6 +116,9 @@ test.describe('Workers Management', () => {
 
 			const fullName = workersPage.getFullName(workerData);
 
+			// Search to ensure the row is visible (table may be paginated)
+			await workersPage.searchItems(workerData.firstName);
+
 			// Open edit dialog
 			await workersPage.editItem(fullName);
 
@@ -136,6 +141,8 @@ test.describe('Workers Management', () => {
 			const fullName = workersPage.getFullName(workerData);
 			const updatedFirstName = `Updated-${Date.now()}`;
 
+			// Search to ensure the row is visible (table may be paginated)
+			await workersPage.searchItems(workerData.firstName);
 			await workersPage.editItem(fullName);
 			await workersPage.firstNameInput.clear();
 			await workersPage.firstNameInput.fill(updatedFirstName);
@@ -144,6 +151,8 @@ test.describe('Workers Management', () => {
 			await expect(workersPage.formDialog).toBeHidden();
 			await workersPage.waitForToast(/worker updated/i);
 
+			// Search for the updated name to ensure it's visible after pagination
+			await workersPage.searchItems(updatedFirstName);
 			const updatedFullName = `${updatedFirstName} ${workerData.lastName}`;
 			await expect(workersPage.getRow(updatedFullName)).toBeVisible({
 				timeout: 10000,
@@ -163,6 +172,8 @@ test.describe('Workers Management', () => {
 
 			const fullName = workersPage.getFullName(workerData);
 
+			// Search to ensure the row is on the current page (table may be paginated)
+			await workersPage.searchItems(workerData.firstName);
 			await workersPage.deleteItem(fullName);
 
 			await expect(workersPage.deleteDialog).toBeVisible();
@@ -182,6 +193,8 @@ test.describe('Workers Management', () => {
 
 			const fullName = workersPage.getFullName(workerData);
 
+			// Search to ensure the row is on the current page (table may be paginated)
+			await workersPage.searchItems(workerData.firstName);
 			await workersPage.deleteItem(fullName);
 
 			const responsePromise = page.waitForResponse(
@@ -193,10 +206,13 @@ test.describe('Workers Management', () => {
 			await expect(workersPage.deleteDialog).toBeHidden();
 			await workersPage.waitForToast(/worker deleted/i);
 
+			// Wait for table to refresh after deletion
+			await workersPage.waitForTableLoad();
+
 			const matchingRows = workersPage.table
 				.getByRole('row')
 				.filter({ hasText: fullName });
-			await expect(matchingRows).toHaveCount(0);
+			await expect(matchingRows).toHaveCount(0, { timeout: 10000 });
 		});
 
 		test('should cancel deletion on cancel', async () => {
@@ -210,6 +226,8 @@ test.describe('Workers Management', () => {
 
 			const fullName = workersPage.getFullName(workerData);
 
+			// Search to ensure the row is on the current page (table may be paginated)
+			await workersPage.searchItems(workerData.firstName);
 			await workersPage.deleteItem(fullName);
 			await workersPage.cancelDelete();
 
