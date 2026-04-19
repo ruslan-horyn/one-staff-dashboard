@@ -1,4 +1,5 @@
 import type { Locator, Page } from '@playwright/test';
+import { routes } from '@/lib/routes';
 import { BasePage } from './base.page';
 
 /**
@@ -55,7 +56,7 @@ export class LoginPage extends BasePage {
 	 * Navigate to the login page
 	 */
 	async goto(): Promise<void> {
-		await this.page.goto('/login');
+		await this.page.goto(routes.login);
 	}
 
 	/**
@@ -96,7 +97,7 @@ export class LoginPage extends BasePage {
 		password: string
 	): Promise<void> {
 		await this.login(email, password);
-		await this.page.waitForURL(/\/board$/);
+		await this.page.waitForURL(new RegExp(`${routes.board}$`));
 	}
 
 	/**

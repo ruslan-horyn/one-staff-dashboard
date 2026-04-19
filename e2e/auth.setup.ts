@@ -1,4 +1,5 @@
 import { expect, test as setup } from '@playwright/test';
+import { routes } from '@/lib/routes';
 import { testUser } from './setup/test-data';
 
 const authFile = 'e2e/.auth/user.json';
@@ -9,7 +10,7 @@ const authFile = 'e2e/.auth/user.json';
  */
 setup('authenticate', async ({ page }) => {
 	// Navigate to login page
-	await page.goto('/login');
+	await page.goto(routes.login);
 
 	// Fill in credentials
 	await page.getByLabel('Email').fill(testUser.email);
@@ -19,7 +20,7 @@ setup('authenticate', async ({ page }) => {
 	await page.getByRole('button', { name: /sign in/i }).click();
 
 	// Wait for redirect to board (successful login) — allow extra time for auth flow
-	await expect(page).toHaveURL(/\/board$/);
+	await expect(page).toHaveURL(new RegExp(`${routes.board}$`));
 
 	// Save signed-in state to file
 	await page.context().storageState({ path: authFile });

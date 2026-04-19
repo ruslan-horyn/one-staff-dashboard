@@ -1,4 +1,5 @@
 import { expect, type Locator, type Page } from '@playwright/test';
+import { routes } from '@/lib/routes';
 import { BasePage } from './base.page';
 
 export class BoardPage extends BasePage {
@@ -22,7 +23,7 @@ export class BoardPage extends BasePage {
 	}
 
 	async goto(): Promise<void> {
-		await this.page.goto('/board');
+		await this.page.goto(routes.board);
 	}
 
 	async isVisible(): Promise<boolean> {
