@@ -109,7 +109,7 @@ describe('AppSidebar', () => {
 			renderWithProvider(<AppSidebar user={defaultUser} />);
 
 			const boardLink = screen.getByRole('link', { name: /board/i });
-			expect(boardLink).toHaveAttribute('href', '/');
+			expect(boardLink).toHaveAttribute('href', '/board');
 		});
 
 		it('has correct href for Workers link', () => {
@@ -129,9 +129,9 @@ describe('AppSidebar', () => {
 		it('marks current route as active', () => {
 			renderWithProvider(<AppSidebar user={defaultUser} />);
 
-			// Board should be active since pathname is '/'
+			// Board should NOT be active since pathname is '/' and board href is '/board'
 			const boardLink = screen.getByRole('link', { name: /board/i });
-			expect(boardLink).toHaveAttribute('aria-current', 'page');
+			expect(boardLink).not.toHaveAttribute('aria-current');
 		});
 	});
 

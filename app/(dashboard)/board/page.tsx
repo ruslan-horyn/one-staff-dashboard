@@ -1,10 +1,10 @@
+import { BoardDataTable } from '@/app/(dashboard)/_components/board/BoardDataTable';
+import { parseWorkerParams } from '@/app/(dashboard)/workers/_utils/parseWorkerParams';
 import { PageContainer } from '@/components/layout/pageContainer';
 import { PageHeader } from '@/components/layout/pageHeader';
 import { isSuccess } from '@/services/shared/result';
 import { getWorkers } from '@/services/workers/actions';
 import { DEFAULT_PAGE_SIZE } from '@/types/common';
-import { BoardDataTable } from './_components/board/BoardDataTable';
-import { parseWorkerParams } from './workers/_utils/parseWorkerParams';
 
 interface BoardPageProps {
 	searchParams: Promise<{

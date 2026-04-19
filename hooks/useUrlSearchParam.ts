@@ -1,5 +1,6 @@
 'use client';
 
+import type { Route } from 'next';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -65,9 +66,9 @@ export function useUrlSearchParam(
 			const newUrl = `${pathname}${query ? `?${query}` : ''}`;
 
 			if (replace) {
-				router.replace(newUrl);
+				router.replace(newUrl as Route);
 			} else {
-				router.push(newUrl);
+				router.push(newUrl as Route);
 			}
 		},
 		[param, pathname, searchParams, replace, router]

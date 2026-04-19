@@ -18,12 +18,7 @@ interface SidebarNavProps extends ComponentProps<'nav'> {
 export const SidebarNav = ({ items, ...navProps }: SidebarNavProps) => {
 	const pathname = usePathname();
 
-	const isActive = (href: string) => {
-		if (href === '/') {
-			return pathname === '/';
-		}
-		return pathname.startsWith(href);
-	};
+	const isActive = (href: string) => pathname.startsWith(href);
 
 	return (
 		<nav {...navProps}>

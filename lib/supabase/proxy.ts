@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 import type { Database } from '@/types/database';
 import { env } from '../env';
+import { routes } from '../routes';
 
 // Public marketing pages — bypass auth entirely (no session refresh, no redirect)
 const marketingPaths = ['/', '/privacy'];
@@ -70,14 +71,14 @@ export async function updateSession(request: NextRequest) {
 	// Redirect to login if user is not authenticated and route is protected
 	if (!user && !isPublicRoute) {
 		const url = request.nextUrl.clone();
-		url.pathname = '/login';
+		url.pathname = routes.login;
 		return NextResponse.redirect(url);
 	}
 
 	// Redirect authenticated users away from auth pages
 	if (user && isPublicRoute) {
 		const url = request.nextUrl.clone();
-		url.pathname = '/';
+		url.pathname = routes.board;
 		return NextResponse.redirect(url);
 	}
 

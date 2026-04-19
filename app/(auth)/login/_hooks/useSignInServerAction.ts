@@ -1,15 +1,17 @@
+import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
 
 import { useServerAction } from '@/hooks/useServerAction';
+import { routes } from '@/lib/routes';
 import { signIn } from '@/services/auth/actions';
 
 interface UseSignInServerActionOptions {
-	redirectTo?: string;
+	redirectTo?: Route;
 	onSuccess?: () => void;
 }
 
 export const useSignInServerAction = ({
-	redirectTo = '/',
+	redirectTo = routes.board,
 	onSuccess,
 }: UseSignInServerActionOptions = {}) => {
 	const router = useRouter();

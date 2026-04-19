@@ -1,5 +1,6 @@
 'use client';
 
+import type { Route } from 'next';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
 
@@ -68,7 +69,9 @@ function useTableParams(options: UseTableParamsOptions = {}): TableParams {
 				}
 			}
 
-			router.push(`${pathname}?${params.toString()}`, { scroll: false });
+			router.push(`${pathname}?${params.toString()}` as Route, {
+				scroll: false,
+			});
 		},
 		[router, pathname, searchParams]
 	);
@@ -105,7 +108,7 @@ function useTableParams(options: UseTableParamsOptions = {}): TableParams {
 	);
 
 	const resetParams = useCallback(() => {
-		router.push(pathname, { scroll: false });
+		router.push(pathname as Route, { scroll: false });
 	}, [router, pathname]);
 
 	return {
