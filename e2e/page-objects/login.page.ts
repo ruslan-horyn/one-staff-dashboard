@@ -96,7 +96,7 @@ export class LoginPage extends BasePage {
 		password: string
 	): Promise<void> {
 		await this.login(email, password);
-		await this.page.waitForURL(/^http:\/\/localhost:5100\/?$/);
+		await this.page.waitForURL(/\/board$/);
 	}
 
 	/**

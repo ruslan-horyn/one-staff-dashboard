@@ -22,7 +22,7 @@ export class BoardPage extends BasePage {
 	}
 
 	async goto(): Promise<void> {
-		await this.page.goto('/');
+		await this.page.goto('/board');
 	}
 
 	async isVisible(): Promise<boolean> {
