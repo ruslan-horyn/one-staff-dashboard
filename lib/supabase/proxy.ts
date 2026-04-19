@@ -4,6 +4,9 @@ import { type NextRequest, NextResponse } from 'next/server';
 import type { Database } from '@/types/database';
 import { env } from '../env';
 
+// Public marketing pages — bypass auth entirely (no session refresh, no redirect)
+const marketingPaths = ['/', '/privacy'];
+
 /**
  * Updates the Supabase session by refreshing the auth token.
  * This function should be called in the proxy to keep sessions alive.
@@ -12,9 +15,16 @@ import { env } from '../env';
  * 1. Creates a Supabase client with cookie access from the request
  * 2. Calls getUser() to validate and refresh the JWT token
  * 3. Redirects unauthenticated users to /login for protected routes
- * 4. Returns response with updated cookies
+ * 4. Redirects authenticated users away from public auth pages
+ * 5. Returns response with updated cookies (except for marketing paths which bypass entirely)
  */
 export async function updateSession(request: NextRequest) {
+	const pathname = request.nextUrl.pathname;
+
+	if (marketingPaths.includes(pathname)) {
+		return NextResponse.next();
+	}
+
 	let supabaseResponse = NextResponse.next({ request });
 
 	const supabase = createServerClient<Database>(
@@ -44,7 +54,7 @@ export async function updateSession(request: NextRequest) {
 		data: { user },
 	} = await supabase.auth.getUser();
 
-	// Define public routes that don't require authentication
+	// Auth flow pages — authenticated users are redirected away, but session is still refreshed
 	const publicRoutes = [
 		'/login',
 		'/register',
