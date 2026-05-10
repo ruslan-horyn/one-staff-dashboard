@@ -292,6 +292,10 @@ function handleActionError(error: unknown): FailedActionResult {
 		return failure(mapped.code, mapped.message, mapped.details);
 	}
 
+	if (isRateLimitError(error)) {
+		return failure(ErrorCodes.RATE_LIMIT, error.message);
+	}
+
 	// Standard Error with message
 	if (error instanceof Error) {
 		// Log in development
@@ -343,6 +347,15 @@ function isZodError(error: unknown): error is ZodError {
 		error !== null &&
 		'issues' in error &&
 		Array.isArray((error as Record<string, unknown>).issues)
+	);
+}
+
+function isRateLimitError(
+	error: unknown
+): error is Error & { code: 'RATE_LIMIT' } {
+	return (
+		error instanceof Error &&
+		(error as Error & { code?: unknown }).code === 'RATE_LIMIT'
 	);
 }
 

@@ -51,6 +51,8 @@ export const ErrorCodes = {
 	INTERNAL_ERROR: 'INTERNAL_ERROR',
 	/** Database operation failed unexpectedly */
 	DATABASE_ERROR: 'DATABASE_ERROR',
+	/** Too many requests in a given time window */
+	RATE_LIMIT: 'RATE_LIMIT',
 } as const;
 
 /** Type representing any valid error code */

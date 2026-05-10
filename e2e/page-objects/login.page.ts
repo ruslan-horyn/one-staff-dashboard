@@ -1,5 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 import { routes } from '@/lib/routes';
+import { escapeRegExp } from '../utils/regex';
 import { BasePage } from './base.page';
 
 /**
@@ -97,7 +98,7 @@ export class LoginPage extends BasePage {
 		password: string
 	): Promise<void> {
 		await this.login(email, password);
-		await this.page.waitForURL(new RegExp(`${routes.board}$`));
+		await this.page.waitForURL(new RegExp(`${escapeRegExp(routes.board)}$`));
 	}
 
 	/**
