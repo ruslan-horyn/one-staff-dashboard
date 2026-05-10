@@ -18,6 +18,7 @@ function initNavigation() {
 	const menuLinks = document.querySelectorAll('.nav-menu-links a');
 
 	function toggleMenu() {
+		if (!hamburger || !menu || !overlay) return;
 		hamburger.classList.toggle('active');
 		menu.classList.toggle('active');
 		overlay.classList.toggle('active');
@@ -27,6 +28,7 @@ function initNavigation() {
 	}
 
 	function closeMenu() {
+		if (!hamburger || !menu || !overlay) return;
 		hamburger.classList.remove('active');
 		menu.classList.remove('active');
 		overlay.classList.remove('active');
@@ -145,11 +147,16 @@ function initDashboardAnimations() {
 }
 
 function animateValue(element) {
-	const target = parseInt(element.textContent, 10);
+	const raw = Number.parseInt(
+		(element.textContent ?? '').replace(/\s/g, ''),
+		10
+	);
+	if (Number.isNaN(raw) || raw <= 0) return;
+
+	const target = raw;
 	let current = 0;
 	const increment = target / 30;
-	const duration = 1000;
-	const stepTime = duration / 30;
+	const stepTime = 1000 / 30;
 
 	const timer = setInterval(() => {
 		current += increment;
@@ -197,7 +204,10 @@ function initTabSwitching() {
 document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
 	anchor.addEventListener('click', function (e) {
 		e.preventDefault();
-		const target = document.querySelector(this.getAttribute('href'));
+		const href = this.getAttribute('href');
+		// Whitelist: only allow #id-style anchors to prevent selector injection
+		if (!href || !/^#[\w-]+$/.test(href)) return;
+		const target = document.querySelector(href);
 
 		if (target) {
 			const offsetTop = target.offsetTop - 100;

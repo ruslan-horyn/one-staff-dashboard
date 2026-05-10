@@ -2,7 +2,7 @@
 
 import type { Route } from 'next';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 
 import { DEFAULT_PAGE_SIZE } from '@/types/common';
 
@@ -34,28 +34,26 @@ function useTableParams(options: UseTableParamsOptions = {}): TableParams {
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
 
-	const page = useMemo(() => {
-		const pageParam = searchParams.get('page');
-		const parsed = pageParam ? Number.parseInt(pageParam, 10) : 1;
-		return Number.isNaN(parsed) || parsed < 1 ? 1 : parsed;
-	}, [searchParams]);
+	const pageParam = searchParams.get('page');
+	const parsedPage = pageParam ? Number.parseInt(pageParam, 10) : 1;
+	const page = Number.isNaN(parsedPage) || parsedPage < 1 ? 1 : parsedPage;
 
-	const pageSize = useMemo(() => {
-		const pageSizeParam = searchParams.get('pageSize');
-		const parsed = pageSizeParam
-			? Number.parseInt(pageSizeParam, 10)
-			: defaultPageSize;
-		return Number.isNaN(parsed) || parsed < 1 ? defaultPageSize : parsed;
-	}, [searchParams, defaultPageSize]);
+	const pageSizeParam = searchParams.get('pageSize');
+	const parsedPageSize = pageSizeParam
+		? Number.parseInt(pageSizeParam, 10)
+		: defaultPageSize;
+	const pageSize =
+		Number.isNaN(parsedPageSize) || parsedPageSize < 1
+			? defaultPageSize
+			: parsedPageSize;
 
-	const sortBy = useMemo(() => {
-		return searchParams.get('sortBy') ?? defaultSortBy ?? null;
-	}, [searchParams, defaultSortBy]);
+	const sortBy = searchParams.get('sortBy') ?? defaultSortBy ?? null;
 
-	const sortOrder = useMemo(() => {
-		const order = searchParams.get('sortOrder');
-		return order === 'asc' || order === 'desc' ? order : defaultSortOrder;
-	}, [searchParams, defaultSortOrder]);
+	const sortOrderParam = searchParams.get('sortOrder');
+	const sortOrder: 'asc' | 'desc' =
+		sortOrderParam === 'asc' || sortOrderParam === 'desc'
+			? sortOrderParam
+			: defaultSortOrder;
 
 	const updateParams = useCallback(
 		(updates: Record<string, string | null>) => {

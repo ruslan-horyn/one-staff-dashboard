@@ -1,45 +1,28 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
-import type { ActionResult } from '@/services/shared/result';
-import { subscribeToWaitlistSchema } from './schemas';
+import { createAction } from '@/services/shared/action-wrapper';
+import {
+	type SubscribeToWaitlistInput,
+	subscribeToWaitlistSchema,
+} from './schemas';
 
-export async function subscribeToWaitlist(
-	input: unknown
-): Promise<ActionResult<{ email: string }>> {
-	const parsed = subscribeToWaitlistSchema.safeParse(input);
+export const subscribeToWaitlist = createAction<
+	SubscribeToWaitlistInput,
+	{ email: string }
+>(
+	async ({ email, source }, { supabase }) => {
+		const { error } = await supabase
+			.from('waitlist_subscribers')
+			.insert({ email, source });
 
-	if (!parsed.success) {
-		return {
-			success: false,
-			error: {
-				code: 'VALIDATION_ERROR',
-				message: parsed.error.issues[0]?.message ?? 'Nieprawidłowe dane',
-			},
-		};
-	}
+		// Silently succeed for duplicate emails — don't leak whether email is already registered
+		if (error?.code === '23505') {
+			return { email };
+		}
 
-	const { email, source } = parsed.data;
-	const supabase = await createClient();
+		if (error) throw error;
 
-	const { error } = await supabase
-		.from('waitlist_subscribers')
-		.insert({ email, source });
-
-	// Silently succeed for duplicate emails — don't leak whether email is already registered
-	if (error?.code === '23505') {
-		return { success: true, data: { email } };
-	}
-
-	if (error) {
-		return {
-			success: false,
-			error: {
-				code: 'DATABASE_ERROR',
-				message: 'Nie udało się zapisać. Spróbuj ponownie.',
-			},
-		};
-	}
-
-	return { success: true, data: { email } };
-}
+		return { email };
+	},
+	{ schema: subscribeToWaitlistSchema, requireAuth: false }
+);

@@ -7,14 +7,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
 	return (
-		<main
-			style={{
-				maxWidth: '720px',
-				margin: '0 auto',
-				padding: '2rem 1rem',
-				lineHeight: 1.7,
-			}}
-		>
+		<main className="mx-auto max-w-[720px] px-4 py-8 leading-[1.7]">
 			<Link href="/">← Wróć na stronę główną</Link>
 
 			<h1>Polityka prywatności</h1>

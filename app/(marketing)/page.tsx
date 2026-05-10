@@ -1,3 +1,5 @@
+import Script from 'next/script';
+
 import { CtaSection } from '@/components/marketing/CtaSection';
 import { FeaturesSection } from '@/components/marketing/FeaturesSection';
 import { Footer } from '@/components/marketing/Footer';
@@ -6,12 +8,15 @@ import { PricingSection } from '@/components/marketing/PricingSection';
 
 export default function LandingPage() {
 	return (
-		<main>
-			<HeroSection />
-			<FeaturesSection />
-			<PricingSection />
-			<CtaSection />
-			<Footer />
-		</main>
+		<>
+			<main>
+				<HeroSection />
+				<FeaturesSection />
+				<PricingSection />
+				<CtaSection />
+				<Footer />
+			</main>
+			<Script src="/landing-script.js" strategy="lazyOnload" />
+		</>
 	);
 }

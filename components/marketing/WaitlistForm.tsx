@@ -1,10 +1,15 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
-import { useState } from 'react';
-import { subscribeToWaitlist } from '@/services/waitlist/actions';
+import { useId, useState } from 'react';
+import { useForm } from 'react-hook-form';
 
-type Status = 'idle' | 'loading' | 'success' | 'error';
+import { subscribeToWaitlist } from '@/services/waitlist/actions';
+import {
+	type SubscribeToWaitlistInput,
+	subscribeToWaitlistSchema,
+} from '@/services/waitlist/schemas';
 
 interface WaitlistFormProps {
 	source?: string;
@@ -15,48 +20,65 @@ export const WaitlistForm = ({
 	source = 'form',
 	className,
 }: WaitlistFormProps) => {
-	const [email, setEmail] = useState('');
-	const [status, setStatus] = useState<Status>('idle');
-	const [errorMessage, setErrorMessage] = useState('');
+	const [isSuccess, setIsSuccess] = useState(false);
+	const emailId = useId();
+	const errorId = useId();
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		setStatus('loading');
+	const {
+		register,
+		handleSubmit,
+		setError,
+		clearErrors,
+		formState: { errors, isSubmitting },
+	} = useForm<SubscribeToWaitlistInput>({
+		resolver: zodResolver(subscribeToWaitlistSchema),
+		defaultValues: { email: '', source },
+	});
 
-		const result = await subscribeToWaitlist({ email, source });
+	const onSubmit = async (data: SubscribeToWaitlistInput) => {
+		clearErrors('email');
+		const result = await subscribeToWaitlist(data);
 
 		if (result.success) {
-			setStatus('success');
+			setIsSuccess(true);
 		} else {
-			setStatus('error');
-			setErrorMessage(result.error.message);
+			setError('email', { message: result.error.message });
 		}
 	};
 
-	if (status === 'success') {
-		return <p className={className}>Zapisano! Damy Ci znać, gdy ruszymy.</p>;
+	if (isSuccess) {
+		return (
+			<p className={className}>
+				You&apos;re on the list! We&apos;ll let you know when we launch.
+			</p>
+		);
 	}
 
 	return (
-		<form onSubmit={handleSubmit} className={className}>
-			<label htmlFor="waitlist-email" className="sr-only">
+		<form onSubmit={handleSubmit(onSubmit)} className={className}>
+			<label htmlFor={emailId} className="sr-only">
 				Email
 			</label>
 			<input
-				id="waitlist-email"
+				id={emailId}
 				type="email"
-				value={email}
-				onChange={(e) => setEmail(e.target.value)}
-				placeholder="twoj@email.com"
-				required
+				placeholder="your@email.com"
+				disabled={isSubmitting}
+				aria-invalid={!!errors.email}
+				aria-describedby={errors.email ? errorId : undefined}
+				{...register('email')}
 			/>
-			<button type="submit" disabled={status === 'loading'}>
-				{status === 'loading' ? 'Zapisywanie...' : 'Zapisz się'}
+			<button type="submit" disabled={isSubmitting}>
+				{isSubmitting ? 'Saving...' : 'Join waitlist'}
 			</button>
-			{status === 'error' && <p role="alert">{errorMessage}</p>}
+			{errors.email && (
+				<p id={errorId} role="alert">
+					{errors.email.message}
+				</p>
+			)}
 			<p>
-				Twoje dane przetwarzamy zgodnie z{' '}
-				<Link href="/privacy">Polityką prywatności</Link>.
+				We process your data in accordance with our{' '}
+				<Link href="/privacy">Privacy Policy</Link>.
 			</p>
 		</form>
 	);

@@ -9,22 +9,18 @@ import { subscribeToWaitlist } from '@/services/waitlist/actions';
 
 const mockInsert = vi.fn();
 const mockFrom = vi.fn(() => ({ insert: mockInsert }));
-const mockSupabase = { from: mockFrom };
+const mockSupabase = { from: mockFrom, auth: { getUser: vi.fn() } };
 
-beforeEach(() => {
-	mockInsert.mockClear();
-	mockInsert.mockResolvedValue({ error: null });
-	mockFrom.mockReturnValue({ insert: mockInsert });
-	vi.mocked(createClient).mockResolvedValue(
-		mockSupabase as unknown as ReturnType<typeof createClient> extends Promise<
-			infer T
-		>
-			? T
-			: never
-	);
-});
+vi.mocked(createClient).mockResolvedValue(
+	mockSupabase as unknown as Awaited<ReturnType<typeof createClient>>
+);
 
 describe('subscribeToWaitlist', () => {
+	beforeEach(() => {
+		// restoreMocks: true only covers vi.spyOn — clear standalone vi.fn() call history manually
+		mockInsert.mockClear();
+		mockFrom.mockClear();
+	});
 	it('inserts email and returns success', async () => {
 		mockInsert.mockResolvedValue({ error: null });
 		const result = await subscribeToWaitlist({
@@ -63,8 +59,14 @@ describe('subscribeToWaitlist', () => {
 	});
 
 	it('returns database error for unexpected failures', async () => {
+		// Provide all PostgrestError fields so error is properly mapped by createAction HOF
 		mockInsert.mockResolvedValue({
-			error: { code: '500', message: 'unexpected error' },
+			error: {
+				code: '500',
+				message: 'unexpected error',
+				details: null,
+				hint: '',
+			},
 		});
 		const result = await subscribeToWaitlist({ email: 'test@example.com' });
 		expect(result).toMatchObject({

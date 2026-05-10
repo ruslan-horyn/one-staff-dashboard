@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Script from 'next/script';
 import './landing.css';
 
 export const metadata: Metadata = {
@@ -13,10 +12,5 @@ export default function MarketingLayout({
 }: {
 	children: React.ReactNode;
 }) {
-	return (
-		<>
-			{children}
-			<Script src="/landing-script.js" strategy="afterInteractive" />
-		</>
-	);
+	return <>{children}</>;
 }

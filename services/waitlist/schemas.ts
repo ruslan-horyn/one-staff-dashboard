@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const subscribeToWaitlistSchema = z.object({
-	email: z.string().email('Nieprawidłowy adres email'),
+	email: z.string().email('Invalid email address'),
 	source: z.string().max(100).optional(),
 });
 

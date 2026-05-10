@@ -5,8 +5,28 @@ import type { Database } from '@/types/database';
 import { env } from '../env';
 import { routes } from '../routes';
 
-// Public marketing pages — bypass auth entirely (no session refresh, no redirect)
-const marketingPaths = ['/', '/privacy'];
+// Marketing route group prefix — bypass auth entirely (no session refresh, no redirect).
+// Matches / and any path that belongs to app/(marketing)/ route group.
+const MARKETING_PREFIXES = [
+	'/_next',
+	'/favicon',
+	'/landing-script',
+	'/privacy',
+];
+
+function normalizePath(pathname: string): string {
+	try {
+		return new URL(pathname, 'http://x').pathname;
+	} catch {
+		return pathname;
+	}
+}
+
+function isMarketingPath(pathname: string): boolean {
+	const normalized = normalizePath(pathname);
+	if (normalized === '/') return true;
+	return MARKETING_PREFIXES.some((prefix) => normalized.startsWith(prefix));
+}
 
 /**
  * Updates the Supabase session by refreshing the auth token.
@@ -22,7 +42,7 @@ const marketingPaths = ['/', '/privacy'];
 export async function updateSession(request: NextRequest) {
 	const pathname = request.nextUrl.pathname;
 
-	if (marketingPaths.includes(pathname)) {
+	if (isMarketingPath(pathname)) {
 		return NextResponse.next();
 	}
 
@@ -53,16 +73,17 @@ export async function updateSession(request: NextRequest) {
 	// A simple mistake could make it hard to debug random logouts
 	const {
 		data: { user },
-	} = await supabase.auth.getUser();
+	} = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
 
 	// Auth flow pages — authenticated users are redirected away, but session is still refreshed
+	// Use routes as single source of truth; /auth and /signup are Supabase callback paths
 	const publicRoutes = [
-		'/login',
-		'/register',
+		routes.login,
+		routes.register,
+		routes.forgotPassword,
+		routes.resetPassword,
 		'/auth',
 		'/signup',
-		'/forgot-password',
-		'/reset-password',
 	];
 	const isPublicRoute = publicRoutes.some((route) =>
 		request.nextUrl.pathname.startsWith(route)

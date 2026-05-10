@@ -14,14 +14,14 @@ describe('WaitlistForm', () => {
 		render(<WaitlistForm />);
 		expect(screen.getByRole('textbox', { name: /email/i })).toBeInTheDocument();
 		expect(
-			screen.getByRole('button', { name: /zapisz się/i })
+			screen.getByRole('button', { name: /join waitlist/i })
 		).toBeInTheDocument();
 	});
 
 	it('renders privacy notice with link to /privacy', () => {
 		render(<WaitlistForm />);
 		expect(
-			screen.getByRole('link', { name: /polityką prywatności/i })
+			screen.getByRole('link', { name: /privacy policy/i })
 		).toHaveAttribute('href', '/privacy');
 	});
 
@@ -36,10 +36,12 @@ describe('WaitlistForm', () => {
 			screen.getByRole('textbox', { name: /email/i }),
 			'test@example.com'
 		);
-		await userEvent.click(screen.getByRole('button', { name: /zapisz się/i }));
+		await userEvent.click(
+			screen.getByRole('button', { name: /join waitlist/i })
+		);
 
 		await waitFor(() => {
-			expect(screen.getByText(/zapisano/i)).toBeInTheDocument();
+			expect(screen.getByText(/you're on the list/i)).toBeInTheDocument();
 		});
 	});
 
@@ -54,10 +56,12 @@ describe('WaitlistForm', () => {
 			screen.getByRole('textbox', { name: /email/i }),
 			'dupe@example.com'
 		);
-		await userEvent.click(screen.getByRole('button', { name: /zapisz się/i }));
+		await userEvent.click(
+			screen.getByRole('button', { name: /join waitlist/i })
+		);
 
 		await waitFor(() => {
-			expect(screen.getByText(/zapisano/i)).toBeInTheDocument();
+			expect(screen.getByText(/you're on the list/i)).toBeInTheDocument();
 		});
 	});
 
@@ -66,7 +70,7 @@ describe('WaitlistForm', () => {
 			success: false,
 			error: {
 				code: 'DATABASE_ERROR',
-				message: 'Nie udało się zapisać. Spróbuj ponownie.',
+				message: 'Failed to save. Please try again.',
 			},
 		});
 
@@ -75,10 +79,12 @@ describe('WaitlistForm', () => {
 			screen.getByRole('textbox', { name: /email/i }),
 			'test@example.com'
 		);
-		await userEvent.click(screen.getByRole('button', { name: /zapisz się/i }));
+		await userEvent.click(
+			screen.getByRole('button', { name: /join waitlist/i })
+		);
 
 		await waitFor(() => {
-			expect(screen.getByText(/nie udało się/i)).toBeInTheDocument();
+			expect(screen.getByText(/failed to save/i)).toBeInTheDocument();
 		});
 	});
 
@@ -99,8 +105,58 @@ describe('WaitlistForm', () => {
 			screen.getByRole('textbox', { name: /email/i }),
 			'test@example.com'
 		);
-		await userEvent.click(screen.getByRole('button', { name: /zapisz się/i }));
+		await userEvent.click(
+			screen.getByRole('button', { name: /join waitlist/i })
+		);
 
 		expect(screen.getByRole('button')).toBeDisabled();
+	});
+
+	it('passes source prop to subscribeToWaitlist', async () => {
+		vi.mocked(subscribeToWaitlist).mockResolvedValue({
+			success: true,
+			data: { email: 'test@example.com' },
+		});
+
+		render(<WaitlistForm source="landing" />);
+		await userEvent.type(
+			screen.getByRole('textbox', { name: /email/i }),
+			'test@example.com'
+		);
+		await userEvent.click(
+			screen.getByRole('button', { name: /join waitlist/i })
+		);
+
+		await waitFor(() => {
+			expect(subscribeToWaitlist).toHaveBeenCalledWith(
+				expect.objectContaining({ source: 'landing' })
+			);
+		});
+	});
+
+	it('associates error message with input via aria-describedby', async () => {
+		vi.mocked(subscribeToWaitlist).mockResolvedValue({
+			success: false,
+			error: {
+				code: 'DATABASE_ERROR',
+				message: 'Failed to save. Please try again.',
+			},
+		});
+
+		render(<WaitlistForm />);
+		await userEvent.type(
+			screen.getByRole('textbox', { name: /email/i }),
+			'test@example.com'
+		);
+		await userEvent.click(
+			screen.getByRole('button', { name: /join waitlist/i })
+		);
+
+		await waitFor(() => {
+			const input = screen.getByRole('textbox', { name: /email/i });
+			const alert = screen.getByRole('alert');
+			expect(input).toHaveAttribute('aria-invalid', 'true');
+			expect(input).toHaveAttribute('aria-describedby', alert.id);
+		});
 	});
 });
