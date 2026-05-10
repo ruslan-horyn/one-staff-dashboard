@@ -188,7 +188,7 @@ test.describe('Client Management', () => {
 			// Verify delete dialog opened
 			await expect(clientsPage.deleteDialog).toBeVisible();
 			await expect(
-				clientsPage.deleteDialog.getByText(/are you sure/i)
+				clientsPage.deleteDialog.getByTestId('delete-confirmation-message')
 			).toBeVisible();
 		});
 

@@ -61,6 +61,10 @@ Use these scopes to indicate the affected area:
 | `db` | Database/Supabase |
 | `deps` | Dependencies |
 | `config` | Configuration files |
+| `marketing` | Public marketing pages and landing page |
+| `waitlist` | Waitlist subscription module |
+| `security` | Security hardening across modules |
+| `infra` | Infrastructure (CI, husky, build, env) |
 
 ## Breaking Changes
 

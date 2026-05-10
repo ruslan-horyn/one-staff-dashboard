@@ -66,19 +66,27 @@ export const WaitlistForm = ({
 				disabled={isSubmitting}
 				aria-invalid={!!errors.email}
 				aria-describedby={errors.email ? errorId : undefined}
+				data-testid="waitlist-email-input"
 				{...register('email')}
 			/>
-			<button type="submit" disabled={isSubmitting}>
+			<button
+				type="submit"
+				disabled={isSubmitting}
+				data-testid="waitlist-submit-button"
+			>
 				{isSubmitting ? 'Saving...' : 'Join waitlist'}
 			</button>
 			{errors.email && (
-				<p id={errorId} role="alert">
+				<p id={errorId} role="alert" data-testid="waitlist-error-alert">
 					{errors.email.message}
 				</p>
 			)}
 			<p>
 				We process your data in accordance with our{' '}
-				<Link href="/privacy">Privacy Policy</Link>.
+				<Link href="/privacy" data-testid="waitlist-privacy-link">
+					Privacy Policy
+				</Link>
+				.
 			</p>
 		</form>
 	);

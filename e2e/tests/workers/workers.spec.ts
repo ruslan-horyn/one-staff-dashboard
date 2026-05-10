@@ -178,7 +178,7 @@ test.describe('Workers Management', () => {
 
 			await expect(workersPage.deleteDialog).toBeVisible();
 			await expect(
-				workersPage.deleteDialog.getByText(/are you sure/i)
+				workersPage.deleteDialog.getByTestId('delete-confirmation-message')
 			).toBeVisible();
 		});
 

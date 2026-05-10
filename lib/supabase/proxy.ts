@@ -23,7 +23,7 @@ function isPublicMarketingDataPathname(pathname: string): boolean {
 	return /^\/_next\/data\/[^/]+\/(index|privacy)\.json$/.test(pathname);
 }
 
-function isPublicPathname(pathname: string): boolean {
+export function isPublicPathname(pathname: string): boolean {
 	const normalized = normalizePathname(pathname);
 	if (PUBLIC_MARKETING_PATHS.has(normalized)) return true;
 	if (PUBLIC_STATIC_PATHS.has(normalized)) return true;

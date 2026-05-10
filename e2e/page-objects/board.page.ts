@@ -15,7 +15,7 @@ export class BoardPage extends BasePage {
 		this.heading = page.getByRole('heading', { name: 'Board', level: 1 });
 		this.searchInput = page.getByTestId('search-input');
 		this.table = page.getByRole('table');
-		this.emptyState = page.getByText(/no .+ found/i);
+		this.emptyState = page.getByTestId('empty-state');
 		// Use data-slot="dialog-content" to target the main Assign Worker dialog
 		// and avoid strict-mode conflict with Radix popover (role="dialog") from DateTimePicker
 		this.assignDialog = page.locator('[data-slot="dialog-content"]').first();
@@ -95,7 +95,7 @@ export class BoardPage extends BasePage {
 			.click();
 
 		// Click Apply to confirm
-		await this.page.getByRole('button', { name: 'Apply' }).click();
+		await this.page.getByTestId('datetime-apply-button').click();
 	}
 
 	async submitAssign(): Promise<void> {
@@ -107,14 +107,12 @@ export class BoardPage extends BasePage {
 			.getByRole('row')
 			.filter({ hasText: workerName })
 			.first();
-		await row.getByRole('button', { name: /expand row/i }).click();
+		await row.getByTestId('expand-row-button').click();
 	}
 
 	async waitForAssignmentPanel(): Promise<Locator> {
 		const panel = this.page.getByTestId('assignment-panel');
-		const noAssignments = this.page.getByText(
-			/no assignments for this worker/i
-		);
+		const noAssignments = this.page.getByTestId('no-assignments-message');
 
 		await Promise.race([
 			panel.waitFor({ state: 'visible' }).catch(() => {}),

@@ -64,7 +64,7 @@ test.describe('Login Page', () => {
 			);
 
 			// Verify we're no longer on the login page and see the dashboard heading
-			await expect(page.getByRole('heading', { name: 'Board' })).toBeVisible();
+			await expect(page.getByTestId('board-heading')).toBeVisible();
 		});
 
 		test('should show loading state during submission', async ({ page }) => {

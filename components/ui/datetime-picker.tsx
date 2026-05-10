@@ -260,7 +260,12 @@ export function DateTimePicker({
 								Clear
 							</Button>
 						)}
-						<Button size="sm" onClick={handleApply} disabled={!tempDate}>
+						<Button
+							size="sm"
+							onClick={handleApply}
+							disabled={!tempDate}
+							data-testid="datetime-apply-button"
+						>
 							Apply
 						</Button>
 					</div>
