@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/card';
 
 import { routes } from '@/lib/routes';
+import { isSafeInternalRedirect } from '@/lib/utils/safe-redirect';
 import { getSession } from '@/services/shared/auth';
 import { LoginForm } from './_components/LoginForm';
 
@@ -37,6 +38,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 	}
 
 	const params = await searchParams;
+	const safeRedirect = isSafeInternalRedirect(params.redirect)
+		? (params.redirect as Route)
+		: undefined;
 
 	return (
 		<Card>
@@ -53,7 +57,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 			</CardHeader>
 			<CardContent>
 				<LoginForm
-					redirectTo={params.redirect as Route | undefined}
+					redirectTo={safeRedirect}
 					message={params.message}
 					initialError={params.error}
 					supabaseErrorCode={params.error_code}
