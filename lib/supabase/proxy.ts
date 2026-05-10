@@ -5,14 +5,12 @@ import type { Database } from '@/types/database';
 import { env } from '../env';
 import { routes } from '../routes';
 
-// Marketing route group prefix — bypass auth entirely (no session refresh, no redirect).
-// Matches / and any path that belongs to app/(marketing)/ route group.
-const MARKETING_PREFIXES = [
-	'/_next',
-	'/favicon',
-	'/landing-script',
-	'/privacy',
-];
+// Public marketing pages — exact match (per spec) so we never accidentally expose
+// neighbouring routes like /privacy-internal or /privacysettings.
+const MARKETING_PATHS = new Set<string>(['/', '/privacy']);
+
+// Static asset prefixes that always bypass auth (Next.js internals + landing JS).
+const ASSET_PREFIXES = ['/_next', '/favicon', '/landing-script'];
 
 function normalizePath(pathname: string): string {
 	try {
@@ -24,8 +22,8 @@ function normalizePath(pathname: string): string {
 
 function isMarketingPath(pathname: string): boolean {
 	const normalized = normalizePath(pathname);
-	if (normalized === '/') return true;
-	return MARKETING_PREFIXES.some((prefix) => normalized.startsWith(prefix));
+	if (MARKETING_PATHS.has(normalized)) return true;
+	return ASSET_PREFIXES.some((prefix) => normalized.startsWith(prefix));
 }
 
 /**
@@ -33,11 +31,12 @@ function isMarketingPath(pathname: string): boolean {
  * This function should be called in the proxy to keep sessions alive.
  *
  * What it does:
- * 1. Creates a Supabase client with cookie access from the request
- * 2. Calls getUser() to validate and refresh the JWT token
- * 3. Redirects unauthenticated users to /login for protected routes
- * 4. Redirects authenticated users away from public auth pages
- * 5. Returns response with updated cookies (except for marketing paths which bypass entirely)
+ * 1. Bypasses entirely for public marketing paths (/, /privacy) and static assets
+ * 2. Creates a Supabase client with cookie access from the request
+ * 3. Calls getUser() to validate and refresh the JWT token
+ * 4. Redirects unauthenticated users to /login for protected routes
+ * 5. Redirects authenticated users away from public auth pages
+ * 6. Returns response with updated cookies
  */
 export async function updateSession(request: NextRequest) {
 	const pathname = request.nextUrl.pathname;

@@ -4,6 +4,12 @@ vi.mock('@/lib/supabase/server', () => ({
 	createClient: vi.fn(),
 }));
 
+vi.mock('next/headers', () => ({
+	headers: vi.fn(async () => ({
+		get: vi.fn(() => '127.0.0.1'),
+	})),
+}));
+
 import { createClient } from '@/lib/supabase/server';
 import { subscribeToWaitlist } from '@/services/waitlist/actions';
 
@@ -73,5 +79,39 @@ describe('subscribeToWaitlist', () => {
 			success: false,
 			error: { code: 'DATABASE_ERROR' },
 		});
+	});
+
+	it('normalizes email to lowercase before insert', async () => {
+		mockInsert.mockResolvedValue({ error: null });
+		await subscribeToWaitlist({
+			email: 'Test@Example.COM',
+			source: 'hero',
+		});
+		expect(mockInsert).toHaveBeenCalledWith({
+			email: 'test@example.com',
+			source: 'hero',
+		});
+	});
+
+	it('rejects email longer than 254 characters', async () => {
+		const tooLong = `${'a'.repeat(250)}@x.pl`; // 256 chars
+		const result = await subscribeToWaitlist({ email: tooLong });
+		expect(result).toMatchObject({
+			success: false,
+			error: { code: 'VALIDATION_ERROR' },
+		});
+		expect(mockInsert).not.toHaveBeenCalled();
+	});
+
+	it('rejects empty source string', async () => {
+		const result = await subscribeToWaitlist({
+			email: 'test@example.com',
+			source: '',
+		});
+		expect(result).toMatchObject({
+			success: false,
+			error: { code: 'VALIDATION_ERROR' },
+		});
+		expect(mockInsert).not.toHaveBeenCalled();
 	});
 });
