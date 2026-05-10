@@ -6,7 +6,10 @@ import { env } from '../env';
 import { routes } from '../routes';
 
 const PUBLIC_MARKETING_PATHS = new Set<string>([routes.home, routes.privacy]);
-const PUBLIC_ASSET_PREFIXES = ['/_next', '/favicon', '/landing-script'];
+const PUBLIC_STATIC_PATHS = new Set<string>([
+	'/favicon.ico',
+	'/landing-script.js',
+]);
 
 function normalizePathname(pathname: string): string {
 	try {
@@ -16,16 +19,36 @@ function normalizePathname(pathname: string): string {
 	}
 }
 
-function isPublicMarketingPathname(pathname: string): boolean {
+function isPublicMarketingDataPathname(pathname: string): boolean {
+	return /^\/_next\/data\/[^/]+\/(index|privacy)\.json$/.test(pathname);
+}
+
+function isPublicPathname(pathname: string): boolean {
 	const normalized = normalizePathname(pathname);
 	if (PUBLIC_MARKETING_PATHS.has(normalized)) return true;
-	return PUBLIC_ASSET_PREFIXES.some((prefix) => normalized.startsWith(prefix));
+	if (PUBLIC_STATIC_PATHS.has(normalized)) return true;
+	if (isPublicMarketingDataPathname(normalized)) return true;
+	return false;
+}
+
+function isPublicAuthRoutePathname(pathname: string): boolean {
+	const publicAuthRoutes = [
+		routes.login,
+		routes.register,
+		routes.forgotPassword,
+		routes.resetPassword,
+		'/auth',
+		'/signup',
+	];
+	return publicAuthRoutes.some(
+		(route) => pathname === route || pathname.startsWith(`${route}/`)
+	);
 }
 
 export async function updateSession(request: NextRequest) {
 	const pathname = request.nextUrl.pathname;
 
-	if (isPublicMarketingPathname(pathname)) {
+	if (isPublicPathname(pathname)) {
 		return NextResponse.next();
 	}
 
@@ -52,30 +75,24 @@ export async function updateSession(request: NextRequest) {
 		}
 	);
 
-	// Do not add logic between createServerClient and getUser — Supabase guidance.
 	const {
 		data: { user },
-	} = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
+	} = await supabase.auth.getUser().catch((error) => {
+		if (process.env.NODE_ENV === 'development') {
+			console.error('[Proxy] supabase.auth.getUser() failed:', error);
+		}
+		return { data: { user: null } };
+	});
 
-	const publicAuthRoutes = [
-		routes.login,
-		routes.register,
-		routes.forgotPassword,
-		routes.resetPassword,
-		'/auth',
-		'/signup',
-	];
-	const isPublicAuthRoute = publicAuthRoutes.some((route) =>
-		request.nextUrl.pathname.startsWith(route)
-	);
+	const onPublicAuthRoute = isPublicAuthRoutePathname(pathname);
 
-	if (!user && !isPublicAuthRoute) {
+	if (!user && !onPublicAuthRoute) {
 		const url = request.nextUrl.clone();
 		url.pathname = routes.login;
 		return NextResponse.redirect(url);
 	}
 
-	if (user && isPublicAuthRoute) {
+	if (user && onPublicAuthRoute) {
 		const url = request.nextUrl.clone();
 		url.pathname = routes.board;
 		return NextResponse.redirect(url);

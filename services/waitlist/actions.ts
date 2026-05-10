@@ -8,17 +8,25 @@ import {
 	subscribeToWaitlistSchema,
 } from './schemas';
 
-// In-memory IP-based rate limiter (best-effort; resets on serverless cold start).
-// Sized for waitlist abuse prevention, not strong DDoS protection.
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX_REQUESTS = 10;
+const RATE_LIMIT_CLEANUP_THRESHOLD = 1000;
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
 
-function checkRateLimit(ip: string): boolean {
+function pruneExpiredRateLimitEntries(now: number): void {
+	for (const [key, entry] of rateLimitStore) {
+		if (entry.resetAt < now) rateLimitStore.delete(key);
+	}
+}
+
+function isWithinRateLimit(clientKey: string): boolean {
 	const now = Date.now();
-	const entry = rateLimitStore.get(ip);
+	if (rateLimitStore.size > RATE_LIMIT_CLEANUP_THRESHOLD) {
+		pruneExpiredRateLimitEntries(now);
+	}
+	const entry = rateLimitStore.get(clientKey);
 	if (!entry || entry.resetAt < now) {
-		rateLimitStore.set(ip, {
+		rateLimitStore.set(clientKey, {
 			count: 1,
 			resetAt: now + RATE_LIMIT_WINDOW_MS,
 		});
@@ -29,10 +37,8 @@ function checkRateLimit(ip: string): boolean {
 	return true;
 }
 
-async function getClientIp(): Promise<string> {
+async function getTrustedClientIp(): Promise<string> {
 	const headersList = await headers();
-	const forwardedFor = headersList.get('x-forwarded-for');
-	if (forwardedFor) return forwardedFor.split(',')[0]?.trim() ?? 'unknown';
 	return headersList.get('x-real-ip') ?? 'unknown';
 }
 
@@ -41,8 +47,8 @@ export const subscribeToWaitlist = createAction<
 	{ email: string }
 >(
 	async ({ email, source }, { supabase }) => {
-		const ip = await getClientIp();
-		if (!checkRateLimit(ip)) {
+		const clientIp = await getTrustedClientIp();
+		if (!isWithinRateLimit(clientIp)) {
 			throw Object.assign(new Error('Too many requests, try again later'), {
 				code: 'RATE_LIMIT',
 			});
@@ -52,7 +58,6 @@ export const subscribeToWaitlist = createAction<
 			.from('waitlist_subscribers')
 			.insert({ email, source });
 
-		// Silently succeed for duplicate emails — don't leak whether email is already registered
 		if (error?.code === '23505') {
 			return { email };
 		}

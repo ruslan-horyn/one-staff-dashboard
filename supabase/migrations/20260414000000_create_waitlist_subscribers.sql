@@ -16,7 +16,7 @@ create table waitlist_subscribers (
   id          uuid primary key default gen_random_uuid(),
   email       varchar(255) not null unique
               check (email = lower(email))
-              check (email ~* '^[^@]+@[^@]+\.[^@]+$'),
+              check (email ~* '^[^@\s]+@[^@\s]+\.[^@\s]+$'),
   source      varchar(100),
   created_at  timestamptz not null default now()
 );

@@ -16,7 +16,7 @@ export default function LandingPage() {
 				<CtaSection />
 				<Footer />
 			</main>
-			<Script src="/landing-script.js" strategy="lazyOnload" />
+			<Script src="/landing-script.js" strategy="afterInteractive" />
 		</>
 	);
 }
