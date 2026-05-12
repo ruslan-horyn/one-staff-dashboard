@@ -122,7 +122,10 @@ export const AssignmentExpandedRow = ({
 
 	if (assignments.length === 0) {
 		return (
-			<p className="py-2 text-muted-foreground text-sm">
+			<p
+				className="py-2 text-muted-foreground text-sm"
+				data-testid="no-assignments-message"
+			>
 				No assignments for this worker.
 			</p>
 		);

@@ -65,7 +65,9 @@ test.describe('Board', () => {
 		testPositionName = `TestPos-${Date.now()}`;
 		await locationsPage.addPosition(testPositionName);
 		// Wait for position to appear
-		await expect(page.getByText(testPositionName)).toBeVisible({
+		await expect(
+			page.getByTestId('position-item').filter({ hasText: testPositionName })
+		).toBeVisible({
 			timeout: 10000,
 		});
 
@@ -141,8 +143,8 @@ test.describe('Board', () => {
 
 			// Assignment panel should be visible — either assignments or "No assignments" text
 			const assignmentPanel = await boardPage.waitForAssignmentPanel();
-			const noAssignments = boardPage.page.getByText(
-				/no assignments for this worker/i
+			const noAssignments = boardPage.page.getByTestId(
+				'no-assignments-message'
 			);
 
 			const panelVisible = await assignmentPanel.isVisible();

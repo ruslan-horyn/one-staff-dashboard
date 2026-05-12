@@ -1,5 +1,6 @@
 'use client';
 
+import type { Route } from 'next';
 import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
@@ -24,7 +25,7 @@ import { ErrorAlert } from './ErrorAlert';
 import { SuccessAlert } from './SuccessAlert';
 
 interface LoginFormProps {
-	redirectTo?: string;
+	redirectTo?: Route;
 	message?: string;
 	initialError?: string;
 	// Supabase native error params (when verification fails, Supabase redirects directly)

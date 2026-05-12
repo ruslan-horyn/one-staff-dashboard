@@ -85,6 +85,7 @@ export const PositionList = ({ workLocationId }: PositionListProps) => {
 						<div
 							key={position.id}
 							className="flex items-center gap-3 rounded-md border border-border bg-background px-3 py-2"
+							data-testid="position-item"
 						>
 							{editing?.type === 'edit' && editing.id === position.id ? (
 								<PositionFormInline
@@ -174,6 +175,7 @@ export const PositionList = ({ workLocationId }: PositionListProps) => {
 					onClick={() => setEditing({ type: 'add' })}
 					disabled={isPending}
 					className="w-full"
+					data-testid="add-position-button"
 				>
 					<PlusIcon className="mr-2 size-4" aria-hidden="true" />
 					Add Position

@@ -57,6 +57,7 @@ function DataTablePagination({
 		>
 			<div
 				data-slot="data-table-pagination-info"
+				data-testid="pagination-info"
 				className="text-muted-foreground text-sm"
 			>
 				Showing {startItem}-{endItem} of {totalItems} items
@@ -103,6 +104,7 @@ function DataTablePagination({
 							onClick={() => onPageChange(page - 1)}
 							disabled={!canGoPrevious}
 							aria-label="Go to previous page"
+							data-testid="pagination-previous"
 						>
 							<ChevronLeftIcon className="size-4" aria-hidden="true" />
 						</Button>
@@ -112,6 +114,7 @@ function DataTablePagination({
 							onClick={() => onPageChange(page + 1)}
 							disabled={!canGoNext}
 							aria-label="Go to next page"
+							data-testid="pagination-next"
 						>
 							<ChevronRightIcon className="size-4" aria-hidden="true" />
 						</Button>

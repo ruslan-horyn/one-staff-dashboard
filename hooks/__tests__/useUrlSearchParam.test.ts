@@ -53,12 +53,18 @@ describe('useUrlSearchParam', () => {
 	});
 
 	describe('setValue', () => {
-		it('updates value state', () => {
-			const { result } = renderHook(() => useUrlSearchParam('search'));
+		it('reflects URL value after navigation completes', () => {
+			const { result, rerender } = renderHook(() =>
+				useUrlSearchParam('search')
+			);
 
 			act(() => {
 				result.current.setValue('new-value');
 			});
+
+			// Simulate Next.js updating searchParams after router.replace navigates
+			mockSearchParams = new URLSearchParams('search=new-value');
+			rerender();
 
 			expect(result.current.value).toBe('new-value');
 		});
@@ -107,16 +113,22 @@ describe('useUrlSearchParam', () => {
 	});
 
 	describe('clearValue', () => {
-		it('clears value state', () => {
+		it('reflects empty value after navigation clears param', () => {
 			mockSearchParams = new URLSearchParams('search=existing');
 
-			const { result } = renderHook(() => useUrlSearchParam('search'));
+			const { result, rerender } = renderHook(() =>
+				useUrlSearchParam('search')
+			);
 
 			expect(result.current.value).toBe('existing');
 
 			act(() => {
 				result.current.clearValue();
 			});
+
+			// Simulate Next.js updating searchParams after router.replace navigates
+			mockSearchParams = new URLSearchParams();
+			rerender();
 
 			expect(result.current.value).toBe('');
 		});

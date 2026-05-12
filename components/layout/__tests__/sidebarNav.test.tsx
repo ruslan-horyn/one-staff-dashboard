@@ -16,7 +16,7 @@ vi.mock('@/hooks/useIsMobile', () => ({
 }));
 
 const testNavItems: NavItem[] = [
-	{ title: 'Home', href: '/', icon: Home },
+	{ title: 'Home', href: '/board', icon: Home },
 	{ title: 'Workers', href: '/workers', icon: Users },
 ];
 
@@ -52,7 +52,7 @@ describe('SidebarNav', () => {
 
 			expect(screen.getByRole('link', { name: /home/i })).toHaveAttribute(
 				'href',
-				'/'
+				'/board'
 			);
 			expect(screen.getByRole('link', { name: /workers/i })).toHaveAttribute(
 				'href',
@@ -76,8 +76,8 @@ describe('SidebarNav', () => {
 	});
 
 	describe('Active State', () => {
-		it('marks home link as active when pathname is /', () => {
-			mockPathname.mockReturnValue('/');
+		it('marks home link as active when pathname is /board', () => {
+			mockPathname.mockReturnValue('/board');
 			renderWithProvider(
 				<SidebarNav items={testNavItems} aria-label="Test navigation" />
 			);
@@ -140,7 +140,7 @@ describe('SidebarNav', () => {
 		});
 
 		it('uses aria-current for active page', () => {
-			mockPathname.mockReturnValue('/');
+			mockPathname.mockReturnValue('/board');
 			renderWithProvider(
 				<SidebarNav items={testNavItems} aria-label="Test navigation" />
 			);

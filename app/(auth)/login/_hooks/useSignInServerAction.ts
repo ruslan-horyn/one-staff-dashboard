@@ -1,15 +1,18 @@
+import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
 
 import { useServerAction } from '@/hooks/useServerAction';
+import { routes } from '@/lib/routes';
+import { isSafeInternalRedirect } from '@/lib/utils/safe-redirect';
 import { signIn } from '@/services/auth/actions';
 
 interface UseSignInServerActionOptions {
-	redirectTo?: string;
+	redirectTo?: Route;
 	onSuccess?: () => void;
 }
 
 export const useSignInServerAction = ({
-	redirectTo = '/',
+	redirectTo = routes.board,
 	onSuccess,
 }: UseSignInServerActionOptions = {}) => {
 	const router = useRouter();
@@ -17,7 +20,10 @@ export const useSignInServerAction = ({
 	return useServerAction(signIn, {
 		onSuccess: () => {
 			onSuccess?.();
-			router.push(redirectTo);
+			const safeTarget = isSafeInternalRedirect(redirectTo)
+				? redirectTo
+				: routes.board;
+			router.push(safeTarget);
 		},
 	});
 };

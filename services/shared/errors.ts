@@ -51,6 +51,8 @@ export const ErrorCodes = {
 	INTERNAL_ERROR: 'INTERNAL_ERROR',
 	/** Database operation failed unexpectedly */
 	DATABASE_ERROR: 'DATABASE_ERROR',
+	/** Too many requests in a given time window */
+	RATE_LIMIT: 'RATE_LIMIT',
 } as const;
 
 /** Type representing any valid error code */
@@ -176,12 +178,11 @@ export function mapSupabaseError(error: PostgrestError): ActionError {
 			);
 	}
 
-	// Log unexpected errors in development for debugging
 	if (process.env.NODE_ENV === 'development') {
 		console.error('[Supabase Error]', {
 			code: error.code,
-			message: error.message,
-			details: error.details,
+			message: redactEmailsFromMessage(error.message),
+			details: redactEmailsFromMessage(error.details),
 			hint: error.hint,
 		});
 	}
@@ -362,6 +363,16 @@ export function mapZodError(error: ZodError): ActionError {
 // ============================================================================
 // Helper Functions
 // ============================================================================
+
+function redactEmailsFromMessage<T extends string | null | undefined>(
+	value: T
+): T {
+	if (typeof value !== 'string') return value;
+	return value.replace(
+		/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g,
+		'[REDACTED_EMAIL]'
+	) as T;
+}
 
 /**
  * Extracts a user-friendly message for duplicate entry errors.

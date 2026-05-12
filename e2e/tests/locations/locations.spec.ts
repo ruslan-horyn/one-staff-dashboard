@@ -236,7 +236,7 @@ test.describe('Work Locations Management', () => {
 
 			await expect(locationsPage.deleteDialog).toBeVisible();
 			await expect(
-				locationsPage.deleteDialog.getByText(/are you sure/i)
+				locationsPage.deleteDialog.getByTestId('delete-confirmation-message')
 			).toBeVisible();
 		});
 
@@ -347,7 +347,7 @@ test.describe('Work Locations Management', () => {
 
 			// Position list should appear — "Add Position" button visible
 			await expect(
-				locationsPage.page.getByRole('button', { name: /add position/i })
+				locationsPage.page.getByTestId('add-position-button')
 			).toBeVisible({ timeout: 5000 });
 		});
 
@@ -374,7 +374,11 @@ test.describe('Work Locations Management', () => {
 
 			// Position should appear in the list
 			await locationsPage.waitForToast(/position created/i);
-			await expect(locationsPage.page.getByText(positionName)).toBeVisible({
+			await expect(
+				locationsPage.page
+					.getByTestId('position-item')
+					.filter({ hasText: positionName })
+			).toBeVisible({
 				timeout: 10000,
 			});
 		});

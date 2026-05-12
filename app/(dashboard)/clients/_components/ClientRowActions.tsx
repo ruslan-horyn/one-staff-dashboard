@@ -125,7 +125,7 @@ export const ClientRowActions = ({ client }: { client: Client }) => {
 				<AlertDialogContent onCloseAutoFocus={deleteFocus.onCloseAutoFocus}>
 					<AlertDialogHeader>
 						<AlertDialogTitle>Delete Client</AlertDialogTitle>
-						<AlertDialogDescription>
+						<AlertDialogDescription data-testid="delete-confirmation-message">
 							Are you sure you want to delete <strong>{client.name}</strong>?
 							This action cannot be undone.
 						</AlertDialogDescription>

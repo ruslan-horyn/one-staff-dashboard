@@ -6,21 +6,24 @@ import {
 	UserCog,
 	Users,
 } from 'lucide-react';
+import type { Route } from 'next';
+
+import { routes } from '@/lib/routes';
 
 export interface NavItem {
 	title: string;
-	href: string;
+	href: Route;
 	icon: React.ComponentType<{ className?: string }>;
 }
 
 export const mainNavItems: NavItem[] = [
-	{ title: 'Board', href: '/', icon: Home },
-	{ title: 'Workers', href: '/workers', icon: Users },
-	{ title: 'Reports', href: '/reports', icon: BarChart3 },
+	{ title: 'Board', href: routes.board, icon: Home },
+	{ title: 'Workers', href: routes.workers, icon: Users },
+	{ title: 'Reports', href: routes.reports, icon: BarChart3 },
 ];
 
 export const adminNavItems: NavItem[] = [
-	{ title: 'Clients', href: '/clients', icon: Building2 },
-	{ title: 'Locations', href: '/locations', icon: MapPin },
-	{ title: 'Users', href: '/users', icon: UserCog },
+	{ title: 'Clients', href: routes.clients, icon: Building2 },
+	{ title: 'Locations', href: routes.locations, icon: MapPin },
+	{ title: 'Users', href: routes.users, icon: UserCog },
 ];

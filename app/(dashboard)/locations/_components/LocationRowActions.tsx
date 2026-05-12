@@ -130,7 +130,7 @@ export const LocationRowActions = ({ location }: LocationRowActionsProps) => {
 				<AlertDialogContent onCloseAutoFocus={deleteFocus.onCloseAutoFocus}>
 					<AlertDialogHeader>
 						<AlertDialogTitle>Delete Work Location</AlertDialogTitle>
-						<AlertDialogDescription>
+						<AlertDialogDescription data-testid="delete-confirmation-message">
 							Are you sure you want to delete <strong>{location.name}</strong>?
 							This action cannot be undone.
 						</AlertDialogDescription>

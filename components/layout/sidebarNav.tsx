@@ -18,12 +18,8 @@ interface SidebarNavProps extends ComponentProps<'nav'> {
 export const SidebarNav = ({ items, ...navProps }: SidebarNavProps) => {
 	const pathname = usePathname();
 
-	const isActive = (href: string) => {
-		if (href === '/') {
-			return pathname === '/';
-		}
-		return pathname.startsWith(href);
-	};
+	const isActivePathName = (href: string) =>
+		pathname === href || pathname.startsWith(`${href}/`);
 
 	return (
 		<nav {...navProps}>
@@ -32,12 +28,12 @@ export const SidebarNav = ({ items, ...navProps }: SidebarNavProps) => {
 					<SidebarMenuItem key={item.href}>
 						<SidebarMenuButton
 							asChild
-							isActive={isActive(item.href)}
+							isActive={isActivePathName(item.href)}
 							tooltip={item.title}
 						>
 							<Link
 								href={item.href}
-								aria-current={isActive(item.href) ? 'page' : undefined}
+								aria-current={isActivePathName(item.href) ? 'page' : undefined}
 							>
 								<item.icon className="size-4" />
 								<span>{item.title}</span>

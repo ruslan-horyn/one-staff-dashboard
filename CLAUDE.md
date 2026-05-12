@@ -311,6 +311,7 @@ Available error codes from `ErrorCodes`:
 | `HAS_DEPENDENCIES` | Cannot delete (foreign key) |
 | `DATABASE_ERROR` | Unexpected database error |
 | `INTERNAL_ERROR` | Unexpected application error |
+| `RATE_LIMIT` | Too many requests in a given time window |
 
 ### Pagination Helpers
 

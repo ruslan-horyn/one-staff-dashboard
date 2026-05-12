@@ -42,7 +42,7 @@ export class LocationsPage extends CrudPage {
 	}
 
 	getExpandButton(locationName: string): Locator {
-		return this.getRow(locationName).getByRole('button', { name: /expand/i });
+		return this.getRow(locationName).getByTestId('expand-row-button');
 	}
 
 	async expandRow(locationName: string): Promise<void> {
@@ -50,7 +50,7 @@ export class LocationsPage extends CrudPage {
 	}
 
 	async addPosition(positionName: string): Promise<void> {
-		const addBtn = this.page.getByRole('button', { name: /add position/i });
+		const addBtn = this.page.getByTestId('add-position-button');
 		await addBtn.click();
 		await this.page.getByTestId('position-name-input').fill(positionName);
 		await this.page.getByTestId('save-position').click();

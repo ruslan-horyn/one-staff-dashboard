@@ -1,5 +1,6 @@
 'use client';
 
+import type { Route } from 'next';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
@@ -30,7 +31,7 @@ export const AuthToastHandler = () => {
 			const params = new URLSearchParams(searchParams.toString());
 			params.delete('message');
 			const newUrl = params.toString() ? `${pathname}?${params}` : pathname;
-			router.replace(newUrl, { scroll: false });
+			router.replace(newUrl as Route, { scroll: false });
 		}
 	}, [searchParams, router, pathname]);
 

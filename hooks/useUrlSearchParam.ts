@@ -1,7 +1,8 @@
 'use client';
 
+import type { Route } from 'next';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback } from 'react';
 
 export interface UseUrlSearchParamOptions {
 	/** Default value when param is not in URL */
@@ -11,7 +12,7 @@ export interface UseUrlSearchParamOptions {
 }
 
 export interface UseUrlSearchParamReturn {
-	/** Current value from URL or state */
+	/** Current value from URL */
 	value: string;
 	/** Update the URL param value */
 	setValue: (value: string) => void;
@@ -19,17 +20,6 @@ export interface UseUrlSearchParamReturn {
 	clearValue: () => void;
 }
 
-/**
- * Hook for syncing state with a URL search parameter.
- *
- * @example
- * // Basic usage
- * const { value, setValue, clearValue } = useUrlSearchParam('search');
- *
- * @example
- * // With default value
- * const { value, setValue } = useUrlSearchParam('filter', { defaultValue: 'all' });
- */
 export function useUrlSearchParam(
 	param: string,
 	options: UseUrlSearchParamOptions = {}
@@ -40,19 +30,11 @@ export function useUrlSearchParam(
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
 
-	// Get initial value from URL
-	const urlValue = searchParams.get(param) ?? defaultValue;
+	// URL is the single source of truth — no local state needed
+	const value = searchParams.get(param) ?? defaultValue;
 
-	const [value, setValue] = useState(urlValue);
-
-	// Track internal changes to avoid sync loops
-	const isInternalChangeRef = useRef(false);
-
-	// Update URL with new value
 	const updateUrl = useCallback(
 		(newValue: string) => {
-			isInternalChangeRef.current = true;
-
 			const params = new URLSearchParams(searchParams.toString());
 
 			if (newValue) {
@@ -65,45 +47,20 @@ export function useUrlSearchParam(
 			const newUrl = `${pathname}${query ? `?${query}` : ''}`;
 
 			if (replace) {
-				router.replace(newUrl);
+				router.replace(newUrl as Route);
 			} else {
-				router.push(newUrl);
+				router.push(newUrl as Route);
 			}
 		},
 		[param, pathname, searchParams, replace, router]
 	);
 
-	// Public setValue that updates both state and URL
-	const setValueAndUrl = useCallback(
-		(newValue: string) => {
-			setValue(newValue);
-			updateUrl(newValue);
-		},
+	const setValue = useCallback(
+		(newValue: string) => updateUrl(newValue),
 		[updateUrl]
 	);
 
-	// Clear value (remove from URL)
-	const clearValue = useCallback(() => {
-		setValue('');
-		updateUrl('');
-	}, [updateUrl]);
+	const clearValue = useCallback(() => updateUrl(''), [updateUrl]);
 
-	// Sync with URL changes from browser navigation (back/forward)
-	useEffect(() => {
-		if (isInternalChangeRef.current) {
-			isInternalChangeRef.current = false;
-			return;
-		}
-
-		const currentUrlValue = searchParams.get(param) ?? defaultValue;
-		if (currentUrlValue !== value) {
-			setValue(currentUrlValue);
-		}
-	}, [searchParams, param, defaultValue, value]);
-
-	return {
-		value,
-		setValue: setValueAndUrl,
-		clearValue,
-	};
+	return { value, setValue, clearValue };
 }

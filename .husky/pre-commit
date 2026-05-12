@@ -1,5 +1,19 @@
-pnpm lint
+#!/usr/bin/env sh
+set -e
 
-# Run tests with coverage for staged files only
+currentBranch=$(git symbolic-ref --short HEAD 2>/dev/null || echo "")
+
+if [ -z "$currentBranch" ]; then
+  echo "Cannot detect current branch (detached HEAD?). Aborting commit."
+  exit 1
+fi
+
+if [ "$currentBranch" = "main" ] && [ "$FORCE_MAIN_COMMIT" != "1" ]; then
+  echo "Direct commits to main are blocked. Use a feature branch and open a PR."
+  echo "To force: FORCE_MAIN_COMMIT=1 git commit ..."
+  exit 1
+fi
+
+pnpm lint
 
 ./scripts/test-changed-coverage.sh

@@ -1,10 +1,12 @@
 import { expect, test } from '@playwright/test';
+import { routes } from '@/lib/routes';
 import { LoginPage } from '../../page-objects';
 import {
 	invalidCredentials,
 	testUser,
 	validationTestData,
 } from '../../setup/test-data';
+import { escapeRegExp } from '../../utils/regex';
 
 /**
  * Login Flow E2E Tests (US-002)
@@ -57,10 +59,12 @@ test.describe('Login Page', () => {
 			await loginPage.login(testUser.email, testUser.password);
 
 			// Wait for redirect to home (dashboard)
-			await expect(page).toHaveURL(/^http:\/\/localhost:5100\/?$/);
+			await expect(page).toHaveURL(
+				new RegExp(`${escapeRegExp(routes.board)}$`)
+			);
 
 			// Verify we're no longer on the login page and see the dashboard heading
-			await expect(page.getByRole('heading', { name: 'Board' })).toBeVisible();
+			await expect(page.getByTestId('board-heading')).toBeVisible();
 		});
 
 		test('should show loading state during submission', async ({ page }) => {
@@ -71,7 +75,9 @@ test.describe('Login Page', () => {
 			await loginPage.submitButton.click();
 
 			// Verify redirect happens (login was successful)
-			await expect(page).toHaveURL(/^http:\/\/localhost:5100\/?$/);
+			await expect(page).toHaveURL(
+				new RegExp(`${escapeRegExp(routes.board)}$`)
+			);
 		});
 	});
 
@@ -137,7 +143,9 @@ test.describe('Login Page', () => {
 			await page.keyboard.press('Enter');
 
 			// Should attempt login (redirect to dashboard or show error)
-			await expect(page).toHaveURL(/^http:\/\/localhost:5100\/?$/);
+			await expect(page).toHaveURL(
+				new RegExp(`${escapeRegExp(routes.board)}$`)
+			);
 		});
 
 		test('should toggle password visibility', async () => {
@@ -224,10 +232,10 @@ test.describe('Login Redirect Behavior', () => {
 		await loginPage.loginAndWaitForRedirect(testUser.email, testUser.password);
 
 		// Try to access login page again
-		await page.goto('/login');
+		await page.goto(routes.login);
 
 		// Should be redirected to dashboard
-		await expect(page).toHaveURL(/^http:\/\/localhost:5100\/?$/);
+		await expect(page).toHaveURL(new RegExp(`${escapeRegExp(routes.board)}$`));
 	});
 });
 
@@ -371,7 +379,9 @@ test.describe('Auth Flow Messages', () => {
 
 			// Should redirect to dashboard (URL should not contain /login)
 			await page.waitForURL((url) => !url.pathname.includes('/login'));
-			await expect(page).toHaveURL(/^http:\/\/localhost:5100\/?$/);
+			await expect(page).toHaveURL(
+				new RegExp(`${escapeRegExp(routes.board)}$`)
+			);
 		});
 
 		test('should allow login after seeing error message', async ({ page }) => {
@@ -386,7 +396,9 @@ test.describe('Auth Flow Messages', () => {
 
 			// Should redirect to dashboard (URL should not contain /login)
 			await page.waitForURL((url) => !url.pathname.includes('/login'));
-			await expect(page).toHaveURL(/^http:\/\/localhost:5100\/?$/);
+			await expect(page).toHaveURL(
+				new RegExp(`${escapeRegExp(routes.board)}$`)
+			);
 		});
 	});
 });

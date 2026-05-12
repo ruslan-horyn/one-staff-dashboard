@@ -107,6 +107,7 @@ function ExpandButton({ isExpanded, onToggle }: ExpandButtonProps) {
 			className="rounded p-1 hover:bg-muted"
 			aria-expanded={isExpanded}
 			aria-label={isExpanded ? 'Collapse row' : 'Expand row'}
+			data-testid="expand-row-button"
 		>
 			{isExpanded ? (
 				<ChevronDownIcon className="size-4" aria-hidden="true" />

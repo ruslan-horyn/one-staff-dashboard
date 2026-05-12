@@ -100,7 +100,7 @@ export class ClientsPage extends CrudPage {
 	// --- Extra UI helpers retained from original ---
 
 	async closeFormDialogWithXButton(): Promise<void> {
-		const closeButton = this.formDialog.getByRole('button', { name: /close/i });
+		const closeButton = this.formDialog.getByTestId('dialog-close-button');
 		await closeButton.click();
 		await this.formDialog.waitFor({ state: 'hidden' });
 	}
@@ -121,25 +121,25 @@ export class ClientsPage extends CrudPage {
 	}
 
 	async getPaginationInfo(): Promise<string | null> {
-		return this.page.getByText(/Page \d+ of \d+/).textContent();
+		return this.page.getByTestId('pagination-info').textContent();
 	}
 
 	async goToNextPage(): Promise<void> {
-		await this.page.getByRole('button', { name: /next/i }).click();
+		await this.page.getByTestId('pagination-next').click();
 		await this.waitForTableLoad();
 	}
 
 	async goToPreviousPage(): Promise<void> {
-		await this.page.getByRole('button', { name: /previous/i }).click();
+		await this.page.getByTestId('pagination-previous').click();
 		await this.waitForTableLoad();
 	}
 
 	async isNextPageEnabled(): Promise<boolean> {
-		return this.page.getByRole('button', { name: /next/i }).isEnabled();
+		return this.page.getByTestId('pagination-next').isEnabled();
 	}
 
 	async isPreviousPageEnabled(): Promise<boolean> {
-		return this.page.getByRole('button', { name: /previous/i }).isEnabled();
+		return this.page.getByTestId('pagination-previous').isEnabled();
 	}
 
 	async getClientNames(): Promise<string[]> {

@@ -1,4 +1,5 @@
 import type { Locator, Page } from '@playwright/test';
+import { routes } from '@/lib/routes';
 import { BasePage } from './base.page';
 
 /**
@@ -21,7 +22,7 @@ export class DashboardPage extends BasePage {
 	 * Navigate to the dashboard (home page)
 	 */
 	async goto(): Promise<void> {
-		await this.page.goto('/');
+		await this.page.goto(routes.board);
 	}
 
 	/**

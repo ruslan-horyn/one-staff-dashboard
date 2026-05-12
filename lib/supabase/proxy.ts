@@ -3,18 +3,55 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 import type { Database } from '@/types/database';
 import { env } from '../env';
+import { routes } from '../routes';
 
-/**
- * Updates the Supabase session by refreshing the auth token.
- * This function should be called in the proxy to keep sessions alive.
- *
- * What it does:
- * 1. Creates a Supabase client with cookie access from the request
- * 2. Calls getUser() to validate and refresh the JWT token
- * 3. Redirects unauthenticated users to /login for protected routes
- * 4. Returns response with updated cookies
- */
+const PUBLIC_MARKETING_PATHS = new Set<string>([routes.home, routes.privacy]);
+const PUBLIC_STATIC_PATHS = new Set<string>([
+	'/favicon.ico',
+	'/landing-script.js',
+]);
+
+function normalizePathname(pathname: string): string {
+	try {
+		return new URL(pathname, 'http://x').pathname;
+	} catch {
+		return pathname;
+	}
+}
+
+function isPublicMarketingDataPathname(pathname: string): boolean {
+	return /^\/_next\/data\/[^/]+\/(index|privacy)\.json$/.test(pathname);
+}
+
+export function isPublicPathname(pathname: string): boolean {
+	const normalized = normalizePathname(pathname);
+	if (PUBLIC_MARKETING_PATHS.has(normalized)) return true;
+	if (PUBLIC_STATIC_PATHS.has(normalized)) return true;
+	if (isPublicMarketingDataPathname(normalized)) return true;
+	return false;
+}
+
+function isPublicAuthRoutePathname(pathname: string): boolean {
+	const publicAuthRoutes = [
+		routes.login,
+		routes.register,
+		routes.forgotPassword,
+		routes.resetPassword,
+		'/auth',
+		'/signup',
+	];
+	return publicAuthRoutes.some(
+		(route) => pathname === route || pathname.startsWith(`${route}/`)
+	);
+}
+
 export async function updateSession(request: NextRequest) {
+	const pathname = request.nextUrl.pathname;
+
+	if (isPublicPathname(pathname)) {
+		return NextResponse.next();
+	}
+
 	let supabaseResponse = NextResponse.next({ request });
 
 	const supabase = createServerClient<Database>(
@@ -38,36 +75,26 @@ export async function updateSession(request: NextRequest) {
 		}
 	);
 
-	// IMPORTANT: Do not add logic between createServerClient and getUser()
-	// A simple mistake could make it hard to debug random logouts
 	const {
 		data: { user },
-	} = await supabase.auth.getUser();
+	} = await supabase.auth.getUser().catch((error) => {
+		if (process.env.NODE_ENV === 'development') {
+			console.error('[Proxy] supabase.auth.getUser() failed:', error);
+		}
+		return { data: { user: null } };
+	});
 
-	// Define public routes that don't require authentication
-	const publicRoutes = [
-		'/login',
-		'/register',
-		'/auth',
-		'/signup',
-		'/forgot-password',
-		'/reset-password',
-	];
-	const isPublicRoute = publicRoutes.some((route) =>
-		request.nextUrl.pathname.startsWith(route)
-	);
+	const onPublicAuthRoute = isPublicAuthRoutePathname(pathname);
 
-	// Redirect to login if user is not authenticated and route is protected
-	if (!user && !isPublicRoute) {
+	if (!user && !onPublicAuthRoute) {
 		const url = request.nextUrl.clone();
-		url.pathname = '/login';
+		url.pathname = routes.login;
 		return NextResponse.redirect(url);
 	}
 
-	// Redirect authenticated users away from auth pages
-	if (user && isPublicRoute) {
+	if (user && onPublicAuthRoute) {
 		const url = request.nextUrl.clone();
-		url.pathname = '/';
+		url.pathname = routes.board;
 		return NextResponse.redirect(url);
 	}
 
